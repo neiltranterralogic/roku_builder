@@ -6,7 +6,7 @@ require "faraday/digestauth"
 
 class RokuKeyer
 
-  def initialize(ip, user, password)
+  def initialize(ip:, user:, password:)
     $roku_ip_address = ip
     $dev_username = user
     $dev_password = password

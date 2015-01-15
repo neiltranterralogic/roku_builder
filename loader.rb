@@ -9,15 +9,16 @@ require "faraday/digestauth"
 
 class RokuLoader
 
-  def initialize(ip, user, password, root_dir)
+  def initialize(ip:, user:, password:)
     $roku_ip_address = ip
     $dev_username = user
     $dev_password = password
-    $root_dir = root_dir
+    $url = "http://#{$roku_ip_address}"
   end
 
   # side load to roku device with curl
-  def sideload
+  def sideload(root_dir:)
+    $root_dir = root_dir
 
     folders = ['resources', 'source']
     files = ['manifest']
@@ -39,7 +40,6 @@ class RokuLoader
 
     io.close()
 
-    url = "http://#{$roku_ip_address}"
     path = "/plugin_install"
 
     conn = Faraday.new(url: url) do |f|
