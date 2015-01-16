@@ -1,15 +1,16 @@
 
 $config = {
-  ip: "", # Add device IP
-  user: "", # Add device username
-  password: "", # Add device password
-}
-
-$sideload_config = {
-  root_dir: "" # Add path to app to be sideloaded
-}
-
-$rekey_config = {
-  keyed_pkg: "", # Add path to signed package
-  password: "" # Add password for package above
+  device_info: {
+    ip: "192.168.1.127",
+    user: "rokudev",
+    password: "aaaa"
+  },
+  repo_dir: "", # path to app repository
+  dev_key: {
+    keyed_pkg: "", # path to signed pkg
+    password: "" # password for pkg
+  },
+  production_branch: "production",
+  staging_branch: "staging",
+  testing_branch: "unit_tests"
 }

@@ -17,7 +17,7 @@ module RokuBuilder
         pkg_time: Time.now.to_i
       }
       response = conn.post path, payload
-      
+
       failed = /(Failed: [^\.]*\.)/.match(response.body)
       return failed[1] if failed
 
