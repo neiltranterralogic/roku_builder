@@ -6,11 +6,21 @@ $config = {
     password: "aaaa"
   },
   repo_dir: "", # path to app repository
-  dev_key: {
-    keyed_pkg: "", # path to signed pkg
-    password: "" # password for pkg
+  production: {
+    branch: "production",
+    key: {
+      keyed_pkg: "", # path to signed pkg
+      password: "" # password for pkg
+    }
   },
-  production_branch: "production",
-  staging_branch: "staging",
-  testing_branch: "unit_tests"
+  staging: {
+    branch: "staging",
+    key: {
+      keyed_pkg: "", # path to signed pkg
+      password: "" # password for pkg
+    }
+  },
+  testing: {
+    branch: "unit_tests",
+  }
 }

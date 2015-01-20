@@ -8,6 +8,7 @@ require "faraday/digestauth"
 require "fileutils"
 require "tempfile"
 require "zip"
+require "git"
 
 require "roku_builder/util"
 require "roku_builder/keyer"

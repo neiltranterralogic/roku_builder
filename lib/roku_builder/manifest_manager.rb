@@ -24,7 +24,7 @@ module RokuBuilder
                 #Use current date.
                 build_version = Time.now.strftime("%m%d%y")+".1"
               end
-              temp_file.puts "build_version=#{build_version}" 
+              temp_file.puts "build_version=#{build_version}"
 
             elsif line.include?("title=") and not line.include?("subtitle=")
 

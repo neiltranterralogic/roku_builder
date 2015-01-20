@@ -9,6 +9,7 @@ module RokuBuilder
     #  +boolean+:: true for install success, false otherwise
     def sideload(root_dir:, branch:)
       $root_dir = root_dir
+      git = Git.open($root_dir)
       current_branch = git.current_branch
       if git.is_branch?(branch)
         git.checkout(branch)
