@@ -1,49 +1,55 @@
 module RokuBuilder
   class Loader < Util
 
-    def sideload(root_dir:)
+    def sideload(root_dir:, branch:)
       $root_dir = root_dir
+      current_branch = git.current_branch
+      if git.is_branch?(branch)
+        git.checkout(branch)
 
-      folders = ['resources', 'source']
-      files = ['manifest']
-      file = Tempfile.new('pkg')
-      outfile = "#{file.path}.zip"
-      file.unlink
+        folders = ['resources', 'source']
+        files = ['manifest']
+        file = Tempfile.new('pkg')
+        outfile = "#{file.path}.zip"
+        file.unlink
 
-      io = Zip::File.open(outfile, Zip::File::CREATE)
+        io = Zip::File.open(outfile, Zip::File::CREATE)
 
-      folders.each do |folder|
-        base_folder = File.join($root_dir, folder)
-        entries = Dir.entries(base_folder)
-        entries.delete(".")
-        entries.delete("..")
-        writeEntries($root_dir, entries, folder, io)
+        folders.each do |folder|
+          base_folder = File.join($root_dir, folder)
+          entries = Dir.entries(base_folder)
+          entries.delete(".")
+          entries.delete("..")
+          writeEntries($root_dir, entries, folder, io)
+        end
+
+        writeEntries($root_dir, files, "", io)
+
+        io.close()
+
+        path = "/plugin_install"
+
+        conn = Faraday.new(url: $url) do |f|
+          f.request :digest, $dev_username, $dev_password
+          f.request :multipart
+          f.request :url_encoded
+          f.adapter Faraday.default_adapter
+        end
+        payload =  {
+          mysubmit: "Replace",
+          archive: Faraday::UploadIO.new(outfile, 'application/zip')
+        }
+        response = conn.post path, payload
+
+        File.delete(outfile)
+        git.checkout(current_branch)
+
+        if response.status == 200 and response.body =~ /Install Success/
+          return true
+        end
+      else
+        puts "FATAL: Branch missing or misconfigured"
       end
-
-      writeEntries($root_dir, files, "", io)
-
-      io.close()
-
-      path = "/plugin_install"
-
-      conn = Faraday.new(url: $url) do |f|
-        f.request :digest, $dev_username, $dev_password
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
-      payload =  {
-        mysubmit: "Replace",
-        archive: Faraday::UploadIO.new(outfile, 'application/zip')
-      }
-      response = conn.post path, payload
-
-      File.delete(outfile)
-
-      if response.status == 200 and response.body =~ /Install Success/
-        return true
-      end
-
       return false
     end
 
