@@ -1,9 +1,16 @@
 module RokuBuilder
   class Keyer < Util
 
+    # Sets the key on the roku device
+    # Params:
+    # +keyed_pkg+:: a package that has be keyed with the desired key
+    # +password+:: password for the desired key
+    # Returns:
+    # +boolean+:: true if key changed, false otherwise
     def rekey(keyed_pkg:, password:)
       oldId = dev_id
 
+      # upload new key with password
       path = "/plugin_inspect"
       conn = Faraday.new(url: $url) do |f|
         f.request :digest, $dev_username, $dev_password
@@ -18,11 +25,12 @@ module RokuBuilder
       }
       response = conn.post path, payload
 
+      # check key
       newId = dev_id
-
       newId != oldId
     end
 
+    # get the current developer id
     def dev_id
       path = "/plugin_package"
       conn = Faraday.new(url: $url) do |f|

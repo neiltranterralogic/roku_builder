@@ -1,6 +1,12 @@
 module RokuBuilder
   class Loader < Util
 
+    # Sideload an app onto a roku device
+    # Params:
+    #  +root_dir+:: root directory of the roku app
+    #  +branch+:: branch of the git repository to sideload
+    #  Returns:
+    #  +boolean+:: true for install success, false otherwise
     def sideload(root_dir:, branch:)
       $root_dir = root_dir
       current_branch = git.current_branch
@@ -15,6 +21,7 @@ module RokuBuilder
 
         io = Zip::File.open(outfile, Zip::File::CREATE)
 
+        # Add folders to zip
         folders.each do |folder|
           base_folder = File.join($root_dir, folder)
           entries = Dir.entries(base_folder)
@@ -23,12 +30,14 @@ module RokuBuilder
           writeEntries($root_dir, entries, folder, io)
         end
 
+        # Add file to zip
         writeEntries($root_dir, files, "", io)
 
         io.close()
 
         path = "/plugin_install"
 
+        # Connect to roku and upload file
         conn = Faraday.new(url: $url) do |f|
           f.request :digest, $dev_username, $dev_password
           f.request :multipart
@@ -41,6 +50,7 @@ module RokuBuilder
         }
         response = conn.post path, payload
 
+        # Cleanup
         File.delete(outfile)
         git.checkout(current_branch)
 
@@ -55,6 +65,7 @@ module RokuBuilder
 
     private
 
+    # Recursively write folders to a zip archive
     def writeEntries(root_dir, entries, path, io)
       entries.each { |e|
         zipFilePath = path == "" ? e : File.join(path, e)
