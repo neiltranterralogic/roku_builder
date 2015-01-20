@@ -6,13 +6,19 @@ module RokuBuilder
     #  +root_dir+:: root directory of the roku app
     #  +branch+:: branch of the git repository to sideload
     #  Returns:
-    #  +boolean+:: true for install success, false otherwise
-    def sideload(root_dir:, branch:)
+    #  +string+:: build version or 'intermediate' on success, nil otherwise
+    def sideload(root_dir:, branch:, update_manifest:)
       $root_dir = root_dir
       git = Git.open($root_dir)
       current_branch = git.current_branch
       if git.is_branch?(branch)
         git.checkout(branch)
+
+        # Update manifest
+        build_version = "intermediate"
+        if update_manifest
+          build_version = ManifestManager.update_build(root_dir: root_dir)
+        end
 
         folders = ['resources', 'source']
         files = ['manifest']
@@ -56,12 +62,12 @@ module RokuBuilder
         git.checkout(current_branch)
 
         if response.status == 200 and response.body =~ /Install Success/
-          return true
+          return build_version
         end
       else
         puts "FATAL: Branch missing or misconfigured"
       end
-      return false
+      return nil
     end
 
     private

@@ -1,12 +1,17 @@
 module RokuBuilder
   class ManifestManager
 
-    #update manifest version.
-    def self.update_build(path)
+    # Updates the manifest file
+    # Params:
+    # +root_dir+:: Root directory that contains the manifest
+    # Returns:
+    # +string+:: Build version on success, empty string otherwise
+    def self.update_build(root_dir:)
 
       build_version = ""
 
       temp_file = Tempfile.new('manifest')
+      path = File.join(root_dir, 'manifest')
       begin
         File.open(path, 'r') do |file|
           file.each_line do |line|
@@ -48,6 +53,7 @@ module RokuBuilder
         temp_file.close
         temp_file.unlink
       end
+      build_version
     end
   end
 end
