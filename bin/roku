@@ -30,6 +30,10 @@ OptionParser.new do |opts|
     options[:deeplink] = d
   end
 
+  opts.on("-C", "--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.rb'") do |c|
+    options[:configure] = c
+  end
+
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
@@ -66,6 +70,7 @@ commands += 1 if options[:sideload]
 commands += 1 if options[:package]
 commands += 1 if options[:test]
 commands += 1 if options[:deeplink]
+commands += 1 if options[:configure]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -74,6 +79,13 @@ end
 if commands < 1
   puts "A command is required"
   abort
+end
+
+if options[:configure]
+  ### Copy Config File ###
+  FileUtils.copy(File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.rb.example')),
+    File.expand_path(options[:config]))
+  exit
 end
 
 # load config
