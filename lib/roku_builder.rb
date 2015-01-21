@@ -1,4 +1,3 @@
-require "bundler"
 #keyer
 require "faraday"
 require "faraday/digestauth"

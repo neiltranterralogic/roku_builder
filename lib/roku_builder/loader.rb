@@ -11,63 +11,63 @@ module RokuBuilder
       $root_dir = root_dir
       git = Git.open($root_dir)
       current_branch = git.current_branch
-      if git.is_branch?(branch)
+      begin
         git.checkout(branch)
-
-        # Update manifest
-        build_version = "intermediate"
-        if update_manifest
-          build_version = ManifestManager.update_build(root_dir: root_dir)
-        end
-
-        folders = ['resources', 'source']
-        files = ['manifest']
-        file = Tempfile.new('pkg')
-        outfile = "#{file.path}.zip"
-        file.unlink
-
-        io = Zip::File.open(outfile, Zip::File::CREATE)
-
-        # Add folders to zip
-        folders.each do |folder|
-          base_folder = File.join($root_dir, folder)
-          entries = Dir.entries(base_folder)
-          entries.delete(".")
-          entries.delete("..")
-          writeEntries($root_dir, entries, folder, io)
-        end
-
-        # Add file to zip
-        writeEntries($root_dir, files, "", io)
-
-        io.close()
-
-        path = "/plugin_install"
-
-        # Connect to roku and upload file
-        conn = Faraday.new(url: $url) do |f|
-          f.request :digest, $dev_username, $dev_password
-          f.request :multipart
-          f.request :url_encoded
-          f.adapter Faraday.default_adapter
-        end
-        payload =  {
-          mysubmit: "Replace",
-          archive: Faraday::UploadIO.new(outfile, 'application/zip')
-        }
-        response = conn.post path, payload
-
-        # Cleanup
-        File.delete(outfile)
-        git.checkout(current_branch)
-
-        if response.status == 200 and response.body =~ /Install Success/
-          return build_version
-        end
-      else
+      rescue Git::GitExecuteError
         puts "FATAL: Branch missing or misconfigured"
+        return nil
       end
-      return nil
+
+      # Update manifest
+      build_version = "intermediate"
+      if update_manifest
+        build_version = ManifestManager.update_build(root_dir: root_dir)
+      end
+
+      folders = ['resources', 'source']
+      files = ['manifest']
+      file = Tempfile.new('pkg')
+      outfile = "#{file.path}.zip"
+      file.unlink
+
+      io = Zip::File.open(outfile, Zip::File::CREATE)
+
+      # Add folders to zip
+      folders.each do |folder|
+        base_folder = File.join($root_dir, folder)
+        entries = Dir.entries(base_folder)
+        entries.delete(".")
+        entries.delete("..")
+        writeEntries($root_dir, entries, folder, io)
+      end
+
+      # Add file to zip
+      writeEntries($root_dir, files, "", io)
+
+      io.close()
+
+      path = "/plugin_install"
+
+      # Connect to roku and upload file
+      conn = Faraday.new(url: $url) do |f|
+        f.request :digest, $dev_username, $dev_password
+        f.request :multipart
+        f.request :url_encoded
+        f.adapter Faraday.default_adapter
+      end
+      payload =  {
+        mysubmit: "Replace",
+        archive: Faraday::UploadIO.new(outfile, 'application/zip')
+      }
+      response = conn.post path, payload
+
+      # Cleanup
+      File.delete(outfile)
+      git.checkout(current_branch)
+
+      if response.status == 200 and response.body =~ /Install Success/
+        return build_version
+      end
     end
 
     private

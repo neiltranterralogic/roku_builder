@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), "lib")
+$:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require "byebug"
 require "roku_builder"
@@ -28,6 +28,10 @@ OptionParser.new do |opts|
 
   opts.on("-d", "--deaplink", "Command: Deeplink into app. Requires mgid and type options.") do |d|
     options[:deeplink] = d
+  end
+
+  opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
+    options[:ref] = r
   end
 
   opts.on("-s", "--stage STAGE", "Set the stage to use. Default: 'production'") do |b|
@@ -92,6 +96,9 @@ sideload_config = {
 if options[:sideload]
   ### Sideload App ###
   loader = RokuBuilder::Loader.new(**device_config)
+  if options[:ref]
+    sideload_config[:branch] = options[:ref]
+  end
   success = loader.sideload(**sideload_config)
   puts "FATAL: Failed to sideload app" unless success
 elsif options[:package]
