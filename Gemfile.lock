@@ -1,3 +1,12 @@
+PATH
+  remote: .
+  specs:
+    roku_builder (0.0.1)
+      faraday (~> 0.9)
+      faraday-digestauth (~> 0.2)
+      git (~> 1.2.9)
+      rubyzip (~> 1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -15,6 +24,7 @@ GEM
     git (1.2.9.1)
     multipart-post (2.0.0)
     net-http-digest_auth (1.4)
+    rake (10.4.2)
     rubyzip (1.1.6)
     slop (3.6.0)
 
@@ -22,8 +32,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  byebug
-  faraday
-  faraday-digestauth
-  git
-  rubyzip
+  bundler (~> 1.7)
+  byebug (~> 3.5)
+  rake (~> 10.0)
+  roku_builder!

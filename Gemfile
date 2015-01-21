@@ -1,10 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'rubyzip'
-gem 'faraday'
-gem 'faraday-digestauth'
-
-gem 'git'
-
-gem 'byebug'
-
+# Specify your gem's dependencies in roku_builder.gemspec
+gemspec

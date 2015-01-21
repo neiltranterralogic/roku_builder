@@ -1,5 +1,3 @@
-
-
 require "bundler"
 #keyer
 require "faraday"
@@ -16,3 +14,4 @@ require "roku_builder/loader"
 require "roku_builder/packager"
 require "roku_builder/linker"
 require "roku_builder/manifest_manager"
+require "roku_builder/version"
