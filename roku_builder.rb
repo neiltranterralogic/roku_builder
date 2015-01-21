@@ -26,6 +26,10 @@ OptionParser.new do |opts|
     options[:test] = t
   end
 
+  opts.on("-d", "--deaplink", "Command: Deeplink into app. Requires mgid and type options.") do |d|
+    options[:deeplink] = d
+  end
+
   opts.on("-s", "--stage STAGE", "Set the stage to use. Default: 'production'") do |b|
     options[:stage] = b
     options[:set_stage] = true
@@ -33,6 +37,14 @@ OptionParser.new do |opts|
 
   opts.on("-n", "--app_name NAME", "Set the app name for packaging. Default: 'Roku App'") do |n|
     options[:app_name] = n
+  end
+
+  opts.on("-m", "--mgid MGID", "MGID to deeplink to") do |m|
+    options[:mgid] = m
+  end
+
+  opts.on("-T", "--contentType TYPE", "Content Type of MGID") do |t|
+    options[:content_type] = t
   end
 
   opts.on("-c", "--config CONFIG", "Set a custom config file. Default: '~/.roku_config.rb'") do |c|
@@ -49,6 +61,7 @@ commands = 0
 commands += 1 if options[:sideload]
 commands += 1 if options[:package]
 commands += 1 if options[:test]
+commands += 1 if options[:deeplink]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -111,4 +124,16 @@ elsif options[:package]
   end
 elsif options[:test]
   ### Test App ###
+elsif options[:deeplink]
+  ### Deeplink to App ###
+  unless options[:mgid] and options[:content_type]
+    puts "FATAL: must supply a MGID and content type to deeplink."
+    abort
+  end
+  deeplink_config = {
+    mgid: options[:mgid],
+    content_type: options[:content_type]
+  }
+  linker = RokuBuilder::Linker.new(**device_config)
+  linker.link(**deeplink_config)
 end
