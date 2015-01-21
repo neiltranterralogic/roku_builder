@@ -2,7 +2,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-require "byebug"
+#require "byebug"
 require "roku_builder"
 require "optparse"
 
