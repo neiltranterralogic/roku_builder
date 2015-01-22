@@ -8,13 +8,13 @@ module RokuBuilder
     #  Returns:
     #  +string+:: build version or 'intermediate' on success, nil otherwise
     def sideload(root_dir:, branch:, update_manifest:)
-      $root_dir = root_dir
+      @root_dir = root_dir
       result = nil
-      git = Git.open($root_dir)
+      git = Git.open(@root_dir)
       current_dir = Dir.pwd
       begin
         if branch
-          Dir.chdir($root_dir)
+          Dir.chdir(@root_dir)
           current_branch = git.current_branch
           git.branch.stashes.save("roku-builder-temp-stash")
           git.checkout(branch)
@@ -36,23 +36,23 @@ module RokuBuilder
 
         # Add folders to zip
         folders.each do |folder|
-          base_folder = File.join($root_dir, folder)
+          base_folder = File.join(@root_dir, folder)
           entries = Dir.entries(base_folder)
           entries.delete(".")
           entries.delete("..")
-          writeEntries($root_dir, entries, folder, io)
+          writeEntries(@root_dir, entries, folder, io)
         end
 
         # Add file to zip
-        writeEntries($root_dir, files, "", io)
+        writeEntries(@root_dir, files, "", io)
 
         io.close()
 
         path = "/plugin_install"
 
         # Connect to roku and upload file
-        conn = Faraday.new(url: $url) do |f|
-          f.request :digest, $dev_username, $dev_password
+        conn = Faraday.new(url: @url) do |f|
+          f.request :digest, @dev_username, @dev_password
           f.request :multipart
           f.request :url_encoded
           f.adapter Faraday.default_adapter

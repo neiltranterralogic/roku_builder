@@ -8,8 +8,8 @@ module RokuBuilder
         autoplay: false
       }
       path = "#{path}?#{parameterize(payload)}"
-      conn = Faraday.new(url: "#{$url}:8060") do |f|
-        f.request :digest, $dev_username, $dev_password
+      conn = Faraday.new(url: "#{@url}:8060") do |f|
+        f.request :digest, @dev_username, @dev_password
         f.request :multipart
         f.request :url_encoded
         f.adapter Faraday.default_adapter

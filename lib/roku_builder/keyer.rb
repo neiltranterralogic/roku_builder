@@ -12,8 +12,8 @@ module RokuBuilder
 
       # upload new key with password
       path = "/plugin_inspect"
-      conn = Faraday.new(url: $url) do |f|
-        f.request :digest, $dev_username, $dev_password
+      conn = Faraday.new(url: @url) do |f|
+        f.request :digest, @dev_username, @dev_password
         f.request :multipart
         f.request :url_encoded
         f.adapter Faraday.default_adapter
@@ -33,8 +33,8 @@ module RokuBuilder
     # get the current developer id
     def dev_id
       path = "/plugin_package"
-      conn = Faraday.new(url: $url) do |f|
-        f.request :digest, $dev_username, $dev_password
+      conn = Faraday.new(url: @url) do |f|
+        f.request :digest, @dev_username, @dev_password
         f.adapter Faraday.default_adapter
       end
       response = conn.get path
