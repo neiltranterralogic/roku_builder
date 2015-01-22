@@ -10,13 +10,14 @@ module RokuBuilder
     def sideload(root_dir:, branch:, update_manifest:)
       @root_dir = root_dir
       result = nil
+      stash = nil
       git = Git.open(@root_dir)
       current_dir = Dir.pwd
       begin
         if branch
           Dir.chdir(@root_dir)
           current_branch = git.current_branch
-          git.branch.stashes.save("roku-builder-temp-stash")
+          stash = git.branch.stashes.save("roku-builder-temp-stash")
           git.checkout(branch)
         end
 
@@ -68,7 +69,7 @@ module RokuBuilder
 
         if current_branch
           git.checkout(current_branch)
-          git.branch.stashes.apply
+          git.branch.stashes.apply if stash
         end
 
         if response.status == 200 and response.body =~ /Install Success/

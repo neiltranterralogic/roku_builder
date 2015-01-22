@@ -161,6 +161,12 @@ elsif options[:package]
   end
 elsif options[:test]
   ### Test App ###
+  tester = RokuBuilder::Tester.new(**device_config)
+  test_config = {
+    root_dir: $config[:repo_dir],
+    branch: $config[:testing][:branch],
+  }
+  tester.run_tests(**test_config)
 elsif options[:deeplink]
   ### Deeplink to App ###
   unless options[:mgid] and options[:content_type]
