@@ -9,7 +9,7 @@ require "optparse"
 options = {}
 options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
-options[:app_name] = 'Roku App'
+options[:update_manifest] = true
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -47,15 +47,15 @@ OptionParser.new do |opts|
     options[:set_stage] = true
   end
 
-  opts.on("-n", "--app_name NAME", "Set the app name for packaging. Default: 'Roku App'") do |n|
-    options[:app_name] = n
+  opts.on("-n", "--no-manifest-update", "Do not update the manifest file while packaging") do |n|
+    options[:update_manifest] = false
   end
 
   opts.on("-m", "--mgid MGID", "MGID to deeplink to") do |m|
     options[:mgid] = m
   end
 
-  opts.on("-T", "--contentType TYPE", "Content Type of MGID") do |t|
+  opts.on("-T", "--content-type TYPE", "Content Type of MGID") do |t|
     options[:content_type] = t
   end
 
@@ -141,7 +141,7 @@ elsif options[:package]
   success = keyer.rekey(**stage_config[:key])
   puts "WARNING: Key did not change" unless success
   # Sideload App
-  sideload_config[:update_manifest] = true
+  sideload_config[:update_manifest] = options[:update_manifest]
   build_version = loader.sideload(**sideload_config)
   unless build_version
     puts "FATAL: Failed to sideload app"
@@ -149,7 +149,7 @@ elsif options[:package]
   end
   # Package App
   package_config = {
-    app_name_version: "#{options[:app_name]} - #{build_version}",
+    app_name_version: "#{$config[:app_name]} - #{stage} - #{build_version}",
     password: stage_config[:key][:password],
     out_file: File.join("/tmp", "#{stage}_#{build_version}.pkg")
   }

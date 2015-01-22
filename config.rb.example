@@ -6,6 +6,7 @@ $config = {
     password: "aaaa"
   },
   repo_dir: "", # path to app repository
+  app_name: "", # App name
   production: {
     branch: "production",
     key: {
