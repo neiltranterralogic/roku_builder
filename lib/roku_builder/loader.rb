@@ -9,67 +9,80 @@ module RokuBuilder
     #  +string+:: build version or 'intermediate' on success, nil otherwise
     def sideload(root_dir:, branch:, update_manifest:)
       $root_dir = root_dir
+      result = nil
       git = Git.open($root_dir)
-      if branch
-        current_branch = git.current_branch
-        begin
+      current_dir = Dir.pwd
+      begin
+        if branch
+          Dir.chdir($root_dir)
+          current_branch = git.current_branch
+          git.branch.stashes.save("roku-builder-temp-stash")
           git.checkout(branch)
-        rescue Git::GitExecuteError
-          puts "FATAL: Branch or ref does not exist"
-          return nil
         end
+
+        # Update manifest
+        build_version = "intermediate"
+        if update_manifest
+          build_version = ManifestManager.update_build(root_dir: root_dir)
+        end
+
+        folders = ['resources', 'source']
+        files = ['manifest']
+        file = Tempfile.new('pkg')
+        outfile = "#{file.path}.zip"
+        file.unlink
+
+        io = Zip::File.open(outfile, Zip::File::CREATE)
+
+        # Add folders to zip
+        folders.each do |folder|
+          base_folder = File.join($root_dir, folder)
+          entries = Dir.entries(base_folder)
+          entries.delete(".")
+          entries.delete("..")
+          writeEntries($root_dir, entries, folder, io)
+        end
+
+        # Add file to zip
+        writeEntries($root_dir, files, "", io)
+
+        io.close()
+
+        path = "/plugin_install"
+
+        # Connect to roku and upload file
+        conn = Faraday.new(url: $url) do |f|
+          f.request :digest, $dev_username, $dev_password
+          f.request :multipart
+          f.request :url_encoded
+          f.adapter Faraday.default_adapter
+        end
+        payload =  {
+          mysubmit: "Replace",
+          archive: Faraday::UploadIO.new(outfile, 'application/zip')
+        }
+        response = conn.post path, payload
+
+        # Cleanup
+        File.delete(outfile)
+
+        if current_branch
+          git.checkout(current_branch)
+          git.branch.stashes.apply
+        end
+
+        if response.status == 200 and response.body =~ /Install Success/
+          result = build_version
+        end
+
+      rescue Git::GitExecuteError => e
+        puts "FATAL: Branch or ref does not exist"
+        puts e.message
+        puts e.backtrace
+      ensure
+        Dir.chdir(current_dir) unless current_dir == Dir.pwd
       end
-
-      # Update manifest
-      build_version = "intermediate"
-      if update_manifest
-        build_version = ManifestManager.update_build(root_dir: root_dir)
-      end
-
-      folders = ['resources', 'source']
-      files = ['manifest']
-      file = Tempfile.new('pkg')
-      outfile = "#{file.path}.zip"
-      file.unlink
-
-      io = Zip::File.open(outfile, Zip::File::CREATE)
-
-      # Add folders to zip
-      folders.each do |folder|
-        base_folder = File.join($root_dir, folder)
-        entries = Dir.entries(base_folder)
-        entries.delete(".")
-        entries.delete("..")
-        writeEntries($root_dir, entries, folder, io)
-      end
-
-      # Add file to zip
-      writeEntries($root_dir, files, "", io)
-
-      io.close()
-
-      path = "/plugin_install"
-
-      # Connect to roku and upload file
-      conn = Faraday.new(url: $url) do |f|
-        f.request :digest, $dev_username, $dev_password
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
-      payload =  {
-        mysubmit: "Replace",
-        archive: Faraday::UploadIO.new(outfile, 'application/zip')
-      }
-      response = conn.post path, payload
-
-      # Cleanup
-      File.delete(outfile)
-      git.checkout(current_branch) if current_branch
-
-      if response.status == 200 and response.body =~ /Install Success/
-        return build_version
-      end
+      result
     end
 
     private
