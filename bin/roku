@@ -38,6 +38,10 @@ OptionParser.new do |opts|
     options[:ref] = r
   end
 
+  opts.on("-w", "--working", "Use working directory to sideload") do |w|
+    options[:working] = w
+  end
+
   opts.on("-s", "--stage STAGE", "Set the stage to use. Default: 'production'") do |b|
     options[:stage] = b
     options[:set_stage] = true
@@ -107,10 +111,24 @@ sideload_config = {
 
 if options[:sideload]
   ### Sideload App ###
+  # Check Options
+  count = 0
+  count += 1 if options[:ref]
+  count += 1 if options[:set_stage]
+  count += 1 if options[:working]
+  if count > 1
+    puts "FATAL: only use one of --ref, --working or --stage"
+    abort
+  end
+  # Set options
   loader = RokuBuilder::Loader.new(**device_config)
   if options[:ref]
     sideload_config[:branch] = options[:ref]
   end
+  if options[:working]
+    sideload_config[:branch] = nil
+  end
+  # Run
   success = loader.sideload(**sideload_config)
   puts "FATAL: Failed to sideload app" unless success
 elsif options[:package]

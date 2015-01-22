@@ -10,12 +10,14 @@ module RokuBuilder
     def sideload(root_dir:, branch:, update_manifest:)
       $root_dir = root_dir
       git = Git.open($root_dir)
-      current_branch = git.current_branch
-      begin
-        git.checkout(branch)
-      rescue Git::GitExecuteError
-        puts "FATAL: Branch missing or misconfigured"
-        return nil
+      if branch
+        current_branch = git.current_branch
+        begin
+          git.checkout(branch)
+        rescue Git::GitExecuteError
+          puts "FATAL: Branch or ref does not exist"
+          return nil
+        end
       end
 
       # Update manifest
@@ -63,7 +65,7 @@ module RokuBuilder
 
       # Cleanup
       File.delete(outfile)
-      git.checkout(current_branch)
+      git.checkout(current_branch) if current_branch
 
       if response.status == 200 and response.body =~ /Install Success/
         return build_version
