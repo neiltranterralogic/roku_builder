@@ -38,7 +38,7 @@ OptionParser.new do |opts|
     options[:ref] = r
   end
 
-  opts.on("-w", "--working", "Use working directory to sideload") do |w|
+  opts.on("-w", "--working", "Use working directory to sideload or test") do |w|
     options[:working] = w
   end
 
@@ -166,6 +166,9 @@ elsif options[:test]
     root_dir: $config[:repo_dir],
     branch: $config[:testing][:branch],
   }
+  if options[:working]
+    sideload_config[:branch] = nil
+  end
   tester.run_tests(**test_config)
 elsif options[:deeplink]
   ### Deeplink to App ###

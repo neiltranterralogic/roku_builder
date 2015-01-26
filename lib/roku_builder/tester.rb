@@ -21,13 +21,15 @@ module RokuBuilder
       loader.sideload(**sideload_config)
 
       in_tests = false
-      connection.waitfor(/\n/) do |txt|
+      end_reg = /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
+      connection.waitfor(end_reg) do |txt|
         txt.split("\n").each do |line|
-          in_tests = false if line =~ /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
+          in_tests = false if line =~ end_reg
           puts line if in_tests
           in_tests = true if line =~ /\*\*\*\*\* STARTING TESTS \*\*\*\*\*/
         end
       end
+      connection.puts("cont\n")
     end
   end
 end
