@@ -86,6 +86,28 @@ module RokuBuilder
       result
     end
 
+    def unload()
+        path = "/plugin_install"
+
+        # Connect to roku and upload file
+        conn = Faraday.new(url: @url) do |f|
+          f.headers['Content-Type'] = Faraday::Request::Multipart.mime_type
+          f.request :digest, @dev_username, @dev_password
+          f.request :multipart
+          f.request :url_encoded
+          f.adapter Faraday.default_adapter
+        end
+        payload =  {
+          mysubmit: "Delete",
+          archive: ""
+        }
+        response = conn.post path, payload
+        if response.status == 200 and response.body =~ /Install Success/
+          return true
+        end
+        return false
+    end
+
     private
 
     # Recursively write folders to a zip archive

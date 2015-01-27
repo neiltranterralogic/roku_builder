@@ -34,6 +34,10 @@ OptionParser.new do |opts|
     options[:configure] = c
   end
 
+  opts.on("-D", "--delete", "Command: Delete the currently sideloaded app") do |d|
+    options[:delete] = d
+  end
+
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
@@ -75,6 +79,7 @@ commands += 1 if options[:package]
 commands += 1 if options[:test]
 commands += 1 if options[:deeplink]
 commands += 1 if options[:configure]
+commands += 1 if options[:delete]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -182,4 +187,7 @@ elsif options[:deeplink]
   }
   linker = RokuBuilder::Linker.new(**device_config)
   linker.link(**deeplink_config)
+elsif options[:delete]
+  loader = RokuBuilder::Loader.new(**device_config)
+  loader.unload()
 end
