@@ -38,6 +38,18 @@ OptionParser.new do |opts|
     options[:delete] = d
   end
 
+  opts.on("-N", "--navigate CMD", "Command: send the given command to the roku") do |n|
+    options[:navigate] = n
+  end
+
+  opts.on("-R", "--restart", "Command: restart the roku device") do |r|
+    options[:restart] = r
+  end
+
+  opts.on("-y", "--type TEXT", "Command: type the given text on the roku device") do |t|
+    options[:text] = t
+  end
+
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
@@ -80,6 +92,9 @@ commands += 1 if options[:test]
 commands += 1 if options[:deeplink]
 commands += 1 if options[:configure]
 commands += 1 if options[:delete]
+commands += 1 if options[:navigate]
+commands += 1 if options[:restart]
+commands += 1 if options[:text]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -190,4 +205,29 @@ elsif options[:deeplink]
 elsif options[:delete]
   loader = RokuBuilder::Loader.new(**device_config)
   loader.unload()
+elsif options[:navigate]
+  navigator = RokuBuilder::Navigator.new(**device_config)
+  unless navigator.nav(command: options[:navigate].to_sym)
+    puts "FATAL: command not sent"
+    abort
+  end
+elsif options[:restart]
+  navigator = RokuBuilder::Navigator.new(**device_config)
+  navigator.nav(command: :home)
+  navigator.nav(command: :up)
+  sleep(0.9)
+  navigator.nav(command: :select)
+  navigator.nav(command: :up)
+  sleep(0.9)
+  navigator.nav(command: :select)
+  navigator.nav(command: :up)
+  navigator.nav(command: :up)
+  navigator.nav(command: :up)
+  navigator.nav(command: :up)
+  sleep(0.9)
+  navigator.nav(command: :select)
+  navigator.nav(command: :select)
+elsif options[:text]
+  navigator = RokuBuilder::Navigator.new(**device_config)
+  navigator.type(text: options[:text])
 end
