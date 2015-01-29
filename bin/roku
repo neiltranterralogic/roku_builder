@@ -187,7 +187,7 @@ elsif options[:test]
     branch: $config[:testing][:branch],
   }
   if options[:working]
-    sideload_config[:branch] = nil
+    test_config[:branch] = nil
   end
   tester.run_tests(**test_config)
 elsif options[:deeplink]
