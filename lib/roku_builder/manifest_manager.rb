@@ -55,5 +55,23 @@ module RokuBuilder
       end
       build_version
     end
+
+    # Gets the build version from the manifest file
+    # Params:
+    # +root_dir+:: Root directory that contains the manifest
+    # Returns:
+    # +string+:: Build version on success, empty string otherwise
+    def self.build_version(root_dir:)
+      path = File.join(root_dir, 'manifest')
+      build_version = ""
+      File.open(path, 'r') do |file|
+        file.each_line do |line|
+          if line.include?("build_version")
+            build_version = line.split("=")[1].chomp
+          end
+        end
+      end
+      build_version
+    end
   end
 end

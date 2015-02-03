@@ -22,9 +22,11 @@ module RokuBuilder
         end
 
         # Update manifest
-        build_version = "intermediate"
+        build_version = ""
         if update_manifest
           build_version = ManifestManager.update_build(root_dir: root_dir)
+        else
+          build_version = ManifestManager.build_version(root_dir: root_dir)
         end
 
         folders = ['resources', 'source']
