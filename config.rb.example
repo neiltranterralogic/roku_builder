@@ -1,9 +1,11 @@
 
 $config = {
   device_info: {
-    ip: "192.168.1.127",
-    user: "rokudev",
-    password: "aaaa"
+    default: {
+      ip: "192.168.1.127",
+      user: "rokudev",
+      password: "aaaa"
+    }
   },
   repo_dir: "", # path to app repository
   app_name: "", # App name

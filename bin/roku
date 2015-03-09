@@ -10,6 +10,7 @@ options = {}
 options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
 options[:update_manifest] = true
+options[:device] = 'default'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -26,7 +27,7 @@ OptionParser.new do |opts|
     options[:test] = t
   end
 
-  opts.on("-d", "--deaplink", "Command: Deeplink into app. Requires mgid and type options.") do |d|
+  opts.on("-L", "--deeplink", "Command: Deeplink into app. Requires mgid and type options.") do |d|
     options[:deeplink] = d
   end
 
@@ -79,6 +80,10 @@ OptionParser.new do |opts|
     options[:config] = c
   end
 
+  opts.on("-d", "--device ID", "Use a different device corresponding to the given ID") do |d|
+    options[:device] = d
+  end
+
   opts.on("-h", "--help", "Show this message") do |h|
     puts opts
     exit
@@ -121,7 +126,7 @@ end
 load config_file
 
 # setup configs
-device_config = $config[:device_info]
+device_config = $config[:device_info][options[:device].to_sym]
 stage = options[:stage].to_sym
 sideload_config = {
   root_dir: $config[:repo_dir],
