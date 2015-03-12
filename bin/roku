@@ -133,6 +133,14 @@ load config_file
 # setup configs
 device_config = $config[:device_info][options[:device].to_sym]
 project_config = $config[:projects][options[:project].to_sym]
+unless device_config
+  puts "FATAL: Unkown device id"
+  abort
+end
+unless project_config
+  puts "FATAL: Unknown project id"
+  abort
+end
 stage = options[:stage].to_sym
 sideload_config = {
   root_dir: project_config[:repo_dir],
