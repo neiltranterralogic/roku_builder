@@ -11,6 +11,7 @@ options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
 options[:update_manifest] = true
 options[:device] = 'default'
+options[:project] = 'default'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -84,6 +85,10 @@ OptionParser.new do |opts|
     options[:device] = d
   end
 
+  opts.on("-P", "--project ID", "Use a different project") do |p|
+    options[:project] = p
+  end
+
   opts.on("-h", "--help", "Show this message") do |h|
     puts opts
     exit
@@ -127,10 +132,11 @@ load config_file
 
 # setup configs
 device_config = $config[:device_info][options[:device].to_sym]
+project_config = $config[:projects][options[:project].to_sym]
 stage = options[:stage].to_sym
 sideload_config = {
-  root_dir: $config[:repo_dir],
-  branch: $config[stage][:branch],
+  root_dir: project_config[:repo_dir],
+  branch: project_config[stage][:branch],
   update_manifest: false
 }
 
@@ -158,7 +164,7 @@ if options[:sideload]
   puts "FATAL: Failed to sideload app" unless success
 elsif options[:package]
   ### Package App ###
-  stage_config = $config[stage]
+  stage_config = project_config[stage]
   keyer = RokuBuilder::Keyer.new(**device_config)
   loader = RokuBuilder::Loader.new(**device_config)
   packager = RokuBuilder::Packager.new(**device_config)
@@ -174,7 +180,7 @@ elsif options[:package]
   end
   # Package App
   package_config = {
-    app_name_version: "#{$config[:app_name]} - #{stage} - #{build_version}",
+    app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
     password: stage_config[:key][:password],
     out_file: File.join("/tmp", "#{stage}_#{build_version}.pkg")
   }
@@ -188,8 +194,8 @@ elsif options[:test]
   ### Test App ###
   tester = RokuBuilder::Tester.new(**device_config)
   test_config = {
-    root_dir: $config[:repo_dir],
-    branch: $config[:testing][:branch],
+    root_dir: project_config[:repo_dir],
+    branch: project_config[:testing][:branch],
   }
   if options[:working]
     test_config[:branch] = nil

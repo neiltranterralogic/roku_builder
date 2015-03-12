@@ -7,23 +7,27 @@ $config = {
       password: "aaaa"
     }
   },
-  repo_dir: "", # path to app repository
-  app_name: "", # App name
-  production: {
-    branch: "production",
-    key: {
-      keyed_pkg: "", # path to signed pkg
-      password: "" # password for pkg
+  projects: {
+    default: {
+      repo_dir: "", # path to app repository
+      app_name: "", # App name
+      production: {
+        branch: "production",
+        key: {
+          keyed_pkg: "", # path to signed pkg
+          password: "" # password for pkg
+        }
+      },
+      staging: {
+        branch: "staging",
+        key: {
+          keyed_pkg: "", # path to signed pkg
+          password: "" # password for pkg
+        }
+      },
+      testing: {
+        branch: "unit_tests",
+      }
     }
-  },
-  staging: {
-    branch: "staging",
-    key: {
-      keyed_pkg: "", # path to signed pkg
-      password: "" # password for pkg
-    }
-  },
-  testing: {
-    branch: "unit_tests",
   }
 }
