@@ -36,7 +36,7 @@ OptionParser.new do |opts|
     options[:configure] = c
   end
 
-  opts.on("-D", "--delete", "Command: Delete the currently sideloaded app") do |d|
+  opts.on("-d", "--delete", "Command: Delete the currently sideloaded app") do |d|
     options[:delete] = d
   end
 
@@ -81,7 +81,7 @@ OptionParser.new do |opts|
     options[:config] = c
   end
 
-  opts.on("-d", "--device ID", "Use a different device corresponding to the given ID") do |d|
+  opts.on("-D", "--device ID", "Use a different device corresponding to the given ID") do |d|
     options[:device] = d
   end
 
