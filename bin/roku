@@ -285,10 +285,10 @@ elsif options[:build]
   # Set options
   loader = RokuBuilder::Loader.new(**device_config)
   if options[:ref]
-    sideload_config[:branch] = options[:ref]
+    build_config[:branch] = options[:ref]
   end
   if options[:working]
-    sideload_config[:branch] = nil
+    build_config[:branch] = nil
   end
   # Run
   outfile = loader.build(**build_config)
