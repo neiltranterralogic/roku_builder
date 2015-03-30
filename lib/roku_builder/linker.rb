@@ -1,12 +1,13 @@
 module RokuBuilder
   class Linker < Util
-    def link(mgid:, content_type:)
+    def link(options)
       path = "/launch/dev"
-      payload = {
-        entity: content_type,
-        mgid: mgid,
-        autoplay: false
-      }
+      payload = options
+      if options.has_key?(:content_type) and options.has_key?(:mgid)
+        payload[:entity] = options[:content_type]
+        payload[:mgid] = options[:mgid]
+        payload[:autoplay] = false
+      end
       path = "#{path}?#{parameterize(payload)}"
       conn = Faraday.new(url: "#{@url}:8060") do |f|
         f.request :digest, @dev_username, @dev_password

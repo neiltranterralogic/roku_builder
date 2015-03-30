@@ -77,6 +77,10 @@ OptionParser.new do |opts|
     options[:content_type] = t
   end
 
+  opts.on("-o", "--deeplink-options TYPE", "Additional deeplink options. (eg. a:b, c:d,e:f)") do |o|
+    options[:deeplink_options] = o
+  end
+
   opts.on("-c", "--config CONFIG", "Set a custom config file. Default: '~/.roku_config.rb'") do |c|
     options[:config] = c
   end
@@ -211,14 +215,24 @@ elsif options[:test]
   tester.run_tests(**test_config)
 elsif options[:deeplink]
   ### Deeplink to App ###
-  unless options[:mgid] and options[:content_type]
-    puts "FATAL: must supply a MGID and content type to deeplink."
+  deeplink_config = {}
+  if  options[:mgid] and options[:content_type]
+    deeplink_config = {
+      mgid: options[:mgid],
+      content_type: options[:content_type]
+    }
+  end
+  if options[:deeplink_options]
+    opts = options[:deeplink_options].split(/,\s*/)
+    opts.each do |opt|
+      opt = opt.split(":")
+      deeplink_config[opt[0].to_sym] = opt[1]
+    end
+  end
+  unless deeplink_config.keys.count > 0
+    puts "FATAL: must supply at least one option for deeplinking"
     abort
   end
-  deeplink_config = {
-    mgid: options[:mgid],
-    content_type: options[:content_type]
-  }
   linker = RokuBuilder::Linker.new(**device_config)
   linker.link(**deeplink_config)
 elsif options[:delete]
