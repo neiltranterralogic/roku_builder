@@ -52,6 +52,10 @@ OptionParser.new do |opts|
     options[:text] = t
   end
 
+  opts.on("-b", "--build", "Command: build a zip to be sideloaded") do |b|
+    options[:build] = b
+  end
+
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
@@ -109,6 +113,7 @@ commands += 1 if options[:delete]
 commands += 1 if options[:navigate]
 commands += 1 if options[:restart]
 commands += 1 if options[:text]
+commands += 1 if options[:build]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -150,6 +155,10 @@ sideload_config = {
   root_dir: project_config[:repo_dir],
   branch: project_config[stage][:branch],
   update_manifest: false
+}
+build_config = {
+  root_dir: project_config[:repo_dir],
+  branch: project_config[stage][:branch]
 }
 
 if options[:sideload]
@@ -263,4 +272,25 @@ elsif options[:restart]
 elsif options[:text]
   navigator = RokuBuilder::Navigator.new(**device_config)
   navigator.type(text: options[:text])
+elsif options[:build]
+  # Check Options
+  count = 0
+  count += 1 if options[:ref]
+  count += 1 if options[:set_stage]
+  count += 1 if options[:working]
+  if count > 1
+    puts "FATAL: only use one of --ref, --working or --stage"
+    abort
+  end
+  # Set options
+  loader = RokuBuilder::Loader.new(**device_config)
+  if options[:ref]
+    sideload_config[:branch] = options[:ref]
+  end
+  if options[:working]
+    sideload_config[:branch] = nil
+  end
+  # Run
+  outfile = loader.build(**build_config)
+  print "Build: #{outfile}\n"
 end

@@ -29,27 +29,7 @@ module RokuBuilder
           build_version = ManifestManager.build_version(root_dir: root_dir)
         end
 
-        folders = ['resources', 'source']
-        files = ['manifest']
-        file = Tempfile.new('pkg')
-        outfile = "#{file.path}.zip"
-        file.unlink
-
-        io = Zip::File.open(outfile, Zip::File::CREATE)
-
-        # Add folders to zip
-        folders.each do |folder|
-          base_folder = File.join(@root_dir, folder)
-          entries = Dir.entries(base_folder)
-          entries.delete(".")
-          entries.delete("..")
-          writeEntries(@root_dir, entries, folder, io)
-        end
-
-        # Add file to zip
-        writeEntries(@root_dir, files, "", io)
-
-        io.close()
+        outfile = build(root_dir: root_dir, branch: branch)
 
         path = "/plugin_install"
 
@@ -86,6 +66,57 @@ module RokuBuilder
         Dir.chdir(current_dir) unless current_dir == Dir.pwd
       end
       result
+    end
+
+    def build(root_dir:, branch:)
+      @root_dir = root_dir
+      result = nil
+      stash = nil
+      git = Git.open(@root_dir)
+      current_dir = Dir.pwd
+      outfile = nil
+      begin
+        if branch and branch != git.current_branch
+          Dir.chdir(@root_dir)
+          current_branch = git.current_branch
+          stash = git.branch.stashes.save("roku-builder-temp-stash")
+          git.checkout(branch)
+        end
+
+        folders = ['resources', 'source']
+        files = ['manifest']
+        file = Tempfile.new('pkg')
+        outfile = "#{file.path}.zip"
+        file.unlink
+
+        io = Zip::File.open(outfile, Zip::File::CREATE)
+
+        # Add folders to zip
+        folders.each do |folder|
+          base_folder = File.join(@root_dir, folder)
+          entries = Dir.entries(base_folder)
+          entries.delete(".")
+          entries.delete("..")
+          writeEntries(@root_dir, entries, folder, io)
+        end
+
+        # Add file to zip
+        writeEntries(@root_dir, files, "", io)
+
+        io.close()
+
+        if current_branch
+          git.checkout(current_branch)
+          git.branch.stashes.apply if stash
+        end
+      rescue Git::GitExecuteError => e
+        puts "FATAL: Branch or ref does not exist"
+        puts e.message
+        puts e.backtrace
+      ensure
+        Dir.chdir(current_dir) unless current_dir == Dir.pwd
+      end
+      outfile
     end
 
     def unload()
