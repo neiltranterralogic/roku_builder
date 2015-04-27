@@ -29,7 +29,7 @@ module RokuBuilder
           build_version = ManifestManager.build_version(root_dir: root_dir)
         end
 
-        outfile = build(root_dir: root_dir, branch: branch)
+        outfile = build(root_dir: root_dir, branch: branch, build_version: build_version)
 
         path = "/plugin_install"
 
@@ -68,7 +68,7 @@ module RokuBuilder
       result
     end
 
-    def build(root_dir:, branch:)
+    def build(root_dir:, branch:, build_version: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
@@ -83,12 +83,12 @@ module RokuBuilder
           git.checkout(branch)
         end
 
+        build_version = ManifestManager.build_version(root_dir: root_dir) unless build_version
         folders = ['resources', 'source']
         files = ['manifest']
-        file = Tempfile.new('pkg')
-        outfile = "#{file.path}.zip"
-        file.unlink
+        outfile = "/tmp/build_#{build_version}.zip"
 
+        File.delete(outfile) if File.exists?(outfile)
         io = Zip::File.open(outfile, Zip::File::CREATE)
 
         # Add folders to zip
