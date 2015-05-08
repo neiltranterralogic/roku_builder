@@ -68,13 +68,12 @@ module RokuBuilder
       result
     end
 
-    def build(root_dir:, branch:, build_version: nil)
+    def build(root_dir:, branch:, build_version: nil, outfile: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
       git = Git.open(@root_dir)
       current_dir = Dir.pwd
-      outfile = nil
       begin
         if branch and branch != git.current_branch
           Dir.chdir(@root_dir)
@@ -86,7 +85,7 @@ module RokuBuilder
         build_version = ManifestManager.build_version(root_dir: root_dir) unless build_version
         folders = ['resources', 'source']
         files = ['manifest']
-        outfile = "/tmp/build_#{build_version}.zip"
+        outfile = "/tmp/build_#{build_version}.zip" unless outfile
 
         File.delete(outfile) if File.exists?(outfile)
         io = Zip::File.open(outfile, Zip::File::CREATE)

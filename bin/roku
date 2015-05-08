@@ -203,7 +203,8 @@ elsif options[:package]
   package_config = {
     app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
     password: stage_config[:key][:password],
-    out_file: File.join("/tmp", "#{stage}_#{build_version}.pkg")
+    out_file: File.join("/tmp", "#{project_config[:app_name]}_#{stage}_"+
+      "#{build_version}.pkg")
   }
   success = packager.package(**package_config)
   if success
@@ -290,6 +291,8 @@ elsif options[:build]
   if options[:working]
     build_config[:branch] = nil
   end
+  build_version = RokuBuilder::ManifestManager.build_version(root_dir: build_config[:root_dir])
+  build_config[:outfile] = "/tmp/#{project_config[:app_name]}_#{stage}_#{build_version}.zip"
   # Run
   outfile = loader.build(**build_config)
   print "Build: #{outfile}\n"
