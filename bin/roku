@@ -9,7 +9,7 @@ require "optparse"
 options = {}
 options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
-options[:update_manifest] = true
+options[:update_manifest] = false
 options[:device] = 'default'
 options[:project] = 'default'
 
@@ -69,15 +69,22 @@ OptionParser.new do |opts|
     options[:set_stage] = true
   end
 
-  opts.on("-n", "--no-manifest-update", "Do not update the manifest file while packaging") do |n|
+  opts.on("-n", "--no-manifest-update", "Do not update the manifest file while packaging. DEPRICATED: this is now the default.") do |n|
+    print "DEPRICATED: --no-manifest-update is now the default"
     options[:update_manifest] = false
   end
 
-  opts.on("-m", "--mgid MGID", "MGID to deeplink to") do |m|
+  opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do |n|
+    options[:update_manifest] = false
+  end
+
+  opts.on("-m", "--mgid MGID", "MGID to deeplink to. DEPRICATED: use -o mgid:<mgid>") do |m|
+    print "DEPRICATED: don't use --mgid <mgid>, use --deeplink-options mgid:<mgid> instead"
     options[:mgid] = m
   end
 
-  opts.on("-T", "--content-type TYPE", "Content Type of MGID") do |t|
+  opts.on("-T", "--content-type TYPE", "Content Type of MGID. DEPRICATED: use -o content_type:<type>") do |t|
+    print "DEPRICATED: don't use --content-type <type>, use --deeplink-options content_type:<type> instead"
     options[:content_type] = t
   end
 
@@ -99,6 +106,11 @@ OptionParser.new do |opts|
 
   opts.on("-h", "--help", "Show this message") do |h|
     puts opts
+    exit
+  end
+
+  opts.on("-v", "--version", "Show version") do
+    puts RokuBuilder::Version
     exit
   end
 end.parse!
