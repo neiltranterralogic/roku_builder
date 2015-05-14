@@ -7,11 +7,16 @@ module RokuBuilder
     #  +branch+:: branch of the git repository to sideload
     #  Returns:
     #  +string+:: build version or 'intermediate' on success, nil otherwise
-    def sideload(root_dir:, branch:, update_manifest:)
+    def sideload(root_dir:, branch:, update_manifest:, fetch: false)
       @root_dir = root_dir
       result = nil
       stash = nil
       git = Git.open(@root_dir)
+      if fetch
+        for remote in git.remotes
+          git.fetch(remote)
+        end
+      end
       current_dir = Dir.pwd
       begin
         if branch
@@ -68,11 +73,16 @@ module RokuBuilder
       result
     end
 
-    def build(root_dir:, branch:, build_version: nil, outfile: nil)
+    def build(root_dir:, branch:, build_version: nil, outfile: nil, fetch: false)
       @root_dir = root_dir
       result = nil
       stash = nil
       git = Git.open(@root_dir)
+      if fetch
+        for remote in git.remotes
+          git.fetch(remote)
+        end
+      end
       current_dir = Dir.pwd
       begin
         if branch and branch != git.current_branch

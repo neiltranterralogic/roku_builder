@@ -10,6 +10,7 @@ options = {}
 options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
 options[:update_manifest] = false
+options[:fetch] = false
 options[:device] = 'default'
 options[:project] = 'default'
 
@@ -76,6 +77,10 @@ OptionParser.new do |opts|
 
   opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do |n|
     options[:update_manifest] = false
+  end
+
+  opts.on("-f", "--fetch", "Preform a `git fetch --all` on the repository before building or sideloading.") do
+    options[:fetch] = true
   end
 
   opts.on("-m", "--mgid MGID", "MGID to deeplink to. DEPRICATED: use -o mgid:<mgid>") do |m|
@@ -166,11 +171,13 @@ stage = options[:stage].to_sym
 sideload_config = {
   root_dir: project_config[:repo_dir],
   branch: project_config[stage][:branch],
-  update_manifest: false
+  update_manifest: false,
+  fetch: options[:fetch]
 }
 build_config = {
   root_dir: project_config[:repo_dir],
-  branch: project_config[stage][:branch]
+  branch: project_config[stage][:branch],
+  fetch: options[:fetch]
 }
 
 if options[:sideload]
