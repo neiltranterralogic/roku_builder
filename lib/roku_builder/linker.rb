@@ -22,7 +22,7 @@ module RokuBuilder
     private
 
     def parameterize(params)
-        URI.escape(params.collect{|k,v| "#{k}=#{v}"}.join('&'))
+        URI.escape(params.collect{|k,v| "#{k}=#{URI.escape(v, "?&")}"}.join('&'))
     end
   end
 end

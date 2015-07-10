@@ -255,7 +255,9 @@ elsif options[:deeplink]
     opts = options[:deeplink_options].split(/,\s*/)
     opts.each do |opt|
       opt = opt.split(":")
-      deeplink_config[opt[0].to_sym] = opt[1]
+      key = opt.shift.to_sym
+      value = opt.join(":")
+      deeplink_config[key] = value
     end
   end
   unless deeplink_config.keys.count > 0
