@@ -30,18 +30,6 @@ module RokuBuilder
                 build_version = Time.now.strftime("%m%d%y")+".1"
               end
               temp_file.puts "build_version=#{build_version}"
-
-            elsif line.include?("title=") and not line.include?("subtitle=")
-
-              if 0 < build_version.length
-
-                #Add build version to title.
-                title = line.split("-")
-                title[1] = build_version
-                temp_file.puts title.join("-")
-
-              end
-
             else
               temp_file.puts line
             end
