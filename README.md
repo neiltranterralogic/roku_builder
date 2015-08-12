@@ -32,11 +32,11 @@ configuration options:
  * device_info -> ip: ip address of the device
  * device_info -> user: dev username for the roku device
  * device_info -> password: dev password for the roku device
-
  * projects: this is a hash of project objects
  * projects -> default: the key for the default project
 
  Each project has the following options:
+
  * repo_dir: full path of the git repository the houses the roku app
  * app_name: Name used when packaging the app
  * production: a default stage (see below)
