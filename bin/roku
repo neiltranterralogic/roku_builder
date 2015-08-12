@@ -71,7 +71,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-n", "--no-manifest-update", "Do not update the manifest file while packaging. DEPRICATED: this is now the default.") do |n|
-    print "DEPRICATED: --no-manifest-update is now the default"
+    puts "DEPRICATED: --no-manifest-update is now the default"
     options[:update_manifest] = false
   end
 
@@ -84,12 +84,12 @@ OptionParser.new do |opts|
   end
 
   opts.on("-m", "--mgid MGID", "MGID to deeplink to. DEPRICATED: use -o mgid:<mgid>") do |m|
-    print "DEPRICATED: don't use --mgid <mgid>, use --deeplink-options mgid:<mgid> instead"
+    puts "DEPRICATED: don't use --mgid <mgid>, use --deeplink-options mgid:<mgid> instead"
     options[:mgid] = m
   end
 
   opts.on("-T", "--content-type TYPE", "Content Type of MGID. DEPRICATED: use -o content_type:<type>") do |t|
-    print "DEPRICATED: don't use --content-type <type>, use --deeplink-options content_type:<type> instead"
+    puts "DEPRICATED: don't use --content-type <type>, use --deeplink-options content_type:<type> instead"
     options[:content_type] = t
   end
 
@@ -341,5 +341,5 @@ elsif options[:build]
   build_config[:outfile] = "/tmp/#{project_config[:app_name]}_#{stage}_#{build_version}.zip"
   # Run
   outfile = loader.build(**build_config)
-  print "Build: #{outfile}\n"
+  puts "Build: #{outfile}"
 end
