@@ -33,6 +33,10 @@ configuration options:
  * device_info -> user: dev username for the roku device
  * device_info -> password: dev password for the roku device
 
+ * projects: this is a hash of project objects
+ * projects -> default: the key for the default project
+
+ Each project has the following options:
  * repo_dir: full path of the git repository the houses the roku app
  * app_name: Name used when packaging the app
  * production: a default stage (see below)
@@ -42,11 +46,11 @@ configuration options:
 
 #### Stages
 
-The defualt configuration file has two stages, production and staging. Each
-stage a git referance (branch) and a key that is used for packaging that stage.
-Each key consists of the password for the key (password) and a package that has
-been signed with the key (keyed_pkg). You can add or remove as many stages as
-you require. You have to have at least one stage to package your app.
+The defualt configuration file has two stages, production and staging. Each has
+a stage a git referance (branch) and a key that is used for packaging that
+stage. Each key consists of the password for the key (password) and a package
+that has been signed with the key (keyed_pkg). You can add or remove as many
+stages as you require. You have to have at least one stage to package your app.
 
 #### Sideloading
 
@@ -108,7 +112,7 @@ you do not want to update the manifest then you can use the option
 
 There are a few tools that can be used for testing. The testing command will
 sideload the branch defined in the testing config. It will then connect to the
-device via telnet and look for the following strings and prints everythign
+device via telnet and look for the following strings and prints everything
 inbetween them:
 
 Start delimiter: \*\*\*\*\* STARTING TESTS \*\*\*\*\*
@@ -142,29 +146,42 @@ There is also a command that will allow you to send text to the roku. It is
 used as follows:
 
     $ roku --type <text>
-    
+
 #### Other Tools
 
 You can restart the roku device using the following command:
 
     $ roku --restart
-    
+
 You can deeplink into your app using the following command:
 
     $ roku --deeplink --mgid <mgid> --content-type <content type>
-    
+
 This is currently setup to work with one specific app. It will be generalized
 in the future.
 
 You can delete the currently sideloaded app using the following command:
 
     $ roku --delete
-    
+
 You can use a differnt configuration file useing the following option:
 
     & roku --delete --config <path>
 
 This path will be expanded so you do not have to use the full path
+
+## Projects
+
+The project used in the above examples is a smart default. If you are in a
+project directory then it will use that project. If you not then it will use
+the defualt that you have defined in your config. You can define what project
+you want the command to be run on using the --project option:
+
+    $ roku -lw --project project1
+
+or:
+
+    $ roku -lw -P project1
 
 ## Improvements
 
