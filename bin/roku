@@ -5,6 +5,7 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 #require "byebug"
 require "roku_builder"
 require "optparse"
+require "pathname"
 
 options = {}
 options[:config] = '~/.roku_config.rb'
@@ -12,7 +13,6 @@ options[:stage] = 'production'
 options[:update_manifest] = false
 options[:fetch] = false
 options[:device] = 'default'
-options[:project] = 'default'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -155,6 +155,31 @@ unless File.exists?(config_file)
   abort
 end
 load config_file
+
+#set project
+unless options[:project]
+  path = `pwd`
+  project = nil
+  $config[:projects].each_pair {|key,value|
+    if value.is_a?(Hash)
+      repo_path = Pathname.new(value[:repo_dir]).realdirpath.to_s
+      if path.start_with?(repo_path)
+        project = key
+        break
+      end
+    end
+  }
+  if project
+    options[:project] = project
+  else
+    if $config[:projects][:default].is_a?(Hash)
+      puts "DEPRICATED CONFIG: default under projects should be a key for the default project. See example config."
+      options[:project] = :default
+    else
+      options[:project] = $config[:projects][:default]
+    end
+  end
+end
 
 # setup configs
 device_config = $config[:device_info][options[:device].to_sym]

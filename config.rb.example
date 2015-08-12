@@ -8,7 +8,8 @@ $config = {
     }
   },
   projects: {
-    default: {
+    default: :project1
+    project1: {
       repo_dir: "", # path to app repository
       app_name: "", # App name
       production: {
