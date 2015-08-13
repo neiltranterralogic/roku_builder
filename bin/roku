@@ -76,7 +76,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do |n|
-    options[:update_manifest] = false
+    options[:update_manifest] = true
   end
 
   opts.on("-f", "--fetch", "Preform a `git fetch --all` on the repository before building or sideloading.") do
