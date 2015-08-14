@@ -24,7 +24,7 @@ following command:
 
     $ roku --configure
 
-This will create the file '~/roku_config.rb' with a default configuration.
+This will create the file '~/.roku_config.rb' with a default configuration.
 Edit this file to add appropriate values. The following are default
 configuration options:
 
