@@ -12,7 +12,6 @@ options[:config] = '~/.roku_config.rb'
 options[:stage] = 'production'
 options[:update_manifest] = false
 options[:fetch] = false
-options[:device] = 'default'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -55,6 +54,10 @@ OptionParser.new do |opts|
 
   opts.on("-b", "--build", "Command: build a zip to be sideloaded") do |b|
     options[:build] = b
+  end
+
+  opts.on("-u", "--update-manifest", "Command: update the manifest file") do |u|
+    options[:update] = u
   end
 
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
@@ -131,6 +134,7 @@ commands += 1 if options[:navigate]
 commands += 1 if options[:restart]
 commands += 1 if options[:text]
 commands += 1 if options[:build]
+commands += 1 if options[:update]
 
 if commands > 1
   puts "Only one command is allowed"
@@ -203,6 +207,9 @@ build_config = {
   root_dir: project_config[:repo_dir],
   branch: project_config[stage][:branch],
   fetch: options[:fetch]
+}
+manifest_config = {
+  root_dir: project_config[:repo_dir]
 }
 
 if options[:sideload]
@@ -337,9 +344,13 @@ elsif options[:build]
   if options[:working]
     build_config[:branch] = nil
   end
-  build_version = RokuBuilder::ManifestManager.build_version(root_dir: build_config[:root_dir])
+  build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
   build_config[:outfile] = "/tmp/#{project_config[:app_name]}_#{stage}_#{build_version}.zip"
   # Run
   outfile = loader.build(**build_config)
   puts "Build: #{outfile}"
+elsif options[:update]
+  old_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
+  new_version = RokuBuilder::ManifestManager.update_build(**manifest_config)
+  puts "Update build version from:\n#{old_version}\nto:\n#{new_version}"
 end
