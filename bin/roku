@@ -160,6 +160,16 @@ unless File.exists?(config_file)
 end
 load config_file
 
+#set device
+unless options[:device]
+  if $config[:device_info][:default].is_a?(Hash)
+    puts "DEPRICATED CONFIG: default under device_info should be a key for the default device. See example config."
+    options[:device] = :default
+  else
+    options[:device] = $config[:device_info][:default]
+  end
+end
+
 #set project
 unless options[:project]
   path = `pwd`
