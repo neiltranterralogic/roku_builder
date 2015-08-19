@@ -272,6 +272,10 @@ elsif options[:package]
   success = keyer.rekey(**stage_config[:key])
   puts "WARNING: Key did not change" unless success
   # Sideload App
+  if options[:working]
+    sideload_config[:branch] = nil
+    puts "WARNING: Packaging working directory"
+  end
   sideload_config[:update_manifest] = options[:update_manifest]
   build_version = loader.sideload(**sideload_config)
   unless build_version
@@ -279,17 +283,15 @@ elsif options[:package]
     abort
   end
   # Package App
-  outfile = nil
-  if options[:out_file]
-    outfile = File.join(options[:out_folder], options[:out_file])
-  else
-    outfile = File.join(options[:out_folder], "#{project_config[:app_name]}_#{stage}_#{build_version}.pkg")
-  end
   package_config = {
     app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
     password: stage_config[:key][:password],
-    out_file: outfile
   }
+  if options[:out_file]
+    package_config[:out_file] = File.join(options[:out_folder], options[:out_file])
+  else
+    package_config[:out_file] = File.join(options[:out_folder], "#{project_config[:app_name]}_#{stage}_#{build_version}.pkg")
+  end
   success = packager.package(**package_config)
   if success
     puts "Signing Successful: #{package_config[:out_file]}"
