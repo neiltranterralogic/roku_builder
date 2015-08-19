@@ -112,6 +112,10 @@ OptionParser.new do |opts|
     options[:project] = p
   end
 
+  opts.on("-O", "--out PATH", "Output file/folder. If PATH ends in .pkg/.zip, file is assumed, otherwise folder is assumed") do |o|
+    options[:out] = o
+  end
+
   opts.on("-h", "--help", "Show this message") do |h|
     puts opts
     exit
@@ -195,6 +199,20 @@ unless options[:project]
   end
 end
 
+#set outfile
+options[:out_folder] = nil
+options[:out_file] = nil
+if options[:out]
+  if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg")
+    options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
+  else
+    options[:out_folder] = options[:out]
+  end
+end
+unless options[:out_folder]
+  options[:out_folder] = "/tmp"
+end
+
 # setup configs
 device_config = $config[:device_info][options[:device].to_sym]
 project_config = $config[:projects][options[:project].to_sym]
@@ -261,11 +279,16 @@ elsif options[:package]
     abort
   end
   # Package App
+  outfile = nil
+  if options[:out_file]
+    outfile = File.join(options[:out_folder], options[:out_file])
+  else
+    outfile = File.join(options[:out_folder], "#{project_config[:app_name]}_#{stage}_#{build_version}.pkg")
+  end
   package_config = {
     app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
     password: stage_config[:key][:password],
-    out_file: File.join("/tmp", "#{project_config[:app_name]}_#{stage}_"+
-      "#{build_version}.pkg")
+    out_file: outfile
   }
   success = packager.package(**package_config)
   if success
@@ -355,7 +378,11 @@ elsif options[:build]
     build_config[:branch] = nil
   end
   build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
-  build_config[:outfile] = "/tmp/#{project_config[:app_name]}_#{stage}_#{build_version}.zip"
+  if options[:out_file]
+    build_config[:outfile] = File.join(options[:out_folder], options[:out_file])
+  else
+    build_config[:outfile] = File.join(options[:out_folder],"#{project_config[:app_name]}_#{stage}_#{build_version}.zip")
+  end
   # Run
   outfile = loader.build(**build_config)
   puts "Build: #{outfile}"
