@@ -11,15 +11,17 @@ module RokuBuilder
       @root_dir = root_dir
       result = nil
       stash = nil
-      git = Git.open(@root_dir)
-      if fetch
-        for remote in git.remotes
-          git.fetch(remote)
+      if branch
+        git = Git.open(@root_dir)
+        if fetch
+          for remote in git.remotes
+            git.fetch(remote)
+          end
         end
       end
       current_dir = Dir.pwd
       begin
-        if branch
+        if git and branch and branch != git.current_branch
           Dir.chdir(@root_dir)
           current_branch = git.current_branch
           stash = git.branch.stashes.save("roku-builder-temp-stash")
@@ -54,7 +56,7 @@ module RokuBuilder
         # Cleanup
         File.delete(outfile)
 
-        if current_branch
+        if git and current_branch
           git.checkout(current_branch)
           git.branch.stashes.apply if stash
         end
@@ -77,15 +79,17 @@ module RokuBuilder
       @root_dir = root_dir
       result = nil
       stash = nil
-      git = Git.open(@root_dir)
-      if fetch
-        for remote in git.remotes
-          git.fetch(remote)
+      if branch
+        git = Git.open(@root_dir)
+        if fetch
+          for remote in git.remotes
+            git.fetch(remote)
+          end
         end
       end
       current_dir = Dir.pwd
       begin
-        if branch and branch != git.current_branch
+        if git and branch and branch != git.current_branch
           Dir.chdir(@root_dir)
           current_branch = git.current_branch
           stash = git.branch.stashes.save("roku-builder-temp-stash")
@@ -114,7 +118,7 @@ module RokuBuilder
 
         io.close()
 
-        if current_branch
+        if git and current_branch
           git.checkout(current_branch)
           git.branch.stashes.apply if stash
         end
