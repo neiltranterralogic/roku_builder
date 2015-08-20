@@ -363,12 +363,12 @@ elsif options[:text]
   navigator.type(text: options[:text])
 elsif options[:build]
   # Check Options
-  count = 0
-  count += 1 if options[:ref]
-  count += 1 if options[:set_stage]
-  count += 1 if options[:working]
-  if count > 1
-    puts "FATAL: only use one of --ref, --working or --stage"
+  if options[:ref] and options[:working]
+    puts "FATAL: only use one of --ref or --working"
+    abort
+  end
+  if options[:ref] and options[:set_stage]
+    puts "FATAL: only use one of --ref or --stage"
     abort
   end
   # Set options
