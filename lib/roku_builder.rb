@@ -10,6 +10,7 @@ require "net/telnet"
 
 require "roku_builder/util"
 require "roku_builder/keyer"
+require "roku_builder/inspector"
 require "roku_builder/loader"
 require "roku_builder/packager"
 require "roku_builder/linker"

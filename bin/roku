@@ -2,7 +2,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-#require "byebug"
+require "byebug"
 require "roku_builder"
 require "optparse"
 require "pathname"
@@ -80,6 +80,10 @@ OptionParser.new do |opts|
 
   opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do |n|
     options[:update_manifest] = true
+  end
+
+  opts.on("-i", "--inspect", "Print inspection information while packaging") do |n|
+    options[:inspect] = true
   end
 
   opts.on("-f", "--fetch", "Preform a `git fetch --all` on the repository before building or sideloading.") do
@@ -268,6 +272,7 @@ elsif options[:package]
   keyer = RokuBuilder::Keyer.new(**device_config)
   loader = RokuBuilder::Loader.new(**device_config)
   packager = RokuBuilder::Packager.new(**device_config)
+  inspector = RokuBuilder::Inspector.new(**device_config)
   # Key Roku
   success = keyer.rekey(**stage_config[:key])
   puts "WARNING: Key did not change" unless success
@@ -297,6 +302,13 @@ elsif options[:package]
     puts "Signing Successful: #{package_config[:out_file]}"
   else
     puts "FATAL: Signing Failed"
+  end
+  if options[:inspect]
+    info = inspector.inspect(pkg: package_config[:out_file], password: stage_config[:key][:password])
+    puts "App Name: #{info[:app_name]}"
+    puts "Dev ID: #{info[:dev_id]}"
+    puts "Creation Date: #{info[:creation_date]}"
+    puts "dev.zip: #{info[:dev_zip]}"
   end
 elsif options[:test]
   ### Test App ###
