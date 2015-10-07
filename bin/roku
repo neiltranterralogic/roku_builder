@@ -126,7 +126,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-v", "--version", "Show version") do
-    puts RokuBuilder::Version
+    puts RokuBuilder::VERSION
     exit
   end
 end.parse!
