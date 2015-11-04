@@ -68,6 +68,10 @@ OptionParser.new do |opts|
     options[:working] = w
   end
 
+  opts.on("-c", "--current", "Use current directory to sideload or test. Overides any project config") do |w|
+    options[:current] = true
+  end
+
   opts.on("-s", "--stage STAGE", "Set the stage to use. Default: 'production'") do |b|
     options[:stage] = b
     options[:set_stage] = true
@@ -138,6 +142,13 @@ if commands < 1
   abort
 end
 
+if options[:current]
+  unless options[:build] or options[:sideload]
+    puts "FATAL: can only sideload or build 'current' directory"
+    abort
+  end
+end
+
 if options[:configure]
   ### Copy Config File ###
   FileUtils.copy(File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.rb.example')),
@@ -164,7 +175,7 @@ unless options[:device]
 end
 
 #set project
-unless options[:project]
+unless options[:project] and not options[:current]
   path = `pwd`
   project = nil
   $config[:projects].each_pair {|key,value|
@@ -204,7 +215,18 @@ end
 
 # setup configs
 device_config = $config[:device_info][options[:device].to_sym]
-project_config = $config[:projects][options[:project].to_sym]
+if options[:current]
+  project_config = {
+    repo_dir: `pwd`.chomp,
+    folders: nil,
+    files: nil,
+    production: {
+      branch: nil
+    }
+  }
+else
+  project_config = $config[:projects][options[:project].to_sym]
+end
 unless device_config
   puts "FATAL: Unkown device id"
   abort
@@ -247,8 +269,9 @@ if options[:sideload]
   count += 1 if options[:ref]
   count += 1 if options[:set_stage]
   count += 1 if options[:working]
+  count += 1 if options[:current]
   if count > 1
-    puts "FATAL: only use one of --ref, --working or --stage"
+    puts "FATAL: only use one of --ref, --working, --current or --stage"
     abort
   end
   # Set options
@@ -371,12 +394,13 @@ elsif options[:text]
   navigator.type(text: options[:text])
 elsif options[:build]
   # Check Options
-  if options[:ref] and options[:working]
-    puts "FATAL: only use one of --ref or --working"
-    abort
-  end
-  if options[:ref] and options[:set_stage]
-    puts "FATAL: only use one of --ref or --stage"
+  count = 0
+  count += 1 if options[:ref]
+  count += 1 if options[:set_stage]
+  count += 1 if options[:working]
+  count += 1 if options[:current]
+  if count > 1
+    puts "FATAL: only use one of --ref, --working, --current or --stage"
     abort
   end
   # Set options
@@ -390,7 +414,7 @@ elsif options[:build]
   build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
   if options[:out_file]
     build_config[:outfile] = File.join(options[:out_folder], options[:out_file])
-  else
+  elsif not options[:current]
     build_config[:outfile] = File.join(options[:out_folder],"#{project_config[:app_name]}_#{stage}_#{build_version}.zip")
   end
   # Run
