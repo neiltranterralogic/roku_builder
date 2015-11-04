@@ -97,6 +97,7 @@ module RokuBuilder
         end
 
         build_version = ManifestManager.build_version(root_dir: root_dir) unless build_version
+        unless folders
           folders = Dir.entries(root_dir).select {|entry| File.directory? File.join(root_dir, entry) and !(entry =='.' || entry == '..') }
         end
         unless files
