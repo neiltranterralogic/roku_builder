@@ -12,6 +12,13 @@ $config = {
     default: :project1,
     project1: {
       repo_dir: "", # path to app repository
+      folders: [
+        'resources',
+        'source'
+      ],
+      files: [
+        'manifest'
+      ],
       app_name: "", # App name
       production: {
         branch: "production",

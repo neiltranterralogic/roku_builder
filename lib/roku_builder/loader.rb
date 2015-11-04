@@ -7,7 +7,7 @@ module RokuBuilder
     #  +branch+:: branch of the git repository to sideload
     #  Returns:
     #  +string+:: build version or 'intermediate' on success, nil otherwise
-    def sideload(root_dir:, branch:, update_manifest:, fetch: false)
+    def sideload(root_dir:, branch:, update_manifest:, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
@@ -36,7 +36,7 @@ module RokuBuilder
           build_version = ManifestManager.build_version(root_dir: root_dir)
         end
 
-        outfile = build(root_dir: root_dir, branch: branch, build_version: build_version)
+        outfile = build(root_dir: root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
 
         path = "/plugin_install"
 
@@ -75,7 +75,7 @@ module RokuBuilder
       result
     end
 
-    def build(root_dir:, branch:, build_version: nil, outfile: nil, fetch: false)
+    def build(root_dir:, branch:, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
@@ -97,8 +97,11 @@ module RokuBuilder
         end
 
         build_version = ManifestManager.build_version(root_dir: root_dir) unless build_version
-        folders = ['resources', 'source']
-        files = ['manifest']
+          folders = Dir.entries(root_dir).select {|entry| File.directory? File.join(root_dir, entry) and !(entry =='.' || entry == '..') }
+        end
+        unless files
+          files = Dir.entries(root_dir).select {|entry| File.file? File.join(root_dir, entry)}
+        end
         outfile = "/tmp/build_#{build_version}.zip" unless outfile
 
         File.delete(outfile) if File.exists?(outfile)
