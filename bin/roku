@@ -32,7 +32,7 @@ OptionParser.new do |opts|
     options[:deeplink] = d
   end
 
-  opts.on("-C", "--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.rb'") do |c|
+  opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.rb'") do |c|
     options[:configure] = c
   end
 
@@ -150,9 +150,14 @@ if options[:current]
 end
 
 if options[:configure]
-  ### Copy Config File ###
-  FileUtils.copy(File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.rb.example')),
-    File.expand_path(options[:config]))
+  source_config = File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.rb.example'))
+  target_config = File.expand_path(options[:config])
+  if File.exist?(target_config)
+    puts 'FATAL: config already exists. To create default please remove config first.'
+  else
+    ### Copy Config File ###
+    FileUtils.copy(source_config, target_config)
+  end
   exit
 end
 
