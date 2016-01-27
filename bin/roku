@@ -8,7 +8,7 @@ require "optparse"
 require "pathname"
 
 options = {}
-options[:config] = '~/.roku_config.rb'
+options[:config] = '~/.roku_config.json'
 options[:stage] = 'production'
 options[:update_manifest] = false
 options[:fetch] = false
@@ -150,34 +150,35 @@ if options[:current]
 end
 
 if options[:configure]
-  source_config = File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.rb.example'))
+  source_config = File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.json.example'))
   target_config = File.expand_path(options[:config])
   if File.exist?(target_config)
     puts 'FATAL: config already exists. To create default please remove config first.'
+    abort
   else
     ### Copy Config File ###
     FileUtils.copy(source_config, target_config)
+    exit
   end
-  exit
 end
 
 # load config
 config_file = File.expand_path(options[:config])
 unless File.exists?(config_file)
-  puts "Missing config file: #{config_file}"
+  puts "FATAL: Missing config file: #{config_file}"
   abort
 end
-load config_file
+$config = RokuBuilder::ConfigManager.get_config(config: config_file)
+code = RokuBuilder::ConfigManager.validate_config($config)
+if code > 0
+  puts "FATAL: Invalid Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
+  abort
+elsif code < 0
+  puts "WARNING: Depricated Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
+end
 
 #set device
-unless options[:device]
-  if $config[:device_info][:default].is_a?(Hash)
-    puts "DEPRICATED CONFIG: default under device_info should be a key for the default device. See example config."
-    options[:device] = :default
-  else
-    options[:device] = $config[:device_info][:default]
-  end
-end
+options[:device] = $config[:device_info][:default]
 
 #set project
 unless options[:project] and not options[:current]
@@ -195,12 +196,7 @@ unless options[:project] and not options[:current]
   if project
     options[:project] = project
   else
-    if $config[:projects][:default].is_a?(Hash)
-      puts "DEPRICATED CONFIG: default under projects should be a key for the default project. See example config."
-      options[:project] = :default
-    else
-      options[:project] = $config[:projects][:default]
-    end
+    options[:project] = $config[:projects][:default]
   end
 end
 
@@ -239,13 +235,6 @@ end
 unless project_config
   puts "FATAL: Unknown project id"
   abort
-else
-  unless options[:current] or (project_config[:folders] and project_config[:files])
-    puts "DEPRICATED CONFIG: Please specify folders and files required for the project. See example config"
-    puts "Using Default Folders and Files (resources, source, manifest)"
-    project_config[:folders] = ['resources', 'source']
-    project_config[:files] = ['manifest']
-  end
 end
 stage = options[:stage].to_sym
 sideload_config = {
