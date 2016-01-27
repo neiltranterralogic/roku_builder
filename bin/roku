@@ -134,11 +134,21 @@ commands += 1 if options[:build]
 commands += 1 if options[:update]
 
 if commands > 1
-  puts "Only one command is allowed"
+  puts "FATAL: Only one command is allowed"
   abort
 end
 if commands < 1
-  puts "A command is required"
+  puts "FATAL: A command is required"
+  abort
+end
+
+count = 0
+count += 1 if options[:ref]
+count += 1 if options[:set_stage]
+count += 1 if options[:working]
+count += 1 if options[:current]
+if count > 1
+  puts "FATAL: only use one of --ref, --working, --current or --stage"
   abort
 end
 
@@ -181,7 +191,7 @@ end
 options[:device] = $config[:device_info][:default]
 
 #set project
-unless options[:project] and not options[:current]
+if options[:current] and not options[:project]
   path = `pwd`
   project = nil
   $config[:projects].each_pair {|key,value|
@@ -258,16 +268,6 @@ manifest_config = {
 
 if options[:sideload]
   ### Sideload App ###
-  # Check Options
-  count = 0
-  count += 1 if options[:ref]
-  count += 1 if options[:set_stage]
-  count += 1 if options[:working]
-  count += 1 if options[:current]
-  if count > 1
-    puts "FATAL: only use one of --ref, --working, --current or --stage"
-    abort
-  end
   # Set options
   loader = RokuBuilder::Loader.new(**device_config)
   if options[:ref]
@@ -279,6 +279,7 @@ if options[:sideload]
   # Run
   success = loader.sideload(**sideload_config)
   puts "FATAL: Failed to sideload app" unless success
+  abort
 elsif options[:package]
   ### Package App ###
   stage_config = project_config[stage]
@@ -315,6 +316,7 @@ elsif options[:package]
     puts "Signing Successful: #{package_config[:out_file]}"
   else
     puts "FATAL: Signing Failed"
+    abort
   end
   if options[:inspect]
     info = inspector.inspect(pkg: package_config[:out_file], password: stage_config[:key][:password])
@@ -323,6 +325,38 @@ elsif options[:package]
     puts "Creation Date: #{info[:creation_date]}"
     puts "dev.zip: #{info[:dev_zip]}"
   end
+elsif options[:build]
+  # Check Options
+  count = 0
+  count += 1 if options[:ref]
+  count += 1 if options[:set_stage]
+  count += 1 if options[:working]
+  count += 1 if options[:current]
+  if count > 1
+    puts "FATAL: only use one of --ref, --working, --current or --stage"
+    abort
+  end
+  # Set options
+  loader = RokuBuilder::Loader.new(**device_config)
+  if options[:ref]
+    build_config[:branch] = options[:ref]
+  end
+  if options[:working]
+    build_config[:branch] = nil
+  end
+  build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
+  if options[:out_file]
+    build_config[:outfile] = File.join(options[:out_folder], options[:out_file])
+  elsif not options[:current]
+    build_config[:outfile] = File.join(options[:out_folder],"#{project_config[:app_name]}_#{stage}_#{build_version}.zip")
+  end
+  # Run
+  outfile = loader.build(**build_config)
+  puts "Build: #{outfile}"
+elsif options[:update]
+  old_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
+  new_version = RokuBuilder::ManifestManager.update_build(**manifest_config)
+  puts "Update build version from:\n#{old_version}\nto:\n#{new_version}"
 elsif options[:test]
   ### Test App ###
   tester = RokuBuilder::Tester.new(**device_config)
@@ -337,12 +371,6 @@ elsif options[:test]
 elsif options[:deeplink]
   ### Deeplink to App ###
   deeplink_config = {}
-  if  options[:mgid] and options[:content_type]
-    deeplink_config = {
-      mgid: options[:mgid],
-      content_type: options[:content_type]
-    }
-  end
   if options[:deeplink_options]
     opts = options[:deeplink_options].split(/,\s*/)
     opts.each do |opt|
@@ -386,36 +414,4 @@ elsif options[:restart]
 elsif options[:text]
   navigator = RokuBuilder::Navigator.new(**device_config)
   navigator.type(text: options[:text])
-elsif options[:build]
-  # Check Options
-  count = 0
-  count += 1 if options[:ref]
-  count += 1 if options[:set_stage]
-  count += 1 if options[:working]
-  count += 1 if options[:current]
-  if count > 1
-    puts "FATAL: only use one of --ref, --working, --current or --stage"
-    abort
-  end
-  # Set options
-  loader = RokuBuilder::Loader.new(**device_config)
-  if options[:ref]
-    build_config[:branch] = options[:ref]
-  end
-  if options[:working]
-    build_config[:branch] = nil
-  end
-  build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
-  if options[:out_file]
-    build_config[:outfile] = File.join(options[:out_folder], options[:out_file])
-  elsif not options[:current]
-    build_config[:outfile] = File.join(options[:out_folder],"#{project_config[:app_name]}_#{stage}_#{build_version}.zip")
-  end
-  # Run
-  outfile = loader.build(**build_config)
-  puts "Build: #{outfile}"
-elsif options[:update]
-  old_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
-  new_version = RokuBuilder::ManifestManager.update_build(**manifest_config)
-  puts "Update build version from:\n#{old_version}\nto:\n#{new_version}"
 end
