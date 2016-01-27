@@ -10,17 +10,17 @@
   "projects": {
     "default": "<project id>",
     "<project id>": {
-      "repo_dir": "<path/to/repo>",
+      "directory": "<path/to/repo>",
       "folders": ["resources","source"],
       "files": ["manifest"],
       "app_name": "<app name>",
-
-      "_COMMENT_": "Stages",
-      "production": {
-        "branch": "production",
-        "key": {
-          "keyed_pkg": "<path/to/signed/pkg>",
-          "password": "<password for pkg>"
+      "stages":{
+        "production": {
+          "branch": "production",
+          "key": {
+            "keyed_pkg": "<path/to/signed/pkg>",
+            "password": "<password for pkg>"
+          }
         }
       }
     }

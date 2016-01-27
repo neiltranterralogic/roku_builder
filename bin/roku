@@ -2,7 +2,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-#require "byebug"
+require "byebug"
 require "roku_builder"
 require "optparse"
 require "pathname"
@@ -32,8 +32,12 @@ OptionParser.new do |opts|
     options[:deeplink] = d
   end
 
-  opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.rb'") do |c|
+  opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.json'") do |c|
     options[:configure] = c
+  end
+
+  opts.on("--validate", "Command: Validate configuration'") do |v|
+    options[:validate] = v
   end
 
   opts.on("-d", "--delete", "Command: Delete the currently sideloaded app") do |d|
@@ -126,6 +130,7 @@ commands += 1 if options[:package]
 commands += 1 if options[:test]
 commands += 1 if options[:deeplink]
 commands += 1 if options[:configure]
+commands += 1 if options[:validate]
 commands += 1 if options[:delete]
 commands += 1 if options[:navigate]
 commands += 1 if options[:restart]
@@ -179,24 +184,34 @@ unless File.exists?(config_file)
   abort
 end
 $config = RokuBuilder::ConfigManager.get_config(config: config_file)
-code = RokuBuilder::ConfigManager.validate_config($config)
-if code > 0
-  puts "FATAL: Invalid Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
-  abort
-elsif code < 0
-  puts "WARNING: Depricated Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
+codes = RokuBuilder::ConfigManager.validate_config(config: $config)
+fatal = false
+codes.each {|code|
+  if code > 0
+    puts "FATAL: Invalid Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
+    fatal = true
+  elsif code < 0
+    puts "WARNING: Depricated Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
+  elsif code == 0 and options[:validate]
+    puts "Config Valid"
+  end
+}
+abort if fatal and not options[:validate]
+
+if options[:validate]
+  exit
 end
 
 #set device
-options[:device] = $config[:device_info][:default]
+options[:device] = $config[:devices][:default]
 
 #set project
-if options[:current] and not options[:project]
+if options[:current] or not options[:project]
   path = `pwd`
   project = nil
   $config[:projects].each_pair {|key,value|
     if value.is_a?(Hash)
-      repo_path = Pathname.new(value[:repo_dir]).realdirpath.to_s
+      repo_path = Pathname.new(value[:directory]).realdirpath.to_s
       if path.start_with?(repo_path)
         project = key
         break
@@ -225,14 +240,21 @@ unless options[:out_folder]
 end
 
 # setup configs
-device_config = $config[:device_info][options[:device].to_sym]
+device_config = $config[:devices][options[:device].to_sym]
 if options[:current]
+  pwd = `pwd`.chomp
+  unless File.exist?(File.join(pwd, "manifest"))
+    puts "FATAL: Current directory does not have a manifest file"
+    abort
+  end
   project_config = {
-    repo_dir: `pwd`.chomp,
+    directory: `pwd`.chomp,
     folders: nil,
     files: nil,
-    production: {
-      branch: nil
+    stages: {
+      production: {
+        branch: nil
+      }
     }
   }
 else
@@ -247,23 +269,27 @@ unless project_config
   abort
 end
 stage = options[:stage].to_sym
+unless project_config[:stages][stage]
+  puts "FATAL: Unknown stage"
+  abort
+end
 sideload_config = {
-  root_dir: project_config[:repo_dir],
-  branch: project_config[stage][:branch],
+  root_dir: project_config[:directory],
+  branch: project_config[:stages][stage][:branch],
   update_manifest: false,
   fetch: options[:fetch],
   folders: project_config[:folders],
   files: project_config[:files]
 }
 build_config = {
-  root_dir: project_config[:repo_dir],
-  branch: project_config[stage][:branch],
+  root_dir: project_config[:directory],
+  branch: project_config[:stages][stage][:branch],
   fetch: options[:fetch],
   folders: project_config[:folders],
   files: project_config[:files]
 }
 manifest_config = {
-  root_dir: project_config[:repo_dir]
+  root_dir: project_config[:directory]
 }
 
 if options[:sideload]
@@ -282,14 +308,11 @@ if options[:sideload]
   abort
 elsif options[:package]
   ### Package App ###
-  stage_config = project_config[stage]
+  stage_config = project_config[:stages][stage]
   keyer = RokuBuilder::Keyer.new(**device_config)
   loader = RokuBuilder::Loader.new(**device_config)
   packager = RokuBuilder::Packager.new(**device_config)
   inspector = RokuBuilder::Inspector.new(**device_config)
-  # Key Roku
-  success = keyer.rekey(**stage_config[:key])
-  puts "WARNING: Key did not change" unless success
   # Sideload App
   if options[:working]
     sideload_config[:branch] = nil
@@ -301,6 +324,9 @@ elsif options[:package]
     puts "FATAL: Failed to sideload app"
     abort
   end
+  # Key Roku
+  success = keyer.rekey(**stage_config[:key])
+  puts "WARNING: Key did not change" unless success
   # Package App
   package_config = {
     app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
@@ -361,7 +387,7 @@ elsif options[:test]
   ### Test App ###
   tester = RokuBuilder::Tester.new(**device_config)
   test_config = {
-    root_dir: project_config[:repo_dir],
+    root_dir: project_config[:directory],
     branch: project_config[:testing][:branch],
   }
   if options[:working]
@@ -398,6 +424,7 @@ elsif options[:navigate]
 elsif options[:restart]
   navigator = RokuBuilder::Navigator.new(**device_config)
   navigator.nav(command: :home)
+  sleep(0.9)
   navigator.nav(command: :up)
   sleep(0.9)
   navigator.nav(command: :select)

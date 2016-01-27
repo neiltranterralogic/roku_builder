@@ -39,7 +39,6 @@ module RokuBuilder
       payload =  {}
       text.split(//).each do |c|
         path = "/keypress/LIT_#{CGI::escape(c)}"
-        puts "#{@url}:8060#{path}"
         response = conn.post path, payload
       end
     end
