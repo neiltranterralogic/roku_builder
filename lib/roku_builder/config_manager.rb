@@ -79,5 +79,45 @@ module RokuBuilder
         "A project stage is missing its branch."
       ]
     end
+
+    # edits the roku config
+    # params:
+    # +config+:: path for the roku config
+    # +options+:: options to set in the config
+    # +device+:: which device to use
+    # +project+:: which project to use
+    # +stage+:: which stage to use
+    def self.edit_config(config:, options:, device:, project:, stage:)
+      config_object = get_config(config: config)
+      unless project
+        project = config_object[:projects][:default]
+      else
+        project = project.to_sym
+      end
+      unless device
+        device = config_object[:devices][:default]
+      else
+        device = device.to_sym
+      end
+      changes = {}
+      opts = options.split(/,\s*/)
+      opts.each do |opt|
+        opt = opt.split(":")
+        key = opt.shift.to_sym
+        value = opt.join(":")
+        changes[key] = value
+      end
+      changes.each {|key,value|
+        if [:ip, :user, :password].include?(key)
+          config_object[:devices][device][key] = value
+        elsif [:directory, :app_name].include?(key) #:folders, :files
+          config_object[:project][project][key] = value
+        elsif [:branch]
+          config_object[:project][project][:stages][stage][key] = value
+        end
+      }
+      config_string = JSON.pretty_generate(config_object)
+      File.open(config, "w").write(config_string)
+    end
   end
 end

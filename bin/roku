@@ -97,6 +97,10 @@ OptionParser.new do |opts|
     options[:deeplink_options] = o
   end
 
+  opts.on("-e", "--edit PARAMS", "Edit config params when configuring. (eg. a:b, c:d,e:f)") do |p|
+    options[:edit_params] = p
+  end
+
   opts.on("--config CONFIG", "Set a custom config file. Default: '~/.roku_config.rb'") do |c|
     options[:config] = c
   end
@@ -168,13 +172,18 @@ if options[:configure]
   source_config = File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.json.example'))
   target_config = File.expand_path(options[:config])
   if File.exist?(target_config)
-    puts 'FATAL: config already exists. To create default please remove config first.'
-    abort
+    unless options[:edit_params]
+      puts 'FATAL: config already exists. To create default please remove config first.'
+      abort
+    end
   else
     ### Copy Config File ###
     FileUtils.copy(source_config, target_config)
-    exit
   end
+  if options[:edit_params]
+    RokuBuilder::ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage])
+  end
+  exit
 end
 
 # load config
@@ -203,7 +212,9 @@ if options[:validate]
 end
 
 #set device
-options[:device] = $config[:devices][:default]
+unless options[:device]
+  options[:device] = $config[:devices][:default]
+end
 
 #set project
 if options[:current] or not options[:project]
