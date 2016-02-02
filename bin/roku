@@ -60,6 +60,10 @@ OptionParser.new do |opts|
     options[:build] = b
   end
 
+  opts.on("-m", "--monitor TYPE", "Command: run telnet to monitor roku log") do |m|
+    options[:monitor] = m
+  end
+
   opts.on("-u", "--update-manifest", "Command: update the manifest file") do |u|
     options[:update] = u
   end
@@ -141,6 +145,7 @@ commands += 1 if options[:restart]
 commands += 1 if options[:text]
 commands += 1 if options[:build]
 commands += 1 if options[:update]
+commands += 1 if options[:monitor]
 
 if commands > 1
   puts "FATAL: Only one command is allowed"
@@ -426,6 +431,9 @@ elsif options[:deeplink]
 elsif options[:delete]
   loader = RokuBuilder::Loader.new(**device_config)
   loader.unload()
+elsif options[:monitor]
+  monitor = RokuBuilder::Monitor.new(**device_config)
+  monitor.monitor(type: options[:monitor].to_sym)
 elsif options[:navigate]
   navigator = RokuBuilder::Navigator.new(**device_config)
   unless navigator.nav(command: options[:navigate].to_sym)
