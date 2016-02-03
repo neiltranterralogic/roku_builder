@@ -21,36 +21,40 @@ module RokuBuilder
     def self.validate_config(config:)
       codes = []
       codes.push(1) if not config[:devices]
-      codes.push(2) if not config[:devices][:default]
-      codes.push(3) if not config[:devices][:default].is_a?(Symbol)
+      codes.push(2) if config[:devices] and not config[:devices][:default]
+      codes.push(3) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
       codes.push(4) if not config[:projects]
-      codes.push(5) if not config[:projects][:default]
-      codes.push(5) if config[:projects][:default] == "<project id>".to_sym
-      codes.push(6) if not config[:projects][:default].is_a?(Symbol)
-      config[:devices].each {|k,v|
-        next if k == :default
-        codes.push(7) if not v[:ip]
-        codes.push(7) if v[:ip] == "xxx.xxx.xxx.xxx"
-        codes.push(7) if v[:ip] == ""
-        codes.push(8) if not v[:user]
-        codes.push(8) if v[:user] == "<username>"
-        codes.push(8) if v[:user] == ""
-        codes.push(9) if not v[:password]
-        codes.push(9) if v[:password] == "<password>"
-        codes.push(9) if v[:password] == ""
-      }
-      config[:projects].each {|k,v|
-        next if k == :default
-        codes.push(10) if not v[:app_name]
-        codes.push(11) if not v[:directory]
-        codes.push(12) if not v[:folders]
-        codes.push(13) if not v[:folders].is_a?(Array)
-        codes.push(14) if not v[:files]
-        codes.push(15) if not v[:files].is_a?(Array)
-        v[:stages].each {|k,v|
-          codes.push(16) if not v[:branch]
+      codes.push(5) if config[:projects] and not config[:projects][:default]
+      codes.push(5) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
+      codes.push(6) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
+      if config[:devices]
+        config[:devices].each {|k,v|
+          next if k == :default
+          codes.push(7) if not v[:ip]
+          codes.push(7) if v[:ip] == "xxx.xxx.xxx.xxx"
+          codes.push(7) if v[:ip] == ""
+          codes.push(8) if not v[:user]
+          codes.push(8) if v[:user] == "<username>"
+          codes.push(8) if v[:user] == ""
+          codes.push(9) if not v[:password]
+          codes.push(9) if v[:password] == "<password>"
+          codes.push(9) if v[:password] == ""
         }
-      }
+      end
+      if config[:projects]
+        config[:projects].each {|k,v|
+          next if k == :default
+          codes.push(10) if not v[:app_name]
+          codes.push(11) if not v[:directory]
+          codes.push(12) if not v[:folders]
+          codes.push(13) if v[:folders] and not v[:folders].is_a?(Array)
+          codes.push(14) if not v[:files]
+          codes.push(15) if v[:files] and not v[:files].is_a?(Array)
+          v[:stages].each {|k,v|
+            codes.push(16) if not v[:branch]
+          }
+        }
+      end
       codes.push(0) if codes.empty?
       codes
     end
@@ -60,6 +64,7 @@ module RokuBuilder
     # +array+:: error code messages
     def self.error_codes()
       [
+        #===============FATAL ERRORS===============#
         "Valid Config.",
         "Devices config is missing.",
         "Devices default is missing.",
@@ -77,6 +82,7 @@ module RokuBuilder
         "A project config is missing its files.",
         "A project config's files is not an array.", #15
         "A project stage is missing its branch."
+        #===============WARNINGS===============#
       ]
     end
 
@@ -99,6 +105,11 @@ module RokuBuilder
       else
         device = device.to_sym
       end
+      unless stage
+        stage = :production
+      else
+        stage = stage.to_sym
+      end
       changes = {}
       opts = options.split(/,\s*/)
       opts.each do |opt|
@@ -111,9 +122,9 @@ module RokuBuilder
         if [:ip, :user, :password].include?(key)
           config_object[:devices][device][key] = value
         elsif [:directory, :app_name].include?(key) #:folders, :files
-          config_object[:project][project][key] = value
+          config_object[:projects][project][key] = value
         elsif [:branch]
-          config_object[:project][project][:stages][stage][key] = value
+          config_object[:projects][project][:stages][stage][key] = value
         end
       }
       config_string = JSON.pretty_generate(config_object)
