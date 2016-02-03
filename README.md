@@ -7,11 +7,12 @@ development tasks:
  * Packaging
  * Building
  * Testing
-  * Deeplink testing
-  * Intergration test scripting
+   * Deeplink testing
+   * Intergration test scripting
  * Manifest Updating
  * App Deleteing
  * Package Inspection
+ * Monitoring logs
 
 The tool allows scripting of the following interactions with the roku:
 
@@ -131,30 +132,42 @@ or:
 
     $ roku -ps production
 
-## Projects
+#### Building
 
-The project used in the above examples is a smart default. If you are in a
-project directory then it will use that project. If you not then it will use
-the defualt that you have defined in your config. You can define what project
-you want the command to be run on using the --project option:
+You can build an app to be sideloaded later or by someone else by using the
+following command:
 
-    $ roku -lw --project project1
+    $ roku --build --stage production
 
 or:
 
-    $ roku -lw -P project1
+    $ roku -bw
 
-## Devices
 
-In the examples above the default device is used. If you have multiple devices
-defined in your config then you can select a different one using the following
-option:
+#### Monitoring Logs
 
-    $ roku -lw --device device2
+The tool has the ability to monitor the different development logs. You use
+the feature using the command --monitor and passing in the type of log you want
+to monitor. For example the following command will monitor the main
+brightscript log:
+
+    $ roku --monitor main
 
 or:
+    $ roku -m main
 
-    $ roku -lw -D device2
+The following are the options to be passed in as type:
+
+ * main
+ * sg
+ * task1
+ * task2
+ * task3
+ * taskX
+
+The tool connects to the roku via telnet and prints everything that it
+recieves. It will continue indefinatly unless it is stopped via Ctrl-c or
+entering "q".
 
 #### Testing
 
@@ -217,6 +230,31 @@ You can use a differnt configuration file useing the following option:
     & roku --delete --config <path>
 
 This path will be expanded so you do not have to use the full path
+
+## Projects
+
+The project used in the above examples is a smart default. If you are in a
+project directory then it will use that project. If you not then it will use
+the defualt that you have defined in your config. You can define what project
+you want the command to be run on using the --project option:
+
+    $ roku -lw --project project1
+
+or:
+
+    $ roku -lw -P project1
+
+## Devices
+
+In the examples above the default device is used. If you have multiple devices
+defined in your config then you can select a different one using the following
+option:
+
+    $ roku -lw --device device2
+
+or:
+
+    $ roku -lw -D device2
 
 
 ## Improvements
