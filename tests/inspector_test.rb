@@ -21,10 +21,34 @@ class InspectorTest < Minitest::Test
       password: password,
       archive: io
     }
-    body = "<td>App Name:</td><td><font>app_name</font></td>"+
-           "<td>Dev ID:</td><td><font>dev_id</font></td>"+
-           "<td>Creation Date:</td><td><font><script>var d = new Date(628232400)</script></font></td>"+
-           "<td>dev.zip:</td><td><font>dev_zip</font></td>"
+    body = "r1.insertCell(0).innerHTML = 'App Name: ';"+
+      "      r1.insertCell(1).innerHTML = '<div class=\"roku-color-c3\">app_name</div>';"+
+      ""+
+      "      var r2 = table.insertRow(1);"+
+      "      r2.insertCell(0).innerHTML = 'Dev ID: ';"+
+      "      r2.insertCell(1).innerHTML = '<div class=\"roku-color-c3\"><font face=\"Courier\">dev_id</font></div>';"+
+      "      "+
+      "      var dd = new Date(628232400);"+
+      "      var ddStr = \"\";"+
+      "      ddStr += (dd.getMonth()+1);"+
+      "      ddStr += \"/\";"+
+      "      ddStr += dd.getDate();"+
+      "      ddStr += \"/\";"+
+      "      ddStr += dd.getFullYear();"+
+      "      ddStr += \" \";"+
+      "      ddStr += dd.getHours();"+
+      "      ddStr += \":\";"+
+      "      ddStr += dd.getMinutes();"+
+      "      ddStr += \":\";"+
+      "      ddStr += dd.getSeconds(); "+
+      "      "+
+      "      var r3 = table.insertRow(2);"+
+      "      r3.insertCell(0).innerHTML = 'Creation Date: ';"+
+      "      r3.insertCell(1).innerHTML = '<div class=\"roku-color-c3\">'+ddStr+'</div>';"+
+      "      "+
+      "      var r4 = table.insertRow(3);"+
+      "      r4.insertCell(0).innerHTML = 'dev.zip: ';"+
+      "      r4.insertCell(1).innerHTML = '<div class=\"roku-color-c3\"><font face=\"Courier\">dev_zip</font></div>';"
 
     connection.expect(:post, response) do |arg1, arg2|
       assert_equal path, arg1

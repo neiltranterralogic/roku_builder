@@ -13,7 +13,7 @@ class KeyerTest < Minitest::Test
       password: "password"
     }
     path = "/plugin_package"
-    body = "Your Dev ID: <font>dev_id</font>"
+    body = "v class=\"roku-font-5\"><label>Your Dev ID: &nbsp;</label> dev_id<hr></div>"
 
     connection.expect(:get, response, [path])
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
