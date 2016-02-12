@@ -1,5 +1,11 @@
 module RokuBuilder
+
+  # Launch application, sending parameters
   class Linker < Util
+    # Deeplink to the currently sideloaded app
+    # @param options [String] Options string
+    # @note Options string should be formated like the following: "<key>:<value>[, <key>:<value>]*"
+    # @note Any options will be accepted and sent to the app
     def link(options:)
       path = "/launch/dev"
       payload = {}
@@ -30,8 +36,11 @@ module RokuBuilder
 
     private
 
+    # Parameterize options to be sent to the app
+    # @param params [Hash] Parameters to be sent
+    # @return [String] Parameters as a string, URI escaped
     def parameterize(params)
-        URI.escape(params.collect{|k,v| "#{k}=#{URI.escape(v, "?&")}"}.join('&'))
+      URI.escape(params.collect{|k,v| "#{k}=#{URI.escape(v, "?&")}"}.join('&'))
     end
   end
 end

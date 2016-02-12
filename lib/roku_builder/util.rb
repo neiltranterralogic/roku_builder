@@ -1,11 +1,14 @@
 module RokuBuilder
+
+  # Super class for device utilities
+  # This class defines a common initializer and allows subclasses
+  # to define their own secondary initializer
   class Util
 
     # Common initializer of device utils
-    # Params:
-    # +ip+:: IP address of roku device
-    # +user+:: username for roku device
-    # +password+:: password for roku device
+    # @param ip [String] IP address of roku device
+    # @param user [String] Username for roku device
+    # @param password [String] Password for roku device
     def initialize(ip:, user:, password:)
       @device_config = {
         ip: ip,
@@ -19,6 +22,7 @@ module RokuBuilder
       init()
     end
 
+    # Second initializer to be overwriten
     def init
       #Override in subclass
     end

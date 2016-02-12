@@ -1,11 +1,11 @@
 module RokuBuilder
+
+  # Load and validate config files.
   class ConfigManager
 
-    # Gets the roku config
-    # params:
-    # +config+:: path for the roku config
-    # Returns:
-    # +hash+:: Roku config hash
+    # Loads the roku config from file
+    # @param config [String] path for the roku config
+    # @return [Hash] roku config object
     def self.get_config(config:)
       config = JSON.parse(File.open(config).read, {symbolize_names: true})
       config[:devices][:default] = config[:devices][:default].to_sym
@@ -13,11 +13,9 @@ module RokuBuilder
       config
     end
 
-    # validates the roku config
-    # params:
-    # +config+:: roku config hash
-    # Returns:
-    # +array+:: error codes for valid config (see self.error_codes)
+    # Validates the roku config
+    # @param config [Hash] roku config object
+    # @return [Array] error codes for valid config (see self.error_codes)
     def self.validate_config(config:)
       codes = []
       codes.push(1) if not config[:devices]
@@ -59,9 +57,8 @@ module RokuBuilder
       codes
     end
 
-    # error codes for config validation
-    # Returns:
-    # +array+:: error code messages
+    # Error code messages for config validation
+    # @return [Array] error code messages
     def self.error_codes()
       [
         #===============FATAL ERRORS===============#
@@ -86,13 +83,12 @@ module RokuBuilder
       ]
     end
 
-    # edits the roku config
-    # params:
-    # +config+:: path for the roku config
-    # +options+:: options to set in the config
-    # +device+:: which device to use
-    # +project+:: which project to use
-    # +stage+:: which stage to use
+    # Edit the roku config
+    # @param config [String] path for the roku config
+    # @param options [String] options to set in the config
+    # @param device [String] which device to use
+    # @param project [String] which project to use
+    # @param stage[String] which stage to use
     def self.edit_config(config:, options:, device:, project:, stage:)
       config_object = get_config(config: config)
       unless project

@@ -1,6 +1,9 @@
 module RokuBuilder
+
+  # Monitor development Logs
   class Monitor < Util
 
+    # Initialize port config
     def init()
       @ports = {
         main: 8085,
@@ -12,6 +15,9 @@ module RokuBuilder
       }
     end
 
+    # Monitor a development log on the Roku device
+    # @param type [Symbol] The log type to monitor
+    # @param verbose [Boolean] Print status messages.
     def monitor(type:, verbose: true)
       telnet_config = {
         'Host' => @roku_ip_address,

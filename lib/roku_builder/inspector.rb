@@ -1,12 +1,16 @@
 module RokuBuilder
+
+  # Collects information on a package for submission
   class Inspector < Util
 
     # Inspects the given pkg
-    # Params:
-    # +pkg+:: a package that has be keyed with the desired key
-    # +password+:: password for the desired key
-    # Returns:
-    # +hash+:: information on the package
+    # @param pkg [String] Path to the pkg to be inspected
+    # @param password [String] Password for the given pkg
+    # @return [Hash] Package information. Contains the following keys:
+    #   * app_name
+    #   * dev_id
+    #   * creation_date
+    #   * dev_zip
     def inspect(pkg:, password:)
 
       # upload new key with password

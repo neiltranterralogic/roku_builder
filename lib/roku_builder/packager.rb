@@ -1,13 +1,13 @@
 module RokuBuilder
+
+  # Method of packaging app for submission
   class Packager < Util
 
     # Sign and download the currently sideloaded app
-    # Params:
-    # +app_name_version+:: the name and version of the package
-    # +out_file+:: location to download signed package to
-    # +password+:: password for the devices current key
-    # Returns:
-    # +boolean+:: true on package success and download, false otherwise
+    # @param app_name_version [String] The name and version of the package
+    # @param out_file [String] Location to download signed package to
+    # @param password [String] Password for the devices current key
+    # @return [Boolean] True on package success and download, false otherwise
     def package(app_name_version:, out_file:, password:)
       # Sign package
       path = "/plugin_package"

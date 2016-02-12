@@ -1,11 +1,11 @@
 module RokuBuilder
+
+  # Updates or retrives build version
   class ManifestManager
 
-    # Updates the manifest file
-    # Params:
-    # +root_dir+:: Root directory that contains the manifest
-    # Returns:
-    # +string+:: Build version on success, empty string otherwise
+    # Updates the build version in the manifest file
+    # @param root_dir [String] Path to the root directory for the app
+    # @return [String] Build version on success, empty string otherwise
     def self.update_build(root_dir:)
 
       build_version = ""
@@ -44,11 +44,9 @@ module RokuBuilder
       build_version
     end
 
-    # Gets the build version from the manifest file
-    # Params:
-    # +root_dir+:: Root directory that contains the manifest
-    # Returns:
-    # +string+:: Build version on success, empty string otherwise
+    # Retrive the build version from the manifest file
+    # @param root_dir [String] Path to the root directory for the app
+    # @return [String] Build version on success, empty string otherwise
     def self.build_version(root_dir:)
       path = File.join(root_dir, 'manifest')
       build_version = ""

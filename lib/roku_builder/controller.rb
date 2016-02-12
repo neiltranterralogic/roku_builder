@@ -1,42 +1,75 @@
 module RokuBuilder
+
+  # Controls all interaction with other classes
   class Controller
 
-    # Validateion Codes
+    ### Validation Codes ###
+
+    # Valid Options
     VALID           = 0
+
+    # Too many commands given
     EXTRA_COMMANDS  = 1
+
+    # No commands given
     NO_COMMANDS     = 2
+
+    # Too many source options given
     EXTRA_SOURCES   = 3
+
+    # No source options given
     NO_SOURCE       = 4
+
+    # Incorrect use of current option
     BAD_CURRENT     = 5
+
+    # No deeplink options supplied for deeplink
     BAD_DEEPLINK    = 6
 
-    # Handel Codes
+    ### Run Codes ###
+
+    # Config has deplicated options
     DEPRICATED_CONFIG  = -1
+
+    # Valid config
     SUCCESS            = 0
+
+    # Tring to overwrite existing config file
     CONFIG_OVERWRITE   = 1
+
+    # Missing config file
     MISSING_CONFIG     = 2
+
+    # Invalid config file
     INVALID_CONFIG     = 3
+
+    # Missing manifest file
     MISSING_MANIFEST   = 4
+
+    # Unknow device given
     UNKNOWN_DEVICE     = 5
+
+    # Unknown project given
     UNKNOWN_PROJECT    = 6
+
+    # Unknown stage given
     UNKNOWN_STAGE      = 7
+
+    # Failed to sideload app
     FAILED_SIDELOAD    = 8
+
+    # Failed to sign app
     FAILED_SIGNING     = 9
+
+    # Failed to deeplink to app
     FAILED_DEEPLINKING = 10
+
+    # Failed to send navigation command
     FAILED_NAVIGATING  = 11
 
     # Validates the commands
-    # Params:
-    # +options+:: the options hash
-    # Returns:
-    # +integer+:: status code for command validation
-    #    0 - valid options
-    #    1 - too many commands
-    #    2 - no commands given
-    #    3 - too many source options
-    #    4 - must supply at least one source for required commands
-    #    5 - using current with command other then buils or sideload
-    #    6 - must supply at least one option when deeplinking
+    # @param options [Hash] The options hash
+    # @return [Integer] Status code for command validation
     def self.validate_options(options:)
       commands = options.keys & self.commands
       return EXTRA_COMMANDS if commands.count > 1
@@ -55,23 +88,9 @@ module RokuBuilder
       return VALID
     end
 
-    # Handel Options
-    # Params:
-    # +options+:: the options hash
-    # Returns:
-    # +integer+:: return code for options handeling
-    #  -1 - depricated config
-    #   0 - successful run
-    #   1 - configuring with existing config file
-    #   2 - missing config file
-    #   3 - invalid config
-    #   4 - no manifest file
-    #   5 - unknown device
-    #   6 - unknown project
-    #   7 - unknown stage
-    #   8 - failed to sideload
-    #   9 - signing failed
-    #
+    # Run commands
+    # @param options [Hash] The options hash
+    # @return [Integer] Return code for options handeling
     def self.handle_options(options:)
       if options[:configure]
         return configure(options: options)
@@ -151,21 +170,30 @@ module RokuBuilder
       return SUCCESS
     end
 
-    private
+    protected
 
+    # List of command options
+    # @return [Array<Symbol>] List of command symbols that can be used in the options hash
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
         :navigate, :text, :build, :monitor, :update]
     end
 
+    # List of source options
+    # @return [Array<Symbol>] List of source symbols that can be used in the options hash
     def self.sources
       [:ref, :set_stage, :working, :current]
     end
 
+    # List of commands requiring a source option
+    # @return [Array<Symbol>] List of command symbols that require a source in the options hash
     def self.source_commands
       [:sideload, :package, :test, :build]
     end
 
+    # Configure the gem
+    # @param options [Hash] The options hash
+    # @return [Integer] Success or failure code
     def self.configure(options:)
       source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
       target_config = File.expand_path(options[:config])
@@ -183,15 +211,11 @@ module RokuBuilder
       return SUCCESS
     end
 
-    # Load Configs
-    # Params:
-    # +options+:: the options hash
-    # Returns:
-    # +integer+:: return code
-    # +hash+:: loaded config
-    # +hash+:: parsed configs
-    #   :device_config
-    #
+    # Load config file and generate intermeidate configs
+    # @param options [Hash] The options hash
+    # @return [Integer] Return code
+    # @return [Hash] Loaded config
+    # @return [Hash] Intermeidate configs
     def self.load_config(options:)
       config_file = File.expand_path(options[:config])
       return MISSING_CONFIG unless File.exists?(config_file)
@@ -342,6 +366,10 @@ module RokuBuilder
       return [code, config, configs]
     end
 
+    # Update the intermeidate configs
+    # @param configs [Hash] Intermeidate configs hash
+    # @param options [Hash] Options hash
+    # @return [Hash] New intermeidate configs hash
     def self.update_configs(configs:, options:)
       if options[:build_version]
         configs[:package_config][:app_version_name] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}"

@@ -1,12 +1,16 @@
 module RokuBuilder
+
+  # Load/Unload/Build roku applications
   class Loader < Util
 
     # Sideload an app onto a roku device
-    # Params:
-    #  +root_dir+:: root directory of the roku app
-    #  +branch+:: branch of the git repository to sideload
-    #  Returns:
-    #  +string+:: build version or 'intermediate' on success, nil otherwise
+    # @param root_dir [String] Path to the root directory of the roku app
+    # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
+    # @param update_manifest [Boolean] Flag to update the manifest file before sideloading. Default: false
+    # @param fetch [Boolean] Flag to fetch all remotes before sideloading. Default: false
+    # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
+    # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
+    # @return [String] Build version on success, nil otherwise
     def sideload(root_dir:, branch: nil, update_manifest: false, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
@@ -75,6 +79,16 @@ module RokuBuilder
       result
     end
 
+
+    # Build an app to sideload later
+    # @param root_dir [String] Path to the root directory of the roku app
+    # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
+    # @param build_version [String] Version to assigne to the build. If nil will pull the build version form the manifest. Default: nil
+    # @param outfile [String] Path for the output file. If nil will create a file in /tmp. Default: nil
+    # @param fetch [Boolean] Flag to fetch all remotes before sideloading. Default: false
+    # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
+    # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
+    # @return [String] Path of the build
     def build(root_dir:, branch: nil, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
@@ -136,6 +150,7 @@ module RokuBuilder
       outfile
     end
 
+    # Remove the currently sideloaded app
     def unload()
         path = "/plugin_install"
 
@@ -160,7 +175,11 @@ module RokuBuilder
 
     private
 
-    # Recursively write folders to a zip archive
+    # Recursively write directory contents to a zip archive
+    # @param root_dir [String] Path of the root directory
+    # @param entries [Array<String>] Array of file paths of files/directories to store in the zip archive
+    # @param path [String] The path of the current directory starting at the root directory
+    # @param io [IO] zip IO object
     def writeEntries(root_dir, entries, path, io)
       entries.each { |e|
         zipFilePath = path == "" ? e : File.join(path, e)

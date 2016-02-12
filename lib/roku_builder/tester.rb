@@ -1,6 +1,12 @@
 module RokuBuilder
+
+  # Method for running unit tests
+  # This is intended to be used with the brstest librbary but should work
+  # with other testing libraries
   class Tester < Util
 
+    # Run tests and report results
+    # @param sideload_config [Hash] The config for sideloading the app
     def run_tests(sideload_config:)
       telnet_config ={
         'Host' => @roku_ip_address,

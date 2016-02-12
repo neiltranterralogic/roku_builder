@@ -259,7 +259,6 @@ or:
 
 ## Improvements
 
- * Convert to YARD Docs
  * Use a logger instead of print statments
  * Remove magic numbers from ConfigManager
  * Increase testing

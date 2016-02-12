@@ -23,3 +23,8 @@ require "roku_builder/config_manager"
 require "roku_builder/navigator"
 require "roku_builder/monitor"
 require "roku_builder/version"
+
+# Wrapping module for the Roku Builder Gem
+module RokuBuilder
+  # For documentatio
+end

@@ -1,12 +1,12 @@
 module RokuBuilder
+
+  # Change or get dev key
   class Keyer < Util
 
     # Sets the key on the roku device
-    # Params:
-    # +keyed_pkg+:: a package that has be keyed with the desired key
-    # +password+:: password for the desired key
-    # Returns:
-    # +boolean+:: true if key changed, false otherwise
+    # @param keyed_pkg [String] Path for a package signed with the desired key
+    # @param password [String] Password for the package
+    # @return [Boolean] True if key changed, false otherwise
     def rekey(keyed_pkg:, password:)
       oldId = dev_id
 
@@ -30,7 +30,8 @@ module RokuBuilder
       newId != oldId
     end
 
-    # get the current developer id
+    # Get the current dev id
+    # @return [String] The current dev id
     def dev_id
       path = "/plugin_package"
       conn = Faraday.new(url: @url) do |f|
