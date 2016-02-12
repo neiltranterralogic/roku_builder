@@ -34,6 +34,10 @@ module RokuBuilder
         "Password" => @password,
         "RememberMe" => false
       }
+
+      #TODO make request to https://my.roku.com/api/auth/1/login first
+      #this request needs to have a csrf-token from https://my.roku.com/index
+
       resp = conn.post "/Login", payload
 
       if resp.status == 200 or resp.status == 302
