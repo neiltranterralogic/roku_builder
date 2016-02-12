@@ -128,7 +128,9 @@ module RokuBuilder
         end
       }
       config_string = JSON.pretty_generate(config_object)
-      File.open(config, "w").write(config_string)
+      file = File.open(config, "w")
+      file.write(config_string)
+      file.close
     end
   end
 end

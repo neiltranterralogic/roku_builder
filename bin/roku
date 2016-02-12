@@ -2,7 +2,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-require "byebug"
+#require "byebug"
 require "roku_builder"
 require "optparse"
 require "pathname"
@@ -132,322 +132,67 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-commands = 0
-commands += 1 if options[:sideload]
-commands += 1 if options[:package]
-commands += 1 if options[:test]
-commands += 1 if options[:deeplink]
-commands += 1 if options[:configure]
-commands += 1 if options[:validate]
-commands += 1 if options[:delete]
-commands += 1 if options[:navigate]
-commands += 1 if options[:restart]
-commands += 1 if options[:text]
-commands += 1 if options[:build]
-commands += 1 if options[:update]
-commands += 1 if options[:monitor]
+controller = RokuBuilder::Controller
 
-if commands > 1
+options_code = controller.validate_options(options: options)
+
+case options_code
+when controller::EXTRA_COMMANDS
   puts "FATAL: Only one command is allowed"
   abort
-end
-if commands < 1
+when controller::NO_COMMANDS
   puts "FATAL: A command is required"
   abort
-end
-
-count = 0
-count += 1 if options[:ref]
-count += 1 if options[:set_stage]
-count += 1 if options[:working]
-count += 1 if options[:current]
-if count > 1
+when controller::EXTRA_SOURCES
   puts "FATAL: only use one of --ref, --working, --current or --stage"
   abort
-end
-
-if options[:current]
-  unless options[:build] or options[:sideload]
-    puts "FATAL: can only sideload or build 'current' directory"
-    abort
-  end
-end
-
-if options[:configure]
-  source_config = File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.json.example'))
-  target_config = File.expand_path(options[:config])
-  if File.exist?(target_config)
-    unless options[:edit_params]
-      puts 'FATAL: config already exists. To create default please remove config first.'
-      abort
-    end
-  else
-    ### Copy Config File ###
-    FileUtils.copy(source_config, target_config)
-  end
-  if options[:edit_params]
-    RokuBuilder::ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage])
-  end
-  exit
-end
-
-# load config
-config_file = File.expand_path(options[:config])
-unless File.exists?(config_file)
-  puts "FATAL: Missing config file: #{config_file}"
+when controller::NO_SOURCE
+  puts "FATAL: must use at least one of --ref, --working, --current or --stage"
+  abort
+when controller::BAD_CURRENT
+  puts "FATAL: can only sideload or build 'current' directory"
+  abort
+when controller::BAD_DEEPLINK
+  puts "FATAL: must supply deeplinking options when deeplinking"
   abort
 end
-$config = RokuBuilder::ConfigManager.get_config(config: config_file)
-codes = RokuBuilder::ConfigManager.validate_config(config: $config)
-fatal = false
-codes.each {|code|
-  if code > 0
-    puts "FATAL: Invalid Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
-    fatal = true
-  elsif code < 0
-    puts "WARNING: Depricated Config: "+ RokuBuilder::ConfigManager.error_codes()[code]
-  elsif code == 0 and options[:validate]
-    puts "Config Valid"
-  end
-}
-abort if fatal and not options[:validate]
 
-if options[:validate]
-  exit
-end
+handel_code = RokuBuilder::Controller.handle_options(options: options)
 
-#set device
-unless options[:device]
-  options[:device] = $config[:devices][:default]
-end
-
-#set project
-if options[:current] or not options[:project]
-  path = `pwd`
-  project = nil
-  $config[:projects].each_pair {|key,value|
-    if value.is_a?(Hash)
-      repo_path = Pathname.new(value[:directory]).realdirpath.to_s
-      if path.start_with?(repo_path)
-        project = key
-        break
-      end
-    end
-  }
-  if project
-    options[:project] = project
-  else
-    options[:project] = $config[:projects][:default]
-  end
-end
-
-#set outfile
-options[:out_folder] = nil
-options[:out_file] = nil
-if options[:out]
-  if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg")
-    options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
-  else
-    options[:out_folder] = options[:out]
-  end
-end
-unless options[:out_folder]
-  options[:out_folder] = "/tmp"
-end
-
-# setup configs
-device_config = $config[:devices][options[:device].to_sym]
-if options[:current]
-  pwd = `pwd`.chomp
-  unless File.exist?(File.join(pwd, "manifest"))
-    puts "FATAL: Current directory does not have a manifest file"
-    abort
-  end
-  project_config = {
-    directory: `pwd`.chomp,
-    folders: nil,
-    files: nil,
-    stages: {
-      production: {
-        branch: nil
-      }
-    }
-  }
-else
-  project_config = $config[:projects][options[:project].to_sym]
-end
-unless device_config
+case handel_code
+when controller::DEPRICATED_CONFIG
+  puts 'WARNING: Depricated config. See Above'
+when controller::CONFIG_OVERWRITE
+  puts 'FATAL: config already exists. To create default please remove config first.'
+  abort
+when controller::MISSING_CONFIG
+  puts "FATAL: Missing config file: #{options[:config]}"
+  abort
+when controller::INVALID_CONFIG
+  puts 'FATAL: Invalid config. See Above'
+  abort
+when controller::MISSING_MANIFEST
+  puts 'FATAL: Manifest file missing'
+  abort
+when controller::UNKNOWN_DEVICE
   puts "FATAL: Unkown device id"
   abort
-end
-unless project_config
+when controller::UNKNOWN_PROJECT
   puts "FATAL: Unknown project id"
   abort
-end
-stage = options[:stage].to_sym
-unless project_config[:stages][stage]
+when controller::UNKNOWN_STAGE
   puts "FATAL: Unknown stage"
   abort
-end
-sideload_config = {
-  root_dir: project_config[:directory],
-  branch: project_config[:stages][stage][:branch],
-  update_manifest: false,
-  fetch: options[:fetch],
-  folders: project_config[:folders],
-  files: project_config[:files]
-}
-build_config = {
-  root_dir: project_config[:directory],
-  branch: project_config[:stages][stage][:branch],
-  fetch: options[:fetch],
-  folders: project_config[:folders],
-  files: project_config[:files]
-}
-manifest_config = {
-  root_dir: project_config[:directory]
-}
-
-if options[:sideload]
-  ### Sideload App ###
-  # Set options
-  loader = RokuBuilder::Loader.new(**device_config)
-  if options[:ref]
-    sideload_config[:branch] = options[:ref]
-  end
-  if options[:working]
-    sideload_config[:branch] = nil
-  end
-  # Run
-  success = loader.sideload(**sideload_config)
-  puts "FATAL: Failed to sideload app" unless success
+when controller::FAILED_SIDELOAD
+  puts "FATAL: Failed Sideloading App"
   abort
-elsif options[:package]
-  ### Package App ###
-  stage_config = project_config[:stages][stage]
-  keyer = RokuBuilder::Keyer.new(**device_config)
-  loader = RokuBuilder::Loader.new(**device_config)
-  packager = RokuBuilder::Packager.new(**device_config)
-  inspector = RokuBuilder::Inspector.new(**device_config)
-  # Sideload App
-  if options[:working]
-    sideload_config[:branch] = nil
-    puts "WARNING: Packaging working directory"
-  end
-  sideload_config[:update_manifest] = options[:update_manifest]
-  build_version = loader.sideload(**sideload_config)
-  unless build_version
-    puts "FATAL: Failed to sideload app"
-    abort
-  end
-  # Key Roku
-  success = keyer.rekey(**stage_config[:key])
-  puts "WARNING: Key did not change" unless success
-  # Package App
-  package_config = {
-    app_name_version: "#{project_config[:app_name]} - #{stage} - #{build_version}",
-    password: stage_config[:key][:password],
-  }
-  if options[:out_file]
-    package_config[:out_file] = File.join(options[:out_folder], options[:out_file])
-  else
-    package_config[:out_file] = File.join(options[:out_folder], "#{project_config[:app_name]}_#{stage}_#{build_version}.pkg")
-  end
-  success = packager.package(**package_config)
-  if success
-    puts "Signing Successful: #{package_config[:out_file]}"
-  else
-    puts "FATAL: Signing Failed"
-    abort
-  end
-  if options[:inspect]
-    info = inspector.inspect(pkg: package_config[:out_file], password: stage_config[:key][:password])
-    puts "App Name: #{info[:app_name]}"
-    puts "Dev ID: #{info[:dev_id]}"
-    puts "Creation Date: #{info[:creation_date]}"
-    puts "dev.zip: #{info[:dev_zip]}"
-  end
-elsif options[:build]
-  # Check Options
-  count = 0
-  count += 1 if options[:ref]
-  count += 1 if options[:set_stage]
-  count += 1 if options[:working]
-  count += 1 if options[:current]
-  if count > 1
-    puts "FATAL: only use one of --ref, --working, --current or --stage"
-    abort
-  end
-  # Set options
-  loader = RokuBuilder::Loader.new(**device_config)
-  if options[:ref]
-    build_config[:branch] = options[:ref]
-  end
-  if options[:working]
-    build_config[:branch] = nil
-  end
-  build_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
-  if options[:out_file]
-    build_config[:outfile] = File.join(options[:out_folder], options[:out_file])
-  elsif not options[:current]
-    build_config[:outfile] = File.join(options[:out_folder],"#{project_config[:app_name]}_#{stage}_#{build_version}.zip")
-  end
-  # Run
-  outfile = loader.build(**build_config)
-  puts "Build: #{outfile}"
-elsif options[:update]
-  old_version = RokuBuilder::ManifestManager.build_version(**manifest_config)
-  new_version = RokuBuilder::ManifestManager.update_build(**manifest_config)
-  puts "Update build version from:\n#{old_version}\nto:\n#{new_version}"
-elsif options[:test]
-  ### Test App ###
-  tester = RokuBuilder::Tester.new(**device_config)
-  test_config = {
-    root_dir: project_config[:directory],
-    branch: project_config[:testing][:branch],
-  }
-  if options[:working]
-    test_config[:branch] = nil
-  end
-  tester.run_tests(**test_config)
-elsif options[:deeplink]
-  ### Deeplink to App ###
-  deeplink_config = {
-    options: options[:deeplink_options]
-  }
-  linker = RokuBuilder::Linker.new(**device_config)
-  success = linker.link(**deeplink_config)
-  puts "FATAL: must supply at least one option for deeplinking" unless success
-elsif options[:delete]
-  loader = RokuBuilder::Loader.new(**device_config)
-  loader.unload()
-elsif options[:monitor]
-  monitor = RokuBuilder::Monitor.new(**device_config)
-  monitor.monitor(type: options[:monitor].to_sym)
-elsif options[:navigate]
-  navigator = RokuBuilder::Navigator.new(**device_config)
-  unless navigator.nav(command: options[:navigate].to_sym)
-    puts "FATAL: command not sent"
-    abort
-  end
-elsif options[:restart]
-  navigator = RokuBuilder::Navigator.new(**device_config)
-  navigator.nav(command: :home)
-  sleep(0.9)
-  navigator.nav(command: :up)
-  sleep(0.9)
-  navigator.nav(command: :select)
-  navigator.nav(command: :up)
-  sleep(0.9)
-  navigator.nav(command: :select)
-  navigator.nav(command: :up)
-  navigator.nav(command: :up)
-  navigator.nav(command: :up)
-  navigator.nav(command: :up)
-  sleep(0.9)
-  navigator.nav(command: :select)
-  navigator.nav(command: :select)
-elsif options[:text]
-  navigator = RokuBuilder::Navigator.new(**device_config)
-  navigator.type(text: options[:text])
+when controller::FAILED_SIGNING
+  puts "FATAL: Failed Signing App"
+  abort
+when controller::FAILED_DEEPLINKING
+  puts "FATAL: Failed Deeplinking To App"
+  abort
+when controller::FAILED_NAVIGATING
+  puts "FATAL: Command not sent"
+  abort
 end

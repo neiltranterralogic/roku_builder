@@ -1,6 +1,5 @@
 require "roku_builder"
 require "minitest/autorun"
-require 'byebug'
 
 class LoaderTest < Minitest::Test
   def test_loader_sideload

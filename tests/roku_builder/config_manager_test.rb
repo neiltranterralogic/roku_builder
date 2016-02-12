@@ -185,6 +185,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -207,6 +208,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -229,6 +231,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -251,6 +254,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -273,6 +277,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -295,6 +300,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)
@@ -317,6 +323,7 @@ class ConfigManagerTest < Minitest::Test
     io = Minitest::Mock.new
     io.expect(:read, good_config.to_json)
     io.expect(:write, nil, [JSON.pretty_generate(new_config)])
+    io.expect(:close, nil)
     config = nil
     File.stub(:open, io) do
       RokuBuilder::ConfigManager.edit_config(**args)

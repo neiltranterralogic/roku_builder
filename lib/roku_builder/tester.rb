@@ -1,11 +1,7 @@
 module RokuBuilder
   class Tester < Util
 
-    def run_tests(root_dir:, branch:)
-      sideload_config = {
-        root_dir: root_dir,
-        branch: branch,
-      }
+    def run_tests(sideload_config:)
       telnet_config ={
         'Host' => @roku_ip_address,
         'Port' => 8085

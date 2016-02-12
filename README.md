@@ -259,8 +259,12 @@ or:
 
 ## Improvements
 
- * allow start and end delimiter to be configured
- * generalize deeplinking options
+ * Convert to YARD Docs
+ * Use a logger instead of print statments
+ * Remove magic numbers from ConfigManager
+ * Increase testing
+ * Move RokuBuilder::Controller to RokuBuilder?
+ * Allow start and end delimiter to be configured
 
 ## Contributing
 

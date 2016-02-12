@@ -1,0 +1,28 @@
+{
+  "devices": {
+    "default": "roku",
+    "roku": {
+      "ip": "111.222.333.444",
+      "user": "user",
+      "password": "pass"
+    }
+  },
+  "projects": {
+    "default": "p1",
+    "p1": {
+      "directory": "<path/to/repo>",
+      "folders": ["resources","source"],
+      "files": ["manifest"],
+      "app_name": "<app name>",
+      "stages":{
+        "production": {
+          "branch": "production",
+          "key": {
+            "keyed_pkg": "<path/to/signed/pkg>",
+            "password": "<password for pkg>"
+          }
+        }
+      }
+    }
+  }
+}

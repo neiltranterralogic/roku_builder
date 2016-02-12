@@ -2,7 +2,6 @@ require "roku_builder"
 require "minitest/autorun"
 
 class TesterTest < Minitest::Test
-  #TODO
   def test_tester_runtests
     connection = Minitest::Mock.new
     loader = Minitest::Mock.new
