@@ -1,13 +1,12 @@
 require "logger"
-#keyer
 require "faraday"
 require "faraday/digestauth"
 #loader
+require "net/telnet"
 require "fileutils"
 require "tempfile"
 require "zip"
 require "git"
-require "net/telnet"
 #config_manager
 require 'json'
 
@@ -27,5 +26,5 @@ require "roku_builder/version"
 
 # Wrapping module for the Roku Builder Gem
 module RokuBuilder
-  # For documentatio
+  # For documentation
 end

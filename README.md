@@ -257,9 +257,16 @@ or:
     $ roku -lw -D device2
 
 
+## Documentation
+
+To generate the documentation run the following command in the project root
+directory:
+
+    $ yard doc --protected lib
+
+
 ## Improvements
 
- * Use a logger instead of print statments
  * Remove magic numbers from ConfigManager
  * Increase testing
  * Move RokuBuilder::Controller to RokuBuilder?
