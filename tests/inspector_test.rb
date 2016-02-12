@@ -1,6 +1,5 @@
 require "roku_builder"
 require "minitest/autorun"
-require 'byebug'
 
 class InspectorTest < Minitest::Test
   def test_inspector_inspect

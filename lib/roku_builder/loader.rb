@@ -7,7 +7,7 @@ module RokuBuilder
     #  +branch+:: branch of the git repository to sideload
     #  Returns:
     #  +string+:: build version or 'intermediate' on success, nil otherwise
-    def sideload(root_dir:, branch:, update_manifest:, fetch: false, folders: nil, files: nil)
+    def sideload(root_dir:, branch: nil, update_manifest: false, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
@@ -75,7 +75,7 @@ module RokuBuilder
       result
     end
 
-    def build(root_dir:, branch:, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
+    def build(root_dir:, branch: nil, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
       stash = nil

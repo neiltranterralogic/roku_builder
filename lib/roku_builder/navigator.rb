@@ -22,10 +22,10 @@ module RokuBuilder
           f.request :url_encoded
           f.adapter Faraday.default_adapter
         end
-        payload =  {}
 
         path = "/keypress/#{@commands[command]}"
-        response = conn.post path, payload
+        response = conn.post path
+        return response.success?
       else
         return false
       end
@@ -36,11 +36,12 @@ module RokuBuilder
         f.request :url_encoded
         f.adapter Faraday.default_adapter
       end
-      payload =  {}
       text.split(//).each do |c|
         path = "/keypress/LIT_#{CGI::escape(c)}"
-        response = conn.post path, payload
+        response = conn.post path
+        return false unless response.success?
       end
+      return true
     end
   end
 end
