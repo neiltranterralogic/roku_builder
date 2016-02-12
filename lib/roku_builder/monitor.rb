@@ -1,8 +1,7 @@
 module RokuBuilder
-  class Monitor
+  class Monitor < Util
 
-    def initialize(**device_config)
-      @config = device_config
+    def init()
       @ports = {
         main: 8085,
         sg: 8089,
@@ -13,9 +12,9 @@ module RokuBuilder
       }
     end
 
-    def monitor(type:)
+    def monitor(type:, verbose: true)
       telnet_config = {
-        'Host' => @config[:ip],
+        'Host' => @roku_ip_address,
         'Port' => @ports[type]
       }
       waitfor_config = {
@@ -24,7 +23,7 @@ module RokuBuilder
       }
 
       thread = Thread.new(telnet_config, waitfor_config) {|telnet_config,waitfor_config|
-        puts "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }"
+        puts "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }" if verbose
         connection = Net::Telnet.new(telnet_config)
         all_text = ""
         while true
@@ -36,11 +35,13 @@ module RokuBuilder
           end
         end
       }
-      while true
-        puts "Q to exit"
+      running = true
+      while running
+        puts "Q to exit" if verbose
         command = gets
         if command.chomp == "q"
-          exit
+          thread.exit
+          running = false
         end
       end
     end

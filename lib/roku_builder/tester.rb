@@ -1,22 +1,17 @@
 module RokuBuilder
-  class Tester
-
-    def initialize(**device_config)
-      @config = device_config
-    end
+  class Tester < Util
 
     def run_tests(root_dir:, branch:)
       sideload_config = {
         root_dir: root_dir,
         branch: branch,
-        update_manifest: false
       }
       telnet_config ={
-        'Host' => @config[:ip],
+        'Host' => @roku_ip_address,
         'Port' => 8085
       }
 
-      loader = Loader.new(**@config)
+      loader = Loader.new(**@device_config)
       connection = Net::Telnet.new(telnet_config)
       loader.sideload(**sideload_config)
 
