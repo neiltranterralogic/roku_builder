@@ -10,19 +10,21 @@ class TesterTest < Minitest::Test
       user: "user",
       password: "password"
     }
-    test_config = {
-      root_dir: "root",
-      branch: "branch"
+    loader_config = {
+      root_dir: "root/dir/path",
+      branch: "branch",
+      folders: ["source"],
+      files: ["manifest"]
     }
     tester = RokuBuilder::Tester.new(**device_config)
 
-    loader.expect(:sideload, nil, [test_config])
+    loader.expect(:sideload, nil, [loader_config])
     connection.expect(:waitfor, nil, [/\*\*\*\*\* ENDING TESTS \*\*\*\*\*/])
     connection.expect(:puts, nil, ["cont\n"])
 
     RokuBuilder::Loader.stub(:new, loader) do
       Net::Telnet.stub(:new, connection) do
-        tester.run_tests(**test_config)
+        tester.run_tests(sideload_config: loader_config)
       end
     end
 
