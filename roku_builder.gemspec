@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rubyzip",             "~> 1.1"
   spec.add_dependency "faraday",             "~> 0.9"
   spec.add_dependency "faraday-digestauth",  "~> 0.2"
+  spec.add_dependency "faraday-cookie_jar",  "~> 0.0.6"
+  spec.add_dependency "nokogiri",            "~> 1.6"
   spec.add_dependency "git",                 "~> 1.2.9"
 
   spec.add_development_dependency "bundler",           "~> 1.7"

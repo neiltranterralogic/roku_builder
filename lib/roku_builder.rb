@@ -9,6 +9,9 @@ require "zip"
 require "git"
 #config_manager
 require 'json'
+#deployer
+require 'nokogiri'
+require 'faraday-cookie_jar'
 
 require "roku_builder/controller"
 require "roku_builder/util"
@@ -18,6 +21,7 @@ require "roku_builder/loader"
 require "roku_builder/packager"
 require "roku_builder/linker"
 require "roku_builder/tester"
+require "roku_builder/deployer"
 require "roku_builder/manifest_manager"
 require "roku_builder/config_manager"
 require "roku_builder/navigator"
