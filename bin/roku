@@ -412,22 +412,12 @@ elsif options[:test]
   tester.run_tests(**test_config)
 elsif options[:deeplink]
   ### Deeplink to App ###
-  deeplink_config = {}
-  if options[:deeplink_options]
-    opts = options[:deeplink_options].split(/,\s*/)
-    opts.each do |opt|
-      opt = opt.split(":")
-      key = opt.shift.to_sym
-      value = opt.join(":")
-      deeplink_config[key] = value
-    end
-  end
-  unless deeplink_config.keys.count > 0
-    puts "FATAL: must supply at least one option for deeplinking"
-    abort
-  end
+  deeplink_config = {
+    options: options[:deeplink_options]
+  }
   linker = RokuBuilder::Linker.new(**device_config)
-  linker.link(**deeplink_config)
+  success = linker.link(**deeplink_config)
+  puts "FATAL: must supply at least one option for deeplinking" unless success
 elsif options[:delete]
   loader = RokuBuilder::Loader.new(**device_config)
   loader.unload()
