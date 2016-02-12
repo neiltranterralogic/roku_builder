@@ -8,7 +8,8 @@ class TesterTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     loader_config = {
       root_dir: "root/dir/path",

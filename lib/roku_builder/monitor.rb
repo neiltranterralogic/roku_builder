@@ -18,7 +18,7 @@ module RokuBuilder
     # Monitor a development log on the Roku device
     # @param type [Symbol] The log type to monitor
     # @param verbose [Boolean] Print status messages.
-    def monitor(type:, verbose: true)
+    def monitor(type:)
       telnet_config = {
         'Host' => @roku_ip_address,
         'Port' => @ports[type]
@@ -29,7 +29,7 @@ module RokuBuilder
       }
 
       thread = Thread.new(telnet_config, waitfor_config) {|telnet_config,waitfor_config|
-        puts "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }" if verbose
+        @logger.info "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }"
         connection = Net::Telnet.new(telnet_config)
         all_text = ""
         while true
@@ -43,7 +43,7 @@ module RokuBuilder
       }
       running = true
       while running
-        puts "Q to exit" if verbose
+        @logger.info "Q to exit"
         command = gets
         if command.chomp == "q"
           thread.exit

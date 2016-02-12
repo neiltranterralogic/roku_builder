@@ -35,9 +35,9 @@ module RokuBuilder
         # Update manifest
         build_version = ""
         if update_manifest
-          build_version = ManifestManager.update_build(root_dir: root_dir)
+          build_version = ManifestManager.update_build(root_dir: root_dir, logger: @logger)
         else
-          build_version = ManifestManager.build_version(root_dir: root_dir)
+          build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger)
         end
 
         outfile = build(root_dir: root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
@@ -70,9 +70,9 @@ module RokuBuilder
         end
 
       rescue Git::GitExecuteError => e
-        puts "FATAL: Branch or ref does not exist"
-        puts e.message
-        puts e.backtrace
+        @logger.error "Branch or ref does not exist"
+        @logger.error e.message
+        @logger.error e.backtrace
       ensure
         Dir.chdir(current_dir) unless current_dir == Dir.pwd
       end
@@ -141,9 +141,9 @@ module RokuBuilder
           git.branch.stashes.apply if stash
         end
       rescue Git::GitExecuteError => e
-        puts "FATAL: Branch or ref does not exist"
-        puts e.message
-        puts e.backtrace
+        @logger.error "Branch or ref does not exist"
+        @logger.error e.message
+        @logger.error e.backtrace
       ensure
         Dir.chdir(current_dir) unless current_dir == Dir.pwd
       end

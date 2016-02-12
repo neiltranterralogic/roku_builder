@@ -121,6 +121,14 @@ OptionParser.new do |opts|
     options[:out] = o
   end
 
+  opts.on("-V", "--verbose", "Print Info message") do |v|
+    options[:verbose] = v
+  end
+
+  opts.on("--debug", "Print Debug messages") do |d|
+    options[:debug] = d
+  end
+
   opts.on("-h", "--help", "Show this message") do |h|
     puts opts
     exit
@@ -132,67 +140,78 @@ OptionParser.new do |opts|
   end
 end.parse!
 
+logger = Logger.new(STDOUT)
+logger.formatter = proc {|severity, datetime, progname, msg|
+  "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
+}
+if options[:debug]
+  logger.level = Logger::DEBUG
+elsif options[:verbose]
+  logger.level = Logger::INFO
+else
+  logger.level = Logger::WARN
+end
 controller = RokuBuilder::Controller
 
-options_code = controller.validate_options(options: options)
+options_code = controller.validate_options(options: options, logger: logger)
 
 case options_code
 when controller::EXTRA_COMMANDS
-  puts "FATAL: Only one command is allowed"
+   logger.fatal "Only one command is allowed"
   abort
 when controller::NO_COMMANDS
-  puts "FATAL: A command is required"
+   logger.fatal "At least one command is required"
   abort
 when controller::EXTRA_SOURCES
-  puts "FATAL: only use one of --ref, --working, --current or --stage"
+   logger.fatal "Only use one of --ref, --working, --current or --stage"
   abort
 when controller::NO_SOURCE
-  puts "FATAL: must use at least one of --ref, --working, --current or --stage"
+   logger.fatal "Must use at least one of --ref, --working, --current or --stage"
   abort
 when controller::BAD_CURRENT
-  puts "FATAL: can only sideload or build 'current' directory"
+   logger.fatal "Can only sideload or build 'current' directory"
   abort
 when controller::BAD_DEEPLINK
-  puts "FATAL: must supply deeplinking options when deeplinking"
+   logger.fatal "Must supply deeplinking options when deeplinking"
   abort
 end
 
-handel_code = RokuBuilder::Controller.handle_options(options: options)
+handel_code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
 
 case handel_code
 when controller::DEPRICATED_CONFIG
-  puts 'WARNING: Depricated config. See Above'
+   logger.warn 'Depricated config. See Above'
 when controller::CONFIG_OVERWRITE
-  puts 'FATAL: config already exists. To create default please remove config first.'
+   logger.fatal 'Config already exists. To create default please remove config first.'
   abort
 when controller::MISSING_CONFIG
-  puts "FATAL: Missing config file: #{options[:config]}"
+   logger.fatal "Missing config file: #{options[:config]}"
   abort
 when controller::INVALID_CONFIG
-  puts 'FATAL: Invalid config. See Above'
+   logger.fatal 'Invalid config. See Above'
   abort
 when controller::MISSING_MANIFEST
-  puts 'FATAL: Manifest file missing'
+   logger.fatal 'Manifest file missing'
   abort
 when controller::UNKNOWN_DEVICE
-  puts "FATAL: Unkown device id"
+   logger.fatal "Unkown device id"
   abort
 when controller::UNKNOWN_PROJECT
-  puts "FATAL: Unknown project id"
+   logger.fatal "Unknown project id"
   abort
 when controller::UNKNOWN_STAGE
-  puts "FATAL: Unknown stage"
+   logger.fatal "Unknown stage"
   abort
 when controller::FAILED_SIDELOAD
-  puts "FATAL: Failed Sideloading App"
+   logger.fatal "Failed Sideloading App"
   abort
 when controller::FAILED_SIGNING
-  puts "FATAL: Failed Signing App"
+   logger.fatal "Failed Signing App"
   abort
 when controller::FAILED_DEEPLINKING
-  puts "FATAL: Failed Deeplinking To App"
+   logger.fatal "Failed Deeplinking To App"
   abort
 when controller::FAILED_NAVIGATING
-  puts "FATAL: Command not sent"
+   logger.fatal "Command not sent"
   abort
 end

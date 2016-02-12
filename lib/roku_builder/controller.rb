@@ -70,7 +70,7 @@ module RokuBuilder
     # Validates the commands
     # @param options [Hash] The options hash
     # @return [Integer] Status code for command validation
-    def self.validate_options(options:)
+    def self.validate_options(options:, logger:)
       commands = options.keys & self.commands
       return EXTRA_COMMANDS if commands.count > 1
       return NO_COMMANDS if commands.count < 1
@@ -91,11 +91,12 @@ module RokuBuilder
     # Run commands
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
-    def self.handle_options(options:)
+    def self.handle_options(options:, logger:)
       if options[:configure]
-        return configure(options: options)
+        return configure(options: options, logger: logger)
       end
-      code, config, configs = self.load_config(options: options)
+      code, config, configs = self.load_config(options: options, logger: logger)
+      return code if code != SUCCESS
       command = (self.commands & options.keys).first
       case command
       when :validate
@@ -111,26 +112,26 @@ module RokuBuilder
         loader = Loader.new(**configs[:device_config])
         packager = Packager.new(**configs[:device_config])
         inspector = Inspector.new(**configs[:device_config])
-        puts "WARNING: Packaging working directory" if options[:working]
+        logger.warn "Packaging working directory" if options[:working]
         # Sideload #
         build_version = loader.sideload(**configs[:sideload_config])
         return FAILED_SIDELOAD unless build_version
         # Key #
         success = keyer.rekey(**configs[:key])
-        puts "WARNING: Key did not change" unless success
+        logger.info "Key did not change" unless success
         # Package #
         options[:build_version] = build_version
         configs = self.update_configs(configs: configs, options: options)
         success = packager.package(**configs[:package_config])
-        puts "Signing Successful: #{configs[:package_config][:out_file]}" if success
+        logger.info "Signing Successful: #{configs[:package_config][:out_file]}" if success
         return FAILED_SIGNING unless success
         # Inspect #
         if options[:inspect]
           info = inspector.inspect(configs[:inspect_config])
-          puts "App Name: #{info[:app_name]}"
-          puts "Dev ID: #{info[:dev_id]}"
-          puts "Creation Date: #{info[:creation_date]}"
-          puts "dev.zip: #{info[:dev_zip]}"
+          logger.unknown "App Name: #{info[:app_name]}"
+          logger.unknown "Dev ID: #{info[:dev_id]}"
+          logger.unknown "Creation Date: #{info[:creation_date]}"
+          logger.unknown "dev.zip: #{info[:dev_zip]}"
         end
       when :build
         ### Build ###
@@ -139,12 +140,12 @@ module RokuBuilder
         options[:build_version] = build_version
         configs = self.update_configs(configs: configs, options: options)
         outfile = loader.build(**configs[:build_config])
-        puts "Build: #{outfile}"
+        loader.info "Build: #{outfile}"
       when :update
         ### Update ###
         old_version = ManifestManager.build_version(**configs[:manifest_config])
         new_version = ManifestManager.update_build(**config[:manifest_config])
-        puts "Update build version from:\n#{old_version}\nto:\n#{new_version}"
+        logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
       when :deeplink
         ### Deeplink ###
         linker = Linker.new(**configs[:device_config])
@@ -194,7 +195,7 @@ module RokuBuilder
     # Configure the gem
     # @param options [Hash] The options hash
     # @return [Integer] Success or failure code
-    def self.configure(options:)
+    def self.configure(options:, logger:)
       source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
       target_config = File.expand_path(options[:config])
       if File.exist?(target_config)
@@ -206,7 +207,7 @@ module RokuBuilder
         FileUtils.copy(source_config, target_config)
       end
       if options[:edit_params]
-        ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage])
+        ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage], logger: logger)
       end
       return SUCCESS
     end
@@ -216,24 +217,25 @@ module RokuBuilder
     # @return [Integer] Return code
     # @return [Hash] Loaded config
     # @return [Hash] Intermeidate configs
-    def self.load_config(options:)
+    def self.load_config(options:, logger:)
       config_file = File.expand_path(options[:config])
       return MISSING_CONFIG unless File.exists?(config_file)
       code = SUCCESS
-      config = ConfigManager.get_config(config: config_file)
+      config = ConfigManager.get_config(config: config_file, logger: logger)
+      return INVALID_CONFIG unless config
       configs = {}
-      codes = ConfigManager.validate_config(config: config)
+      codes = ConfigManager.validate_config(config: config, logger: logger)
       fatal = false
       warning = false
       codes.each {|code|
         if code > 0
-          puts "Invalid Config: "+ ConfigManager.error_codes()[code]
+          logger.fatal "Invalid Config: "+ ConfigManager.error_codes()[code]
           fatal = true
         elsif code < 0
-          puts "Depricated Config: "+ ConfigManager.error_codes()[code]
+          logger.warn "Depricated Config: "+ ConfigManager.error_codes()[code]
           warning = true
         elsif code == 0 and options[:validate]
-          puts "Config Valid"
+          logger.info "Config Valid"
         end
       }
       return [INVALID_CONFIG, nil, nil] if fatal
@@ -279,6 +281,7 @@ module RokuBuilder
       # Create Device Config
       configs[:device_config] = config[:devices][options[:device].to_sym]
       return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
+      configs[:device_config][:logger] = logger
       project_config = {}
       if options[:current]
         pwd = `pwd`.chomp
@@ -317,7 +320,7 @@ module RokuBuilder
       # Create Package Config
       configs[:package_config] = {
         password: configs[:key][:password],
-        app_version_name: "#{project_config[:app_name]} - #{stage}"
+        app_name_version: "#{project_config[:app_name]} - #{stage}"
       }
       if options[:outfile]
         configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
@@ -372,7 +375,7 @@ module RokuBuilder
     # @return [Hash] New intermeidate configs hash
     def self.update_configs(configs:, options:)
       if options[:build_version]
-        configs[:package_config][:app_version_name] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}"
+        configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}"
         unless options[:outfile]
           configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg")
           configs[:inspect_config][:pkg] = configs[:package_config][:out_file]

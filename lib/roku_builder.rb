@@ -1,3 +1,4 @@
+require "logger"
 #keyer
 require "faraday"
 require "faraday/digestauth"

@@ -7,7 +7,8 @@ class MonitorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     monitor_config = {
       'Host' => device_config[:ip],

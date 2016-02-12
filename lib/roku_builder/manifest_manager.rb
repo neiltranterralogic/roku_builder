@@ -6,7 +6,7 @@ module RokuBuilder
     # Updates the build version in the manifest file
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
-    def self.update_build(root_dir:)
+    def self.update_build(root_dir:, logger:)
 
       build_version = ""
 
@@ -47,7 +47,7 @@ module RokuBuilder
     # Retrive the build version from the manifest file
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
-    def self.build_version(root_dir:)
+    def self.build_version(root_dir:, logger:)
       path = File.join(root_dir, 'manifest')
       build_version = ""
       File.open(path, 'r') do |file|

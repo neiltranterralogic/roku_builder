@@ -10,7 +10,8 @@ class LinkerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     path = "/launch/dev?a=A&b=B:C&d=a%5Cb"
     options = 'a:A, b:B:C, d:a\b'

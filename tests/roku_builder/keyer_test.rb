@@ -10,7 +10,8 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     path = "/plugin_package"
     body = "v class=\"roku-font-5\"><label>Your Dev ID: &nbsp;</label> dev_id<hr></div>"
@@ -18,6 +19,7 @@ class KeyerTest < Minitest::Test
     connection.expect(:get, response, [path])
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    response.expect(:body, body)
     response.expect(:body, body)
 
 
@@ -44,7 +46,8 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     path = "/plugin_inspect"
     password = "password"

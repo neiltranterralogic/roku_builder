@@ -11,7 +11,8 @@ class InspectorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password"
+      password: "password",
+      logger: Logger.new("/dev/null")
     }
     path = "/plugin_inspect"
     password = "password"
@@ -59,6 +60,7 @@ class InspectorTest < Minitest::Test
     faraday.expect(:request, nil, [:multipart])
     faraday.expect(:request, nil, [:url_encoded])
     faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    response.expect(:body, body)
     response.expect(:body, body)
     response.expect(:body, body)
     response.expect(:body, body)

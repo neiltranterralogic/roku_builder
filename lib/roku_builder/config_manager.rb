@@ -6,17 +6,22 @@ module RokuBuilder
     # Loads the roku config from file
     # @param config [String] path for the roku config
     # @return [Hash] roku config object
-    def self.get_config(config:)
-      config = JSON.parse(File.open(config).read, {symbolize_names: true})
-      config[:devices][:default] = config[:devices][:default].to_sym
-      config[:projects][:default] = config[:projects][:default].to_sym
-      config
+    def self.get_config(config:, logger:)
+      begin
+        config = JSON.parse(File.open(config).read, {symbolize_names: true})
+        config[:devices][:default] = config[:devices][:default].to_sym
+        config[:projects][:default] = config[:projects][:default].to_sym
+        config
+      rescue JSON::ParserError
+        logger.fatal "Config file is not valid JSON"
+        nil
+      end
     end
 
     # Validates the roku config
     # @param config [Hash] roku config object
     # @return [Array] error codes for valid config (see self.error_codes)
-    def self.validate_config(config:)
+    def self.validate_config(config:, logger:)
       codes = []
       codes.push(1) if not config[:devices]
       codes.push(2) if config[:devices] and not config[:devices][:default]
@@ -89,8 +94,10 @@ module RokuBuilder
     # @param device [String] which device to use
     # @param project [String] which project to use
     # @param stage[String] which stage to use
-    def self.edit_config(config:, options:, device:, project:, stage:)
-      config_object = get_config(config: config)
+    # @return [Boolean] success
+    def self.edit_config(config:, options:, device:, project:, stage:, logger:)
+      config_object = get_config(config: config, logger: logger)
+      return false unless config_object
       unless project
         project = config_object[:projects][:default]
       else
@@ -127,6 +134,7 @@ module RokuBuilder
       file = File.open(config, "w")
       file.write(config_string)
       file.close
+      return true
     end
   end
 end
