@@ -39,8 +39,13 @@ module RokuBuilder
       end
       response = conn.get path
 
-      /Your Dev ID:[^>]*<\/label> ([^<]*)/.match(response.body)[1]
-
+      dev_id = /Your Dev ID:\s*<font[^>]*>([^<]*)<\/font>/.match(response.body)
+      if dev_id
+        dev_id = dev_id[1]
+      else
+        dev_id = /Your Dev ID:[^>]*<\/label> ([^<]*)/.match(response.body)[1]
+      end
+      dev_id
     end
   end
 end
