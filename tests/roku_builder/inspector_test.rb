@@ -85,4 +85,68 @@ class InspectorTest < Minitest::Test
     io.verify
     response.verify
   end
+
+  def test_screencapture
+    connection = Minitest::Mock.new
+    faraday = Minitest::Mock.new
+    response = Minitest::Mock.new
+    io = Minitest::Mock.new
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    screencapture_config = {
+      out_folder: "out/folder/path",
+      out_file: nil
+    }
+    path = "/plugin_inspect"
+    password = "password"
+    payload ={
+      mysubmit: "Screenshot",
+      password: password,
+      archive: ""
+    }
+    body = "<hr /><img src=\"pkgs/dev.jpg?time=1455629573\">"
+    connection.expect(:post, response) do |arg1, arg2|
+      assert_equal path, arg1
+      assert_equal payload[:mysubmit], arg2[:mysubmit]
+      assert_equal payload[:password], arg2[:passwd]
+      assert payload[:archive] === arg2[:archive]
+    end
+    faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
+    faraday.expect(:request, nil, [:multipart])
+    faraday.expect(:request, nil, [:url_encoded])
+    faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    response.expect(:body, body)
+    response.expect(:body, body)
+
+
+    path2 = "pkgs/dev.jpg?time=1455629573"
+    body2 = "<screencapture>"
+    connection.expect(:get, response, [path2])
+    faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
+    faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    response.expect(:body, body2)
+    response.expect(:success?, true)
+    io.expect("write", nil, [body2])
+
+
+    success = false
+    inspector = RokuBuilder::Inspector.new(**device_config)
+    Faraday.stub(:new, connection, faraday) do
+      File.stub(:open, nil, io) do
+        success = inspector.screencapture(**screencapture_config)
+      end
+    end
+
+    assert success
+
+    connection.verify
+    faraday.verify
+    io.verify
+    response.verify
+  end
 end

@@ -47,5 +47,44 @@ module RokuBuilder
       return {app_name: app_name, dev_id: dev_id, creation_date: Time.at(creation_date.to_i).to_s, dev_zip: dev_zip}
 
     end
+
+    # Capture a screencapture for the currently sideloaded app
+    # @return [Boolean] Success
+    def screencapture(out_folder:, out_file: nil)
+      path = "/plugin_inspect"
+      conn = Faraday.new(url: @url) do |f|
+        f.request :digest, @dev_username, @dev_password
+        f.request :multipart
+        f.request :url_encoded
+        f.adapter Faraday.default_adapter
+      end
+      payload =  {
+        mysubmit: "Screenshot",
+        passwd: @dev_password,
+        archive: Faraday::UploadIO.new("/dev/null", 'application/octet-stream')
+      }
+      response = conn.post path, payload
+
+      path = /<img src="([^"]*)">/.match(response.body)
+      return false unless path
+      path = path[1]
+      unless out_file
+        out_file = /time=([^"]*)">/.match(response.body)
+        out_file = "dev_#{out_file[1]}.jpg" if out_file
+      end
+
+      conn = Faraday.new(url: @url) do |f|
+        f.request :digest, @dev_username, @dev_password
+        f.adapter Faraday.default_adapter
+      end
+
+      response = conn.get path
+
+      File.open(File.join(out_folder, out_file), "w") do |io|
+        io.write(response.body)
+      end
+      @logger.info "Screen captured to #{File.join(out_folder, out_file)}"
+      return response.success?
+    end
   end
 end

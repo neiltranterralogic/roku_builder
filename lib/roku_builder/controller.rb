@@ -67,6 +67,9 @@ module RokuBuilder
     # Failed to send navigation command
     FAILED_NAVIGATING  = 11
 
+    # Failed to capture screen
+    FAILED_SCREENCAPTURE = 12
+
     # Validates the commands
     # @param options [Hash] The options hash
     # @return [Integer] Status code for command validation
@@ -167,6 +170,10 @@ module RokuBuilder
       when :test
         tester = Tester.new(**configs[:device_config])
         tester.run_tests(**configs[:test_config])
+      when :screencapture
+        inspector = Inspector.new(**configs[:device_config])
+        success = inspector.screencapture(**configs[:screencapture_config])
+        return FAILED_SCREENCAPTURE unless success
       end
       return SUCCESS
     end
@@ -177,7 +184,7 @@ module RokuBuilder
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
-        :navigate, :text, :build, :monitor, :update]
+        :navigate, :text, :build, :monitor, :update, :screencapture]
     end
 
     # List of source options
@@ -268,7 +275,7 @@ module RokuBuilder
       options[:out_folder] = nil
       options[:out_file] = nil
       if options[:out]
-        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg")
+        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
           options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
         else
           options[:out_folder] = options[:out]
@@ -365,6 +372,11 @@ module RokuBuilder
       # Create Test Config
       configs[:test_config] = {
         sideload_config: configs[:sideload_config]
+      }
+      #Create screencapture config
+      configs[:screencapture_config] = {
+        out_folder: options[:out_folder],
+        out_file: options[:out_file]
       }
       return [code, config, configs]
     end

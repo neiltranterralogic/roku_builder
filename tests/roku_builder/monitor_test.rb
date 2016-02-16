@@ -27,7 +27,7 @@ class MonitorTest < Minitest::Test
     end
 
     Net::Telnet.stub(:new, connection) do
-      monitor.monitor(type: :main, verbose: false)
+      monitor.monitor(type: :main)
     end
 
     connection.verify

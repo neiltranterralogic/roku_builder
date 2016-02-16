@@ -18,7 +18,7 @@ The tool allows scripting of the following interactions with the roku:
 
  * Conroller inputs
  * Text Input
- * Restarting
+ * Screencaptures
 
 Other tasks the tool can complete:
 
@@ -270,7 +270,7 @@ directory:
  * Remove magic numbers from ConfigManager
  * Increase testing
  * Move RokuBuilder::Controller to RokuBuilder?
- * Allow start and end delimiter to be configured
+ * Allow start and end delimiter for tests to be configured
 
 ## Contributing
 

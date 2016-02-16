@@ -48,8 +48,8 @@ OptionParser.new do |opts|
     options[:navigate] = n
   end
 
-  opts.on("-R", "--restart", "Command: restart the roku device") do |r|
-    options[:restart] = r
+  opts.on("-S", "--screencapture", "Command: save a screencapture to the output file/folder") do |s|
+    options[:screencapture] = s
   end
 
   opts.on("-y", "--type TEXT", "Command: type the given text on the roku device") do |t|
@@ -117,7 +117,7 @@ OptionParser.new do |opts|
     options[:project] = p
   end
 
-  opts.on("-O", "--out PATH", "Output file/folder. If PATH ends in .pkg/.zip, file is assumed, otherwise folder is assumed") do |o|
+  opts.on("-O", "--out PATH", "Output file/folder. If PATH ends in .pkg/.zip/.jpg, file is assumed, otherwise folder is assumed") do |o|
     options[:out] = o
   end
 
@@ -213,5 +213,8 @@ when controller::FAILED_DEEPLINKING
   abort
 when controller::FAILED_NAVIGATING
    logger.fatal "Command not sent"
+  abort
+when controller::FAILED_SCREENCAPTURE
+   logger.fatal "Failed to Capture Screen"
   abort
 end
