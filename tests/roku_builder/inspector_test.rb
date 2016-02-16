@@ -107,7 +107,7 @@ class InspectorTest < Minitest::Test
     payload ={
       mysubmit: "Screenshot",
       password: password,
-      archive: ""
+      archive: io
     }
     body = "<hr /><img src=\"pkgs/dev.jpg?time=1455629573\">"
     connection.expect(:post, response) do |arg1, arg2|
@@ -137,8 +137,10 @@ class InspectorTest < Minitest::Test
     success = false
     inspector = RokuBuilder::Inspector.new(**device_config)
     Faraday.stub(:new, connection, faraday) do
-      File.stub(:open, nil, io) do
-        success = inspector.screencapture(**screencapture_config)
+      Faraday::UploadIO.stub(:new, io) do
+        File.stub(:open, nil, io) do
+          success = inspector.screencapture(**screencapture_config)
+        end
       end
     end
 

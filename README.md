@@ -267,7 +267,6 @@ directory:
 
 ## Improvements
 
- * Remove magic numbers from ConfigManager
  * Increase testing
  * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
