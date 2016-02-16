@@ -1,5 +1,4 @@
-require "roku_builder"
-require "minitest/autorun"
+require_relative "test_helper.rb"
 
 class UtilTest < Minitest::Test
   def test_util_init

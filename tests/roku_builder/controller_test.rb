@@ -1,5 +1,4 @@
-require "roku_builder"
-require "minitest/autorun"
+require_relative "test_helper.rb"
 
 class ControllerTest < Minitest::Test
   def test_controller_validate_options

@@ -1,5 +1,4 @@
-require "roku_builder"
-require "minitest/autorun"
+require_relative "test_helper.rb"
 
 class NavigatorTest < Minitest::Test
   def test_navigator_nav

@@ -1,5 +1,4 @@
-require "roku_builder"
-require "minitest/autorun"
+require_relative "test_helper.rb"
 
 class PackagerTest < Minitest::Test
   def test_packager_package_failed

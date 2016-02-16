@@ -1,5 +1,4 @@
-require "roku_builder"
-require "minitest/autorun"
+require_relative "test_helper.rb"
 
 class LoaderTest < Minitest::Test
   def test_loader_sideload
