@@ -312,6 +312,7 @@ module RokuBuilder
       branch = project_config[:stages][stage][:branch]
       branch = options[:ref] if options[:ref]
       branch = nil if options[:current]
+      branch = nil if options[:working]
 
       # Create Sideload Config
       configs[:sideload_config] = {
