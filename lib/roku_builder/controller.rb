@@ -108,7 +108,7 @@ module RokuBuilder
         ### Sideload App ###
         loader = Loader.new(**configs[:device_config])
         success = loader.sideload(**configs[:sideload_config])
-        return FAILED_SIGNING unless success
+        return FAILED_SIDELOAD unless success
       when :package
         ### Package App ###
         keyer = Keyer.new(**configs[:device_config])
@@ -118,7 +118,7 @@ module RokuBuilder
         logger.warn "Packaging working directory" if options[:working]
         # Sideload #
         build_version = loader.sideload(**configs[:sideload_config])
-        return FAILED_SIDELOAD unless build_version
+        return FAILED_SIGNING unless build_version
         # Key #
         success = keyer.rekey(**configs[:key])
         logger.info "Key did not change" unless success
@@ -138,16 +138,16 @@ module RokuBuilder
         end
       when :build
         ### Build ###
-        loader = Loader.new(**device_config)
-        build_version = ManifestManager.build_version(**manifest_config)
+        loader = Loader.new(**configs[:device_config])
+        build_version = ManifestManager.build_version(**configs[:manifest_config], logger: logger)
         options[:build_version] = build_version
         configs = self.update_configs(configs: configs, options: options)
         outfile = loader.build(**configs[:build_config])
-        loader.info "Build: #{outfile}"
+        logger.info "Build: #{outfile}"
       when :update
         ### Update ###
         old_version = ManifestManager.build_version(**configs[:manifest_config])
-        new_version = ManifestManager.update_build(**config[:manifest_config])
+        new_version = ManifestManager.update_build(**configs[:manifest_config])
         logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
       when :deeplink
         ### Deeplink ###
@@ -391,6 +391,7 @@ module RokuBuilder
         configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}"
         unless options[:outfile]
           configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg")
+          configs[:build_config][:outfile] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.zip")
           configs[:inspect_config][:pkg] = configs[:package_config][:out_file]
         end
       end

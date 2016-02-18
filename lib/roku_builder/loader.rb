@@ -110,7 +110,7 @@ module RokuBuilder
           git.checkout(branch)
         end
 
-        build_version = ManifestManager.build_version(root_dir: root_dir) unless build_version
+        build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger) unless build_version
         unless folders
           folders = Dir.entries(root_dir).select {|entry| File.directory? File.join(root_dir, entry) and !(entry =='.' || entry == '..') }
         end
