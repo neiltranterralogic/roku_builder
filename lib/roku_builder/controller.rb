@@ -323,21 +323,23 @@ module RokuBuilder
         folders: project_config[:folders],
         files: project_config[:files]
       }
-      # Create Key Config
-      configs[:key] = project_config[:stages][stage][:key]
-      # Create Package Config
-      configs[:package_config] = {
-        password: configs[:key][:password],
-        app_name_version: "#{project_config[:app_name]} - #{stage}"
-      }
-      if options[:outfile]
-        configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
-      end
-      # Create Inspector Config
-      configs[:inspect_config] = {
-        pkg: configs[:package_config][:out_file],
-        password: configs[:key][:password]
-      }
+      if options[:package]
+        # Create Key Config
+        configs[:key] = project_config[:stages][stage][:key]
+        # Create Package Config
+        configs[:package_config] = {
+          password: configs[:key][:password],
+          app_name_version: "#{project_config[:app_name]} - #{stage}"
+        }
+        if options[:outfile]
+          configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
+        end
+        # Create Inspector Config
+        configs[:inspect_config] = {
+          pkg: configs[:package_config][:out_file],
+          password: configs[:key][:password]
+        }
+      end if
       # Create Build Config
       configs[:build_config] = {
         root_dir: root_dir,
@@ -388,11 +390,11 @@ module RokuBuilder
     # @return [Hash] New intermeidate configs hash
     def self.update_configs(configs:, options:)
       if options[:build_version]
-        configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}"
+        configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
         unless options[:outfile]
-          configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg")
-          configs[:build_config][:outfile] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.zip")
-          configs[:inspect_config][:pkg] = configs[:package_config][:out_file]
+          configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg") if configs[:package_config]
+          configs[:build_config][:outfile] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.zip") if configs[:build_config]
+          configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
         end
       end
       return configs
