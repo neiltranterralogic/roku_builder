@@ -3,6 +3,8 @@ module RokuBuilder
   # Controls all interaction with other classes
   class Controller
 
+
+
     ### Validation Codes ###
 
     # Valid Options
@@ -25,6 +27,24 @@ module RokuBuilder
 
     # No deeplink options supplied for deeplink
     BAD_DEEPLINK    = 6
+
+
+
+    ### Device Codes ###
+
+    # The default device is offline switched to a secondary device
+    CHANGED_DEVICE = -1
+
+    # Device is online
+    GOOD_DEVCICE = 0
+
+    # User defined device was not online
+    BAD_DEVICE = 1
+
+    # No configured devices were online
+    NO_DEVICES = 2
+
+
 
     ### Run Codes ###
 
@@ -70,9 +90,37 @@ module RokuBuilder
     # Failed to capture screen
     FAILED_SCREENCAPTURE = 12
 
+    # Run the builder
+    # @param options [Hash] The options hash
+    def self.run(options:)
+      logger = Logger.new(STDOUT)
+      logger.formatter = proc {|severity, datetime, progname, msg|
+        "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
+      }
+      if options[:debug]
+        logger.level = Logger::DEBUG
+      elsif options[:verbose]
+        logger.level = Logger::INFO
+      else
+        logger.level = Logger::WARN
+      end
+
+
+      options_code = self.validate_options(options: options, logger: logger)
+
+      self.handle_error_codes(options_code: options_code, logger: logger)
+
+      handle_code = self.handle_options(options: options, logger: logger)
+
+      self.handle_error_codes(handle_code: handle_code, logger: logger)
+    end
+
+    protected
+
     # Validates the commands
     # @param options [Hash] The options hash
     # @return [Integer] Status code for command validation
+    # @param logger [Logger] system logger
     def self.validate_options(options:, logger:)
       commands = options.keys & self.commands
       return EXTRA_COMMANDS if commands.count > 1
@@ -94,12 +142,18 @@ module RokuBuilder
     # Run commands
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
+    # @param logger [Logger] system logger
     def self.handle_options(options:, logger:)
       if options[:configure]
         return configure(options: options, logger: logger)
       end
       code, config, configs = self.load_config(options: options, logger: logger)
       return code if code != SUCCESS
+
+      # Check devices
+      device_code, configs = self.check_devices(options: options, config: config, configs: configs, logger: logger)
+      self.handle_error_codes(device_code: device_code, logger: logger)
+
       command = (self.commands & options.keys).first
       case command
       when :validate
@@ -178,7 +232,26 @@ module RokuBuilder
       return SUCCESS
     end
 
-    protected
+    # Ensure that the selected device is accessable
+    # @param options [Hash] The options hash
+    # @param logger [Logger] system logger
+    def self.check_devices(options:, config:, configs:, logger:)
+      ping = Net::Ping::External.new
+      host = configs[:device_config][:ip]
+      return [GOOD_DEVCICE, configs] if ping.ping? host, 1, 0.2, 1
+      return [BAD_DEVICE, nil] if options[:device_given]
+      config[:devices].each_pair {|key, value|
+        unless key == :default
+          host = value[:ip]
+          if ping.ping? host, 1, 0.2, 1
+            configs[:device_config] = value
+            configs[:device_config][:logger] = logger
+            return [CHANGED_DEVICE, configs]
+          end
+        end
+      }
+      return [NO_DEVICES, nil]
+    end
 
     # List of command options
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
@@ -199,9 +272,91 @@ module RokuBuilder
       [:sideload, :package, :test, :build]
     end
 
+    # Handle error codes
+    # @param options_code [Integer] the error code returned by validate_options
+    # @param handle_code [Integer] the error code returned by handle_options
+    # @param logger [Logger] system logger
+    def self.handle_error_codes(options_code: nil, device_code: nil, handle_code: nil, logger:)
+      if options_code
+        case options_code
+        when EXTRA_COMMANDS
+          logger.fatal "Only one command is allowed"
+          abort
+        when NO_COMMANDS
+          logger.fatal "At least one command is required"
+          abort
+        when EXTRA_SOURCES
+          logger.fatal "Only use one of --ref, --working, --current or --stage"
+          abort
+        when NO_SOURCE
+          logger.fatal "Must use at least one of --ref, --working, --current or --stage"
+          abort
+        when BAD_CURRENT
+          logger.fatal "Can only sideload or build 'current' directory"
+          abort
+        when BAD_DEEPLINK
+          logger.fatal "Must supply deeplinking options when deeplinking"
+          abort
+        end
+      elsif device_code
+        case device_code
+        when CHANGED_DEVICE
+          logger.info "The default device was not online so a secondary device is being used"
+        when BAD_DEVICE
+          logger.fatal "The selected device was not online"
+          abort
+        when NO_DEVICES
+          logger.fatal "No configured devices were found"
+          abort
+        end
+      elsif handle_code
+        case handle_code
+        when DEPRICATED_CONFIG
+          logger.warn 'Depricated config. See Above'
+        when CONFIG_OVERWRITE
+          logger.fatal 'Config already exists. To create default please remove config first.'
+          abort
+        when MISSING_CONFIG
+          logger.fatal "Missing config file: #{options[:config]}"
+          abort
+        when INVALID_CONFIG
+          logger.fatal 'Invalid config. See Above'
+          abort
+        when MISSING_MANIFEST
+          logger.fatal 'Manifest file missing'
+          abort
+        when UNKNOWN_DEVICE
+          logger.fatal "Unkown device id"
+          abort
+        when UNKNOWN_PROJECT
+          logger.fatal "Unknown project id"
+          abort
+        when UNKNOWN_STAGE
+          logger.fatal "Unknown stage"
+          abort
+        when FAILED_SIDELOAD
+          logger.fatal "Failed Sideloading App"
+          abort
+        when FAILED_SIGNING
+          logger.fatal "Failed Signing App"
+          abort
+        when FAILED_DEEPLINKING
+          logger.fatal "Failed Deeplinking To App"
+          abort
+        when FAILED_NAVIGATING
+          logger.fatal "Command not sent"
+          abort
+        when FAILED_SCREENCAPTURE
+          logger.fatal "Failed to Capture Screen"
+          abort
+        end
+      end
+    end
+
     # Configure the gem
     # @param options [Hash] The options hash
     # @return [Integer] Success or failure code
+    # @param logger [Logger] system logger
     def self.configure(options:, logger:)
       source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
       target_config = File.expand_path(options[:config])
@@ -221,6 +376,7 @@ module RokuBuilder
 
     # Load config file and generate intermeidate configs
     # @param options [Hash] The options hash
+    # @param logger [Logger] system logger
     # @return [Integer] Return code
     # @return [Hash] Loaded config
     # @return [Hash] Intermeidate configs

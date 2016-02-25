@@ -268,6 +268,8 @@ directory:
 ## Improvements
 
  * Increase testing
+   * More Unit Tests
+   * Intergration Tests
  * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
 

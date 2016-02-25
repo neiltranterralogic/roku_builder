@@ -111,6 +111,7 @@ OptionParser.new do |opts|
 
   opts.on("-D", "--device ID", "Use a different device corresponding to the given ID") do |d|
     options[:device] = d
+    options[:device_given] = true
   end
 
   opts.on("-P", "--project ID", "Use a different project") do |p|
@@ -140,81 +141,4 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-logger = Logger.new(STDOUT)
-logger.formatter = proc {|severity, datetime, progname, msg|
-  "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
-}
-if options[:debug]
-  logger.level = Logger::DEBUG
-elsif options[:verbose]
-  logger.level = Logger::INFO
-else
-  logger.level = Logger::WARN
-end
-controller = RokuBuilder::Controller
-
-options_code = controller.validate_options(options: options, logger: logger)
-
-case options_code
-when controller::EXTRA_COMMANDS
-   logger.fatal "Only one command is allowed"
-  abort
-when controller::NO_COMMANDS
-   logger.fatal "At least one command is required"
-  abort
-when controller::EXTRA_SOURCES
-   logger.fatal "Only use one of --ref, --working, --current or --stage"
-  abort
-when controller::NO_SOURCE
-   logger.fatal "Must use at least one of --ref, --working, --current or --stage"
-  abort
-when controller::BAD_CURRENT
-   logger.fatal "Can only sideload or build 'current' directory"
-  abort
-when controller::BAD_DEEPLINK
-   logger.fatal "Must supply deeplinking options when deeplinking"
-  abort
-end
-
-handel_code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
-
-case handel_code
-when controller::DEPRICATED_CONFIG
-   logger.warn 'Depricated config. See Above'
-when controller::CONFIG_OVERWRITE
-   logger.fatal 'Config already exists. To create default please remove config first.'
-  abort
-when controller::MISSING_CONFIG
-   logger.fatal "Missing config file: #{options[:config]}"
-  abort
-when controller::INVALID_CONFIG
-   logger.fatal 'Invalid config. See Above'
-  abort
-when controller::MISSING_MANIFEST
-   logger.fatal 'Manifest file missing'
-  abort
-when controller::UNKNOWN_DEVICE
-   logger.fatal "Unkown device id"
-  abort
-when controller::UNKNOWN_PROJECT
-   logger.fatal "Unknown project id"
-  abort
-when controller::UNKNOWN_STAGE
-   logger.fatal "Unknown stage"
-  abort
-when controller::FAILED_SIDELOAD
-   logger.fatal "Failed Sideloading App"
-  abort
-when controller::FAILED_SIGNING
-   logger.fatal "Failed Signing App"
-  abort
-when controller::FAILED_DEEPLINKING
-   logger.fatal "Failed Deeplinking To App"
-  abort
-when controller::FAILED_NAVIGATING
-   logger.fatal "Command not sent"
-  abort
-when controller::FAILED_SCREENCAPTURE
-   logger.fatal "Failed to Capture Screen"
-  abort
-end
+RokuBuilder::Controller.run(options: options)

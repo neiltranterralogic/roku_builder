@@ -1,10 +1,11 @@
 PATH
   remote: .
   specs:
-    roku_builder (3.2.2)
+    roku_builder (3.2.3)
       faraday (~> 0.9)
       faraday-digestauth (~> 0.2)
       git (~> 1.2.9)
+      net-ping (~> 1.7)
       rubyzip (~> 1.1)
 
 GEM
@@ -61,6 +62,7 @@ GEM
     multipart-post (2.0.0)
     nenv (0.3.0)
     net-http-digest_auth (1.4)
+    net-ping (1.7.8)
     notiffany (0.0.8)
       nenv (~> 0.1)
       shellany (~> 0.0)

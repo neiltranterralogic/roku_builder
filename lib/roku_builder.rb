@@ -1,6 +1,8 @@
 require "logger"
 require "faraday"
 require "faraday/digestauth"
+#controller
+require "net/ping"
 #loader
 require "net/telnet"
 require "fileutils"
