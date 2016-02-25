@@ -31,6 +31,7 @@ module RokuBuilder
       thread = Thread.new(telnet_config, waitfor_config) {|telnet_config,waitfor_config|
         @logger.info "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }"
         connection = Net::Telnet.new(telnet_config)
+        Thread.current[:connection] = connection
         all_text = ""
         while true
           connection.waitfor(waitfor_config) do |txt|
@@ -38,16 +39,22 @@ module RokuBuilder
             while line = all_text.slice!(/^.*\n/) do
               puts line
             end
+            if all_text == "BrightScript Debugger> "
+              print all_text
+              all_text = ""
+            end
           end
         end
       }
       running = true
       while running
         @logger.info "Q to exit"
-        command = gets
-        if command.chomp == "q"
+        command = gets.chomp
+        if command == "q"
           thread.exit
           running = false
+        else
+          thread[:connection].puts(command)
         end
       end
     end
