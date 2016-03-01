@@ -60,6 +60,14 @@ OptionParser.new do |opts|
     options[:build] = b
   end
 
+  opts.on("--screen SCREEN", "Command: show a screen") do |s|
+    options[:screen] = s
+  end
+
+  opts.on("--screens", "Command: show possible screens") do |s|
+    options[:screens] = s
+  end
+
   opts.on("-m", "--monitor TYPE", "Command: run telnet to monitor roku log") do |m|
     options[:monitor] = m
   end

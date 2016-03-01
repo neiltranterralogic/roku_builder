@@ -218,6 +218,13 @@ module RokuBuilder
         navigator = Navigator.new(**configs[:device_config])
         success = navigator.nav(**configs[:navigate_config])
         return FAILED_NAVIGATING unless success
+      when :screen
+        navigator = Navigator.new(**configs[:device_config])
+        success = navigator.screen(**configs[:screen_config])
+        return FAILED_NAVIGATING unless success
+      when :screens
+        navigator = Navigator.new(**configs[:device_config])
+        navigator.screens
       when :text
         navigator = Navigator.new(**configs[:device_config])
         navigator.type(**configs[:text_config])
@@ -257,7 +264,8 @@ module RokuBuilder
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
-        :navigate, :text, :build, :monitor, :update, :screencapture]
+        :navigate, :text, :build, :monitor, :update, :screencapture, :screen,
+        :screens]
     end
 
     # List of source options
@@ -537,6 +545,12 @@ module RokuBuilder
         out_folder: options[:out_folder],
         out_file: options[:out_file]
       }
+
+      if options[:screen]
+        configs[:screen_config] = {
+          type: options[:screen].to_sym
+        }
+      end
       return [code, config, configs]
     end
 
