@@ -12,4 +12,14 @@ class ManifestManagerTest < Minitest::Test
     assert_equal "020101.2", build_version
     FileUtils.rm(File.join(root_dir, "manifest"))
   end
+
+  def test_manifest_manager_build_version
+    logger = Logger.new('/dev/null')
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "manifest_manager_test")
+    FileUtils.cp(File.join(root_dir, "manifest_template"), File.join(root_dir, "manifest"))
+    build_version = nil
+    build_version = RokuBuilder::ManifestManager.build_version(root_dir: root_dir, logger: logger)
+    assert_equal "010101.1", build_version
+    FileUtils.rm(File.join(root_dir, "manifest"))
+  end
 end

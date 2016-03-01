@@ -418,7 +418,7 @@ module RokuBuilder
       end
       #set project
       if options[:current] or not options[:project]
-        path = `pwd`
+        path = self.system(command: "pwd")
         project = nil
         config[:projects].each_pair {|key,value|
           if value.is_a?(Hash)
@@ -453,12 +453,14 @@ module RokuBuilder
       configs[:device_config] = config[:devices][options[:device].to_sym]
       return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
       configs[:device_config][:logger] = logger
+
+      #Create Project Config
       project_config = {}
       if options[:current]
-        pwd = `pwd`.chomp
+        pwd =  self.system(command: "pwd")
         return [MISSING_MANIFEST, nil, nil] unless File.exist?(File.join(pwd, "manifest"))
         project_config = {
-          directory: `pwd`.chomp,
+          directory: pwd,
           folders: nil,
           files: nil,
           stages: { production: { branch: nil } }
@@ -568,6 +570,13 @@ module RokuBuilder
         end
       end
       return configs
+    end
+
+    # Run a system command
+    # @param command [String] The command to be run
+    # @return [String] The output of the command
+    def self.system(command:)
+      `#{command}`.chomp
     end
   end
 end
