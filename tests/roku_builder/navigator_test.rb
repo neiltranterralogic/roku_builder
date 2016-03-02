@@ -21,12 +21,17 @@ class NavigatorTest < Minitest::Test
     }
   end
 
+  def test_navigator_nav_fail
+    path = ""
+    navigator_test(path: path, input: :bad, type: :nav, success: false)
+  end
+
   def test_navigator_type
     path = "keypress/LIT_"
     navigator_test(path: path, input: "Type", type: :text)
   end
 
-  def navigator_test(path:, input:, type:)
+  def navigator_test(path:, input:, type:, success: true)
     connection = Minitest::Mock.new
     faraday = Minitest::Mock.new
     io = Minitest::Mock.new
@@ -38,35 +43,90 @@ class NavigatorTest < Minitest::Test
       password: "password",
       logger: Logger.new("/dev/null")
     }
-    if type == :nav
-      connection.expect(:post, response, [path])
-      response.expect(:success?, true)
-    elsif type == :text
-      input.split(//).each do |c|
-        path = "/keypress/LIT_#{CGI::escape(c)}"
+    if success
+      if type == :nav
         connection.expect(:post, response, [path])
         response.expect(:success?, true)
+      elsif type == :text
+        input.split(//).each do |c|
+          path = "/keypress/LIT_#{CGI::escape(c)}"
+          connection.expect(:post, response, [path])
+          response.expect(:success?, true)
+        end
       end
-    end
-    faraday.expect(:request, nil, [:multipart])
-    faraday.expect(:request, nil, [:url_encoded])
-    faraday.expect(:adapter, nil, [Faraday.default_adapter])
+      faraday.expect(:request, nil, [:multipart])
+      faraday.expect(:request, nil, [:url_encoded])
+      faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    end if
 
     navigator = RokuBuilder::Navigator.new(**device_config)
-    success = nil
+    result = nil
     Faraday.stub(:new, connection, faraday) do
       if type == :nav
-        success = navigator.nav(command: input)
+        result = navigator.nav(command: input)
       elsif type == :text
-        success = navigator.type(text: input)
+         result = navigator.type(text: input)
       end
     end
 
-    assert success
+    assert_equal success, result
 
     connection.verify
     faraday.verify
     io.verify
     response.verify
+  end
+
+  def test_navigator_screen
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    navigator = RokuBuilder::Navigator.new(**device_config)
+
+    logger.expect(:unknown, nil, ["Home x 5, Fwd x 3, Rev x 2,"])
+    logger.expect(:unknown, nil, ["Home x 5, Up, Rev x 2, Fwd x 2,"])
+
+    navigator.screen(type: :secret)
+    navigator.screen(type: :reboot)
+
+    logger.verify
+  end
+
+  def test_navigator_screen_fail
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    navigator = RokuBuilder::Navigator.new(**device_config)
+
+    assert !navigator.screen(type: :bad)
+
+    logger.verify
+  end
+
+  def test_navigator_screens
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    navigator = RokuBuilder::Navigator.new(**device_config)
+
+    navigator.instance_variable_get("@screens").each_key do |key|
+      logger.expect(:unknown, nil, [key])
+    end
+
+    navigator.screens
+
+    logger.verify
   end
 end

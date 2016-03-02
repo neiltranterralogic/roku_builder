@@ -35,7 +35,7 @@ module RokuBuilder
       if app_name
         app_name = app_name[1]
         dev_id = /Dev ID:\s*<\/td>\s*<td>\s*<font[^>]*>([^<]*)<\/font>\s*<\/td>/.match(response.body)[1]
-        creation_date = /Creation Date:\s*<\/td>\s*<td>\s*<font[^>]*>\s*<script[^>]*>\s*var d = new Date\(([^\)]*)\)[^<]*<\/script><\/font>\s*<\/td>/.match(response.body.gsub("\n", ''))[1]
+        creation_date = /new Date\(([^)]*)\)/.match(response.body.gsub("\n", ''))[1]
         dev_zip = /dev.zip:\s*<\/td>\s*<td>\s*<font[^>]*>([^<]*)<\/font>\s*<\/td>/.match(response.body)[1]
       else
         app_name = /App Name:[^<]*<div[^>]*>([^<]*)<\/div>/.match(response.body)[1]

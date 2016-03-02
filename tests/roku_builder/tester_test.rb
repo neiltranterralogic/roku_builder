@@ -30,4 +30,65 @@ class TesterTest < Minitest::Test
 
     connection.verify
   end
+
+  def test_tester_handle_text_no_text
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    tester = RokuBuilder::Tester.new(**device_config)
+
+    text = "this\nis\na\ntest\nparagraph"
+
+    assert !tester.send(:handle_text, {txt: text, in_tests: false})
+
+    logger.verify
+  end
+
+  def test_tester_handle_text_all_text
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    tester = RokuBuilder::Tester.new(**device_config)
+
+    text = "this\nis\na\ntest\nparagraph"
+
+    logger.expect(:unknown, nil, ["this"])
+    logger.expect(:unknown, nil, ["is"])
+    logger.expect(:unknown, nil, ["a"])
+    logger.expect(:unknown, nil, ["test"])
+    logger.expect(:unknown, nil, ["paragraph"])
+
+    assert tester.send(:handle_text, {txt: text, in_tests: true})
+
+    logger.verify
+  end
+
+  def test_tester_handle_text_partial_text
+    logger = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: logger
+    }
+    tester = RokuBuilder::Tester.new(**device_config)
+
+    text = "this\n***** STARTING TESTS *****\nis\na\ntest\n***** ENDING TESTS *****\nparagraph"
+
+    logger.expect(:unknown, nil, ["is"])
+    logger.expect(:unknown, nil, ["a"])
+    logger.expect(:unknown, nil, ["test"])
+
+    assert !tester.send(:handle_text, {txt: text, in_tests: false})
+
+    logger.verify
+  end
 end

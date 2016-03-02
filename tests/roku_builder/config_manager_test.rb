@@ -16,6 +16,19 @@ class ConfigManagerTest < Minitest::Test
     assert_equal :project1, config[:projects][:default], :project1
   end
 
+  def test_config_manager_read_invalid_config
+    logger = Logger.new("/dev/null")
+    config_path = "config/file/path"
+    io = Minitest::Mock.new
+    io.expect(:read, good_config.to_json+"}}}}}")
+    config = nil
+    File.stub(:open, io) do
+      config = RokuBuilder::ConfigManager.get_config(config: config_path, logger: logger)
+    end
+    io.verify
+    assert_nil config
+  end
+
   def test_config_manager_validate_devices
     logger = Logger.new("/dev/null")
     config = good_config

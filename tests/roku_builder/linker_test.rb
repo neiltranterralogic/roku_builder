@@ -34,4 +34,19 @@ class LinkerTest < Minitest::Test
     faraday.verify
     response.verify
   end
+  def test_linker_link_nothing
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    options = ''
+    linker = RokuBuilder::Linker.new(**device_config)
+    success = nil
+    success = linker.link(options: options)
+
+    assert !success
+
+  end
 end

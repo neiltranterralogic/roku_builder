@@ -35,14 +35,7 @@ module RokuBuilder
         all_text = ""
         while true
           connection.waitfor(waitfor_config) do |txt|
-            all_text += txt
-            while line = all_text.slice!(/^.*\n/) do
-              puts line
-            end
-            if all_text == "BrightScript Debugger> "
-              print all_text
-              all_text = ""
-            end
+            all_text = manage_text(all_text: all_text, txt: txt)
           end
         end
       }
@@ -57,6 +50,24 @@ module RokuBuilder
           thread[:connection].puts(command)
         end
       end
+    end
+
+    private
+
+    # Handel text from telnet
+    #  @param all_text [String] remaining partial line text
+    #  @param txt [String] current string from telnet
+    #  @return [String] remaining partial line text
+    def manage_text(all_text:, txt:)
+      all_text += txt
+      while line = all_text.slice!(/^.*\n/) do
+        puts line
+      end
+      if all_text == "BrightScript Debugger> "
+        print all_text
+        all_text = ""
+      end
+      all_text
     end
   end
 end

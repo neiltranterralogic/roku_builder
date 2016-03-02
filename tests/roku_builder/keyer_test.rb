@@ -35,6 +35,39 @@ class KeyerTest < Minitest::Test
     faraday.verify
     response.verify
   end
+  def test_keyer_dev_id_old_interface
+    connection = Minitest::Mock.new
+    faraday = Minitest::Mock.new
+    response = Minitest::Mock.new
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    path = "/plugin_package"
+    body = "<p> Your Dev ID: <font face=\"Courier\">dev_id</font> </p>"
+
+    connection.expect(:get, response, [path])
+    faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
+    faraday.expect(:adapter, nil, [Faraday.default_adapter])
+    response.expect(:body, body)
+
+
+    package_info = {}
+    dev_id = nil
+    keyer = RokuBuilder::Keyer.new(**device_config)
+    Faraday.stub(:new, connection, faraday) do
+      dev_id = keyer.dev_id
+    end
+
+    assert_equal "dev_id", dev_id
+
+    connection.verify
+    faraday.verify
+    response.verify
+  end
 
   def test_keyer_rekey_changed
     connection = Minitest::Mock.new

@@ -31,4 +31,73 @@ class MonitorTest < Minitest::Test
 
     connection.verify
   end
+
+  def test_monitor_monit_input
+    connection = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    monitor_config = {
+      'Host' => device_config[:ip],
+      'Post' => 8085
+    }
+    monitor = RokuBuilder::Monitor.new(**device_config)
+
+    connection.expect(:waitfor, nil) do |config|
+      assert_equal /./, config['Match']
+      assert_equal false, config['Timeout']
+    end
+    connection.expect(:puts, nil, ["text"])
+
+    def monitor.gets
+      @count = 0 unless @count
+      sleep(0.1)
+      case @count
+      when 0
+        @count += 1
+        "text"
+      else
+        "q"
+      end
+    end
+
+    Net::Telnet.stub(:new, connection) do
+      monitor.monitor(type: :main)
+    end
+
+    connection.verify
+  end
+
+  def test_monitor_manage_text
+    mock = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    monitor = RokuBuilder::Monitor.new(**device_config)
+    monitor.instance_variable_set(:@mock, mock)
+
+    def monitor.puts(input)
+      @mock.puts(input)
+    end
+    def monitor.print(input)
+      @mock.print(input)
+    end
+
+    mock.expect(:puts, nil, ["midline split\n"])
+    mock.expect(:print, nil, ["BrightScript Debugger> "])
+
+    all_text = "midline "
+    txt = "split\nBrightScript Debugger> "
+
+    result = monitor.send(:manage_text, {all_text: all_text, txt: txt})
+
+    assert_equal "", result
+
+  end
 end

@@ -5,6 +5,11 @@ module RokuBuilder
   # with other testing libraries
   class Tester < Util
 
+    def init()
+      @end_reg = /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
+      @start_reg = /\*\*\*\*\* STARTING TESTS \*\*\*\*\*/
+    end
+
     # Run tests and report results
     # @param sideload_config [Hash] The config for sideloading the app
     def run_tests(sideload_config:)
@@ -18,15 +23,25 @@ module RokuBuilder
       loader.sideload(**sideload_config)
 
       in_tests = false
-      end_reg = /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
-      connection.waitfor(end_reg) do |txt|
-        txt.split("\n").each do |line|
-          in_tests = false if line =~ end_reg
-          @logger.unknown line if in_tests
-          in_tests = true if line =~ /\*\*\*\*\* STARTING TESTS \*\*\*\*\*/
-        end
+      connection.waitfor(@end_reg) do |txt|
+        in_tests = handle_text(txt: txt, in_tests: in_tests)
       end
       connection.puts("cont\n")
+    end
+
+    private
+
+    # Handel testing text
+    # @param txt [String] current text from telnet
+    # @param in_tests [Boolean] currently parsing test text
+    # @return [Boolean] currently parsing test text
+    def handle_text(txt:, in_tests:)
+      txt.split("\n").each do |line|
+        in_tests = false if line =~ @end_reg
+        @logger.unknown line if in_tests
+        in_tests = true if line =~ @start_reg
+      end
+      in_tests
     end
   end
 end

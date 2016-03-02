@@ -246,5 +246,205 @@ class ControllerTest < Minitest::Test
     mock.verify
     assert_equal RokuBuilder::Controller::SUCCESS, code
   end
+  def test_controller_delete
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    loader = Minitest::Mock.new
+
+    options = {delete: true, stage: 'production', config: target_config}
+    loader.expect(:unload, nil)
+    code = nil
+    RokuBuilder::Loader.stub(:new, loader) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    loader.verify
+  end
+  def test_controller_monitor
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    monitor = Minitest::Mock.new
+
+    options = {monitor: "main", stage: 'production', config: target_config}
+    monitor.expect(:monitor, nil, [{}])
+    code = nil
+    RokuBuilder::Monitor.stub(:new, monitor) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, monitor_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    monitor.verify
+  end
+  def test_controller_navigate
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    navigator = Minitest::Mock.new
+
+    options = {navigate: "up", stage: 'production', config: target_config}
+    navigator.expect(:nav, true, [{}])
+    code = nil
+    RokuBuilder::Navigator.stub(:new, navigator) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, navigate_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    navigator.verify
+  end
+  def test_controller_navigate_fail
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    navigator = Minitest::Mock.new
+
+    options = {navigate: "up", stage: 'production', config: target_config}
+    navigator.expect(:nav, nil, [{}])
+    code = nil
+    RokuBuilder::Navigator.stub(:new, navigator) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, navigate_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::FAILED_NAVIGATING, code
+    navigator.verify
+  end
+  def test_controller_screen
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    navigator = Minitest::Mock.new
+
+    options = {screen: "secret", stage: 'production', config: target_config}
+    navigator.expect(:screen, true, [{}])
+    code = nil
+    RokuBuilder::Navigator.stub(:new, navigator) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, screen_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    navigator.verify
+  end
+  def test_controller_screens
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    navigator = Minitest::Mock.new
+
+    options = {screens: true, stage: 'production', config: target_config}
+    navigator.expect(:screens, true)
+    code = nil
+    RokuBuilder::Navigator.stub(:new, navigator) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    navigator.verify
+  end
+  def test_controller_text
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    navigator = Minitest::Mock.new
+
+    options = {text: "text string", stage: 'production', config: target_config}
+    navigator.expect(:type, true, [{}])
+    code = nil
+    RokuBuilder::Navigator.stub(:new, navigator) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, text_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    navigator.verify
+  end
+  def test_controller_test
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    tester = Minitest::Mock.new
+
+    options = {test: true, stage: 'production', config: target_config}
+    tester.expect(:run_tests, true, [{}])
+    code = nil
+    RokuBuilder::Tester.stub(:new, tester) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, test_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    tester.verify
+  end
+  def test_controller_screencapture
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    inspector = Minitest::Mock.new
+
+    options = {screencapture: true, stage: 'production', config: target_config}
+    inspector.expect(:screencapture, true, [{}])
+    code = nil
+    RokuBuilder::Inspector.stub(:new, inspector) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, screencapture_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+    inspector.verify
+  end
+  def test_controller_screencapture_fail
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    inspector = Minitest::Mock.new
+
+    options = {screencapture: true, stage: 'production', config: target_config}
+    inspector.expect(:screencapture, false, [{}])
+    code = nil
+    RokuBuilder::Inspector.stub(:new, inspector) do
+      RokuBuilder::ManifestManager.stub(:build_version, "1") do
+        RokuBuilder::Controller.stub(:check_devices, [0, {device_config: {}, screencapture_config: {}}]) do
+          code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::FAILED_SCREENCAPTURE, code
+    inspector.verify
+  end
 end
 
