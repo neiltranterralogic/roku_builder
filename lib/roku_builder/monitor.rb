@@ -9,9 +9,9 @@ module RokuBuilder
         main: 8085,
         sg: 8089,
         task1: 8090,
-        task2: 8090,
-        task3: 8090,
-        taskX: 8090,
+        task2: 8091,
+        task3: 8092,
+        taskX: 8093,
       }
     end
 
