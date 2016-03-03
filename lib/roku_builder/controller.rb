@@ -108,11 +108,11 @@ module RokuBuilder
 
       options_code = self.validate_options(options: options, logger: logger)
 
-      self.handle_error_codes(options_code: options_code, logger: logger)
+      self.handle_error_codes(options: options, options_code: options_code, logger: logger)
 
       handle_code = self.handle_options(options: options, logger: logger)
 
-      self.handle_error_codes(handle_code: handle_code, logger: logger)
+      self.handle_error_codes(options: options, handle_code: handle_code, logger: logger)
     end
 
     protected
@@ -152,7 +152,7 @@ module RokuBuilder
 
       # Check devices
       device_code, configs = self.check_devices(options: options, config: config, configs: configs, logger: logger)
-      self.handle_error_codes(device_code: device_code, logger: logger)
+      self.handle_error_codes(options: options, device_code: device_code, logger: logger)
 
       command = (self.commands & options.keys).first
       case command
@@ -284,7 +284,7 @@ module RokuBuilder
     # @param options_code [Integer] the error code returned by validate_options
     # @param handle_code [Integer] the error code returned by handle_options
     # @param logger [Logger] system logger
-    def self.handle_error_codes(options_code: nil, device_code: nil, handle_code: nil, logger:)
+    def self.handle_error_codes(options:, options_code: nil, device_code: nil, handle_code: nil, logger:)
       if options_code
         case options_code
         when EXTRA_COMMANDS

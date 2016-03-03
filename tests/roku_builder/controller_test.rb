@@ -1,5 +1,13 @@
 require_relative "test_helper.rb"
 
+class RokuBuilder::Controller
+  class << self
+    def abort
+      #do nothing
+    end
+  end
+end
+
 class ControllerTest < Minitest::Test
   def test_controller_validate_options
     logger = Logger.new("/dev/null")
@@ -169,8 +177,49 @@ class ControllerTest < Minitest::Test
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
     File.delete(target_config) if File.exists?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    keyer = Minitest::Mock.new
     loader = Minitest::Mock.new
-    #TODO
+    packager = Minitest::Mock.new
+    inspector = Minitest::Mock.new
+
+    options = {package: true, inspect: true, stage: 'production', out_folder: "/tmp", config: target_config}
+    configs = {
+      device_config: {},
+      sideload_config: {},
+      key: {},
+      package_config: {
+        app_name_version: "app - production - build_version",
+        out_file: "/tmp/app_production_build_version.pkg"
+      },
+      project_config: {app_name: "app"},
+      inspect_config: {}
+    }
+    info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
+
+    loader.expect(:sideload, "build_version", [configs[:sideload_config]])
+    keyer.expect(:rekey, true, [configs[:key]])
+    packager.expect(:package, true, [configs[:package_config]])
+    inspector.expect(:inspect, info, [configs[:inspect_config]])
+
+    code = nil
+    RokuBuilder::Keyer.stub(:new, keyer) do
+      RokuBuilder::Loader.stub(:new, loader) do
+        RokuBuilder::Packager.stub(:new, packager) do
+          RokuBuilder::Inspector.stub(:new, inspector) do
+            RokuBuilder::Controller.stub(:check_devices, [0, configs]) do
+              code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+            end
+          end
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+
+    keyer.verify
+    loader.verify
+    packager.verify
+    inspector.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
 
   def test_controller_build
@@ -199,6 +248,8 @@ class ControllerTest < Minitest::Test
       end
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
+    loader.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_update
     logger = Logger.new("/dev/null")
@@ -223,6 +274,7 @@ class ControllerTest < Minitest::Test
     end
     mock.verify
     assert_equal RokuBuilder::Controller::SUCCESS, code
+    File.delete(target_config) if File.exists?(target_config)
   end
 
   def test_controller_deeplink
@@ -245,6 +297,7 @@ class ControllerTest < Minitest::Test
     end
     mock.verify
     assert_equal RokuBuilder::Controller::SUCCESS, code
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_delete
     logger = Logger.new("/dev/null")
@@ -265,6 +318,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     loader.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_monitor
     logger = Logger.new("/dev/null")
@@ -285,6 +339,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     monitor.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_navigate
     logger = Logger.new("/dev/null")
@@ -305,6 +360,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_navigate_fail
     logger = Logger.new("/dev/null")
@@ -325,6 +381,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::FAILED_NAVIGATING, code
     navigator.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_screen
     logger = Logger.new("/dev/null")
@@ -345,6 +402,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_screens
     logger = Logger.new("/dev/null")
@@ -365,6 +423,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_text
     logger = Logger.new("/dev/null")
@@ -385,6 +444,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_test
     logger = Logger.new("/dev/null")
@@ -405,6 +465,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     tester.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_screencapture
     logger = Logger.new("/dev/null")
@@ -425,6 +486,7 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     inspector.verify
+    File.delete(target_config) if File.exists?(target_config)
   end
   def test_controller_screencapture_fail
     logger = Logger.new("/dev/null")
@@ -445,6 +507,62 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::FAILED_SCREENCAPTURE, code
     inspector.verify
+    File.delete(target_config) if File.exists?(target_config)
+  end
+
+  def test_controller_handel_error_codes
+    errors = {
+      fatal: {
+        options_code: [
+          RokuBuilder::Controller::EXTRA_COMMANDS,
+          RokuBuilder::Controller::NO_COMMANDS,
+          RokuBuilder::Controller::EXTRA_SOURCES,
+          RokuBuilder::Controller::NO_SOURCE,
+          RokuBuilder::Controller::BAD_CURRENT,
+          RokuBuilder::Controller::BAD_DEEPLINK
+        ],
+        device_code: [
+          RokuBuilder::Controller::BAD_DEVICE,
+          RokuBuilder::Controller::NO_DEVICES,
+        ],
+        handle_code: [
+          RokuBuilder::Controller::CONFIG_OVERWRITE,
+          RokuBuilder::Controller::MISSING_CONFIG,
+          RokuBuilder::Controller::INVALID_CONFIG,
+          RokuBuilder::Controller::MISSING_MANIFEST,
+          RokuBuilder::Controller::UNKNOWN_DEVICE,
+          RokuBuilder::Controller::UNKNOWN_PROJECT,
+          RokuBuilder::Controller::UNKNOWN_STAGE,
+          RokuBuilder::Controller::FAILED_SIDELOAD,
+          RokuBuilder::Controller::FAILED_SIGNING,
+          RokuBuilder::Controller::FAILED_DEEPLINKING,
+          RokuBuilder::Controller::FAILED_NAVIGATING,
+          RokuBuilder::Controller::FAILED_SCREENCAPTURE
+        ]
+      },
+      info: {
+        device_code: [
+          RokuBuilder::Controller::CHANGED_DEVICE
+        ]
+      },
+      warn: {
+        handle_code: [
+          RokuBuilder::Controller::DEPRICATED_CONFIG
+        ]
+      }
+    }
+    logger = Minitest::Mock.new
+
+    errors.each_pair do |type,errors|
+      errors.each_pair do |key,value|
+        value.each do |code|
+          options = {options: {}, logger: logger}
+          options[key] = code
+          logger.expect(type, nil)  {|string| string.class == String}
+          RokuBuilder::Controller.handle_error_codes(**options)
+        end
+      end
+    end
   end
 end
 
