@@ -28,6 +28,9 @@ module RokuBuilder
     # No deeplink options supplied for deeplink
     BAD_DEEPLINK    = 6
 
+    # Incorrect use of the in option
+    BAD_IN_FILE     = 7
+
 
 
     ### Device Codes ###
@@ -36,7 +39,7 @@ module RokuBuilder
     CHANGED_DEVICE = -1
 
     # Device is online
-    GOOD_DEVCICE = 0
+    GOOD_DEVICE = 0
 
     # User defined device was not online
     BAD_DEVICE = 1
@@ -132,6 +135,9 @@ module RokuBuilder
       end
       if sources.include?(:current)
         return BAD_CURRENT unless options[:build] or options[:sideload]
+      end
+      if options[:in]
+        return BAD_IN_FILE unless options[:sideload]
       end
       if options[:deeplink]
         return BAD_DEEPLINK if !options[:deeplink_options] or options[:deeplink_options].chomp == ""
@@ -245,7 +251,7 @@ module RokuBuilder
     def self.check_devices(options:, config:, configs:, logger:)
       ping = Net::Ping::External.new
       host = configs[:device_config][:ip]
-      return [GOOD_DEVCICE, configs] if ping.ping? host, 1, 0.2, 1
+      return [GOOD_DEVICE, configs] if ping.ping? host, 1, 0.2, 1
       return [BAD_DEVICE, nil] if options[:device_given]
       config[:devices].each_pair {|key, value|
         unless key == :default
@@ -304,6 +310,9 @@ module RokuBuilder
           abort
         when BAD_DEEPLINK
           logger.fatal "Must supply deeplinking options when deeplinking"
+          abort
+        when BAD_IN_FILE
+          logger.fatal "Can only supply in file for building"
           abort
         end
       elsif device_code
@@ -497,7 +506,7 @@ module RokuBuilder
           password: configs[:key][:password],
           app_name_version: "#{project_config[:app_name]} - #{stage}"
         }
-        if options[:outfile]
+        if options[:out_file]
           configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
         end
         # Create Inspector Config

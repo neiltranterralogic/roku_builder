@@ -130,6 +130,10 @@ OptionParser.new do |opts|
     options[:out] = o
   end
 
+  opts.on("-I", "--in PATH", "Input file for sideloading") do |i|
+    options[:in] = i
+  end
+
   opts.on("-V", "--verbose", "Print Info message") do |v|
     options[:verbose] = v
   end

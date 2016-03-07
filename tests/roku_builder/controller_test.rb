@@ -15,38 +15,50 @@ class ControllerTest < Minitest::Test
       sideload: true,
       package: true
     }
-    assert_equal 1, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::EXTRA_COMMANDS, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {}
-    assert_equal 2,  RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::NO_COMMANDS,  RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       sideload: true,
       working: true,
       current: true
     }
-    assert_equal 3, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::EXTRA_SOURCES, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       sideload: true,
       working: true
     }
-    assert_equal 0, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       package: true
     }
-    assert_equal 4, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::NO_SOURCE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       package: true,
       current: true
     }
-    assert_equal 5, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::BAD_CURRENT, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       deeplink: true
     }
-    assert_equal 6, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       deeplink: true,
       deeplink_options: ""
     }
-    assert_equal 6, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::Controller::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    options = {
+      sideload: true,
+      in: "",
+      current: true
+    }
+    assert_equal RokuBuilder::Controller::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    options = {
+      package: true,
+      in: "",
+      set_stage: true
+    }
+    assert_equal RokuBuilder::Controller::BAD_IN_FILE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
   end
   def test_controller_configure
     logger = Logger.new("/dev/null")
@@ -74,6 +86,16 @@ class ControllerTest < Minitest::Test
     assert File.exists?(target_config)
     config = RokuBuilder::ConfigManager.get_config(config: target_config, logger: logger)
     assert_equal "111.222.333.444", config[:devices][:roku][:ip]
+
+    options = {
+      configure: true,
+      config: target_config
+    }
+
+    code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+
+    assert_equal RokuBuilder::Controller::CONFIG_OVERWRITE, code
+
     File.delete(target_config) if File.exists?(target_config)
   end
 
@@ -190,6 +212,56 @@ class ControllerTest < Minitest::Test
       package_config: {
         app_name_version: "app - production - build_version",
         out_file: "/tmp/app_production_build_version.pkg"
+      },
+      project_config: {app_name: "app"},
+      inspect_config: {}
+    }
+    info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
+
+    loader.expect(:sideload, "build_version", [configs[:sideload_config]])
+    keyer.expect(:rekey, true, [configs[:key]])
+    packager.expect(:package, true, [configs[:package_config]])
+    inspector.expect(:inspect, info, [configs[:inspect_config]])
+
+    code = nil
+    RokuBuilder::Keyer.stub(:new, keyer) do
+      RokuBuilder::Loader.stub(:new, loader) do
+        RokuBuilder::Packager.stub(:new, packager) do
+          RokuBuilder::Inspector.stub(:new, inspector) do
+            RokuBuilder::Controller.stub(:check_devices, [0, configs]) do
+              code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
+            end
+          end
+        end
+      end
+    end
+    assert_equal RokuBuilder::Controller::SUCCESS, code
+
+    keyer.verify
+    loader.verify
+    packager.verify
+    inspector.verify
+    File.delete(target_config) if File.exists?(target_config)
+  end
+
+  def test_controller_package_outfile
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exists?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+    keyer = Minitest::Mock.new
+    loader = Minitest::Mock.new
+    packager = Minitest::Mock.new
+    inspector = Minitest::Mock.new
+
+    options = {package: true, inspect: true, stage: 'production', out: "/tmp/out.pkg", config: target_config}
+    configs = {
+      device_config: {},
+      sideload_config: {},
+      key: {},
+      package_config: {
+        app_name_version: "app - production - build_version",
+        out_file: "/tmp/out.pkg"
       },
       project_config: {app_name: "app"},
       inspect_config: {}
@@ -474,7 +546,7 @@ class ControllerTest < Minitest::Test
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     inspector = Minitest::Mock.new
 
-    options = {screencapture: true, stage: 'production', config: target_config}
+    options = {screencapture: true, stage: 'production', out: "/tmp/capture.jpg", config: target_config}
     inspector.expect(:screencapture, true, [{}])
     code = nil
     RokuBuilder::Inspector.stub(:new, inspector) do
@@ -495,7 +567,7 @@ class ControllerTest < Minitest::Test
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     inspector = Minitest::Mock.new
 
-    options = {screencapture: true, stage: 'production', config: target_config}
+    options = {screencapture: true, stage: 'production', out: "/tmp", config: target_config}
     inspector.expect(:screencapture, false, [{}])
     code = nil
     RokuBuilder::Inspector.stub(:new, inspector) do
@@ -519,7 +591,8 @@ class ControllerTest < Minitest::Test
           RokuBuilder::Controller::EXTRA_SOURCES,
           RokuBuilder::Controller::NO_SOURCE,
           RokuBuilder::Controller::BAD_CURRENT,
-          RokuBuilder::Controller::BAD_DEEPLINK
+          RokuBuilder::Controller::BAD_DEEPLINK,
+          RokuBuilder::Controller::BAD_IN_FILE
         ],
         device_code: [
           RokuBuilder::Controller::BAD_DEVICE,
@@ -551,15 +624,103 @@ class ControllerTest < Minitest::Test
         ]
       }
     }
-    logger = Minitest::Mock.new
 
     errors.each_pair do |type,errors|
       errors.each_pair do |key,value|
         value.each do |code|
+          logger = Minitest::Mock.new
           options = {options: {}, logger: logger}
           options[key] = code
           logger.expect(type, nil)  {|string| string.class == String}
           RokuBuilder::Controller.handle_error_codes(**options)
+          logger.verify
+        end
+      end
+    end
+  end
+
+  def test_controller_check_devices
+    logger = Logger.new("/dev/null")
+    ping = Minitest::Mock.new
+    options = {device_given: false}
+    config = {}
+    config[:devices] = {
+      a: {ip: "2.2.2.2"},
+      b: {ip: "3.3.3.3"}
+    }
+    configs = {
+      device_config: {ip: "1.1.1.1"}
+    }
+
+    Net::Ping::External.stub(:new, ping) do
+
+      ping.expect(:ping?, true, [configs[:device_config][:ip], 1, 0.2, 1])
+      code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
+      assert_equal RokuBuilder::Controller::GOOD_DEVICE, code
+
+      ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
+      ping.expect(:ping?, false, [config[:devices][:a][:ip], 1, 0.2, 1])
+      ping.expect(:ping?, false, [config[:devices][:b][:ip], 1, 0.2, 1])
+      code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
+      assert_equal RokuBuilder::Controller::NO_DEVICES, code
+
+      ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
+      ping.expect(:ping?, true, [config[:devices][:a][:ip], 1, 0.2, 1])
+      code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
+      assert_equal RokuBuilder::Controller::CHANGED_DEVICE, code
+      assert_equal config[:devices][:a][:ip], ret[:device_config][:ip]
+
+      options[:device_given] = true
+      ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
+      code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
+      assert_equal RokuBuilder::Controller::BAD_DEVICE, code
+    end
+  end
+
+  def test_controller_run_debug
+    logger = Minitest::Mock.new
+    options = {debug: true}
+
+    logger.expect(:formater=, nil) do |proc_object|
+      proc_object.class == PROC and proc_object.arity == 4
+    end
+    logger.expect(:level=, nil, [Logger::DEBUG])
+    RokuBuilder::Controller.stub(:validate_options, nil) do
+      RokuBuilder::Controller.stub(:handle_options, nil) do
+        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
+          RokuBuilder::Controller.run(options: options)
+        end
+      end
+    end
+  end
+  def test_controller_run_info
+    logger = Minitest::Mock.new
+    options = {verbose: true}
+
+    logger.expect(:formater=, nil) do |proc_object|
+      proc_object.class == PROC and proc_object.arity == 4
+    end
+    logger.expect(:level=, nil, [Logger::INFO])
+    RokuBuilder::Controller.stub(:validate_options, nil) do
+      RokuBuilder::Controller.stub(:handle_options, nil) do
+        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
+          RokuBuilder::Controller.run(options: options)
+        end
+      end
+    end
+  end
+  def test_controller_run_warn
+    logger = Minitest::Mock.new
+    options = {}
+
+    logger.expect(:formater=, nil) do |proc_object|
+      proc_object.class == PROC and proc_object.arity == 4
+    end
+    logger.expect(:level=, nil, [Logger::WARN])
+    RokuBuilder::Controller.stub(:validate_options, nil) do
+      RokuBuilder::Controller.stub(:handle_options, nil) do
+        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
+          RokuBuilder::Controller.run(options: options)
         end
       end
     end

@@ -10,8 +10,9 @@ module RokuBuilder
     # @param fetch [Boolean] Flag to fetch all remotes before sideloading. Default: false
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
+    # @param infile [String] 
     # @return [String] Build version on success, nil otherwise
-    def sideload(root_dir:, branch: nil, update_manifest: false, fetch: false, folders: nil, files: nil)
+    def sideload(root_dir:, branch: nil, update_manifest: false, fetch: false, folders: nil, files: nil, infile: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
