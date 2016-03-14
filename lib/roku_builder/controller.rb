@@ -199,7 +199,7 @@ module RokuBuilder
       when :build
         ### Build ###
         loader = Loader.new(**configs[:device_config])
-        build_version = ManifestManager.build_version(**configs[:manifest_config], logger: logger)
+        build_version = ManifestManager.build_version(**configs[:manifest_config])
         options[:build_version] = build_version
         configs = self.update_configs(configs: configs, options: options)
         outfile = loader.build(**configs[:build_config])
@@ -525,7 +525,8 @@ module RokuBuilder
       }
       # Create Manifest Config
       configs[:manifest_config] = {
-        root_dir: project_config[:directory]
+        root_dir: project_config[:directory],
+        logger: logger
       }
       # Create Deeplink Config
       configs[:deeplink_config] ={
