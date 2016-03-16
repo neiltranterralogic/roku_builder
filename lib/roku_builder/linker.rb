@@ -40,7 +40,7 @@ module RokuBuilder
     # @param params [Hash] Parameters to be sent
     # @return [String] Parameters as a string, URI escaped
     def parameterize(params)
-      URI.escape(params.collect{|k,v| "#{k}=#{URI.escape(v, "?&")}"}.join('&'))
+      params.collect{|k,v| "#{k}=#{CGI.escape(v)}"}.join('&')
     end
   end
 end

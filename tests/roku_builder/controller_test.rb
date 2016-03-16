@@ -63,8 +63,8 @@ class ControllerTest < Minitest::Test
   def test_controller_configure
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
-    assert !File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
+    assert !File.exist?(target_config)
 
     options = {
       configure: true,
@@ -73,7 +73,7 @@ class ControllerTest < Minitest::Test
 
     RokuBuilder::Controller.handle_options(options: options, logger: logger)
 
-    assert File.exists?(target_config)
+    assert File.exist?(target_config)
 
     options = {
       configure: true,
@@ -83,7 +83,7 @@ class ControllerTest < Minitest::Test
 
     RokuBuilder::Controller.handle_options(options: options, logger: logger)
 
-    assert File.exists?(target_config)
+    assert File.exist?(target_config)
     config = RokuBuilder::ConfigManager.get_config(config: target_config, logger: logger)
     assert_equal "111.222.333.444", config[:devices][:roku][:ip]
 
@@ -96,13 +96,13 @@ class ControllerTest < Minitest::Test
 
     assert_equal RokuBuilder::Controller::CONFIG_OVERWRITE, code
 
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_validate
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
 
     # Test Missing Config
     options = {validate: true, config: target_config}
@@ -152,13 +152,13 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
 
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_sideload
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     loader = Minitest::Mock.new
 
@@ -191,13 +191,13 @@ class ControllerTest < Minitest::Test
     assert_equal RokuBuilder::Controller::FAILED_SIDELOAD, code
 
     loader.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_package
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     keyer = Minitest::Mock.new
     loader = Minitest::Mock.new
@@ -241,13 +241,13 @@ class ControllerTest < Minitest::Test
     loader.verify
     packager.verify
     inspector.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_package_outfile
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     keyer = Minitest::Mock.new
     loader = Minitest::Mock.new
@@ -291,13 +291,13 @@ class ControllerTest < Minitest::Test
     loader.verify
     packager.verify
     inspector.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_build
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     loader = Minitest::Mock.new
 
@@ -321,12 +321,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     loader.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_update
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     mock = Minitest::Mock.new
 
@@ -346,13 +346,13 @@ class ControllerTest < Minitest::Test
     end
     mock.verify
     assert_equal RokuBuilder::Controller::SUCCESS, code
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_deeplink
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     mock = Minitest::Mock.new
 
@@ -369,12 +369,12 @@ class ControllerTest < Minitest::Test
     end
     mock.verify
     assert_equal RokuBuilder::Controller::SUCCESS, code
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_delete
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     loader = Minitest::Mock.new
 
@@ -390,12 +390,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     loader.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_monitor
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     monitor = Minitest::Mock.new
 
@@ -411,12 +411,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     monitor.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_navigate
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     navigator = Minitest::Mock.new
 
@@ -432,12 +432,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_navigate_fail
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     navigator = Minitest::Mock.new
 
@@ -453,12 +453,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::FAILED_NAVIGATING, code
     navigator.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_screen
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     navigator = Minitest::Mock.new
 
@@ -474,12 +474,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_screens
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     navigator = Minitest::Mock.new
 
@@ -495,12 +495,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_text
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     navigator = Minitest::Mock.new
 
@@ -516,12 +516,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     navigator.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_test
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     tester = Minitest::Mock.new
 
@@ -537,12 +537,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     tester.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_screencapture
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     inspector = Minitest::Mock.new
 
@@ -558,12 +558,12 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::SUCCESS, code
     inspector.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_screencapture_fail
     logger = Logger.new("/dev/null")
     target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
     inspector = Minitest::Mock.new
 
@@ -579,11 +579,11 @@ class ControllerTest < Minitest::Test
     end
     assert_equal RokuBuilder::Controller::FAILED_SCREENCAPTURE, code
     inspector.verify
-    File.delete(target_config) if File.exists?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
   end
 
   def test_controller_handel_error_codes
-    errors = {
+    error_groups = {
       fatal: {
         options_code: [
           RokuBuilder::Controller::EXTRA_COMMANDS,
@@ -625,7 +625,7 @@ class ControllerTest < Minitest::Test
       }
     }
 
-    errors.each_pair do |type,errors|
+    error_groups.each_pair do |type,errors|
       errors.each_pair do |key,value|
         value.each do |code|
           logger = Minitest::Mock.new

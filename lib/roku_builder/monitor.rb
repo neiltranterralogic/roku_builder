@@ -28,13 +28,13 @@ module RokuBuilder
         'Timeout' => false
       }
 
-      thread = Thread.new(telnet_config, waitfor_config) {|telnet_config,waitfor_config|
-        @logger.info "Monitoring #{type} console(#{telnet_config['Port']}) on #{telnet_config['Host'] }"
-        connection = Net::Telnet.new(telnet_config)
+      thread = Thread.new(telnet_config, waitfor_config) {|telnet,waitfor|
+        @logger.info "Monitoring #{type} console(#{telnet['Port']}) on #{telnet['Host'] }"
+        connection = Net::Telnet.new(telnet)
         Thread.current[:connection] = connection
         all_text = ""
         while true
-          connection.waitfor(waitfor_config) do |txt|
+          connection.waitfor(waitfor) do |txt|
             all_text = manage_text(all_text: all_text, txt: txt)
           end
         end

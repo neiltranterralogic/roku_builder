@@ -9,15 +9,11 @@ class MonitorTest < Minitest::Test
       password: "password",
       logger: Logger.new("/dev/null")
     }
-    monitor_config = {
-      'Host' => device_config[:ip],
-      'Post' => 8085
-    }
     monitor = RokuBuilder::Monitor.new(**device_config)
 
     connection.expect(:waitfor, nil) do |config|
-      assert_equal /./, config['Match']
-      assert_equal false, config['Timeout']
+      assert_equal(/./, config['Match'])
+      assert_equal(false, config['Timeout'])
     end
 
     def monitor.gets
@@ -40,20 +36,16 @@ class MonitorTest < Minitest::Test
       password: "password",
       logger: Logger.new("/dev/null")
     }
-    monitor_config = {
-      'Host' => device_config[:ip],
-      'Post' => 8085
-    }
     monitor = RokuBuilder::Monitor.new(**device_config)
 
     connection.expect(:waitfor, nil) do |config|
-      assert_equal /./, config['Match']
-      assert_equal false, config['Timeout']
+      assert_equal(/./, config['Match'])
+      assert_equal(false, config['Timeout'])
     end
     connection.expect(:puts, nil, ["text"])
 
     def monitor.gets
-      @count = 0 unless @count
+      @count ||= 0
       sleep(0.1)
       case @count
       when 0

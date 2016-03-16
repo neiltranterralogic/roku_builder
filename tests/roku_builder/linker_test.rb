@@ -12,7 +12,7 @@ class LinkerTest < Minitest::Test
       password: "password",
       logger: Logger.new("/dev/null")
     }
-    path = "/launch/dev?a=A&b=B:C&d=a%5Cb"
+    path = "/launch/dev?a=A&b=B%3AC&d=a%5Cb"
     options = 'a:A, b:B:C, d:a\b'
 
     connection.expect(:post, response, [path])

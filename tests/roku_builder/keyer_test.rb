@@ -22,7 +22,6 @@ class KeyerTest < Minitest::Test
     response.expect(:body, body)
 
 
-    package_info = {}
     dev_id = nil
     keyer = RokuBuilder::Keyer.new(**device_config)
     Faraday.stub(:new, connection, faraday) do
@@ -55,7 +54,6 @@ class KeyerTest < Minitest::Test
     response.expect(:body, body)
 
 
-    package_info = {}
     dev_id = nil
     keyer = RokuBuilder::Keyer.new(**device_config)
     Faraday.stub(:new, connection, faraday) do

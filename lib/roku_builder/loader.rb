@@ -92,7 +92,6 @@ module RokuBuilder
     # @return [String] Path of the build
     def build(root_dir:, branch: nil, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
       @root_dir = root_dir
-      result = nil
       stash = nil
       if branch
         git = Git.open(@root_dir)
@@ -120,7 +119,7 @@ module RokuBuilder
         end
         outfile = "/tmp/build_#{build_version}.zip" unless outfile
 
-        File.delete(outfile) if File.exists?(outfile)
+        File.delete(outfile) if File.exist?(outfile)
         io = Zip::File.open(outfile, Zip::File::CREATE)
 
         # Add folders to zip

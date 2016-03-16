@@ -23,7 +23,7 @@ module RokuBuilder
         passwd: password,
         archive: Faraday::UploadIO.new(keyed_pkg, 'application/octet-stream')
       }
-      response = conn.post path, payload
+      conn.post path, payload
 
       # check key
       newId = dev_id

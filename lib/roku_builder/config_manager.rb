@@ -62,16 +62,16 @@ module RokuBuilder
         }
       end
       if config[:projects]
-        config[:projects].each {|k,v|
-          next if k == :default
+        config[:projects].each {|project,v|
+          next if project == :default
           codes.push(PROJECT_MISSING_APP_NAME) if not v[:app_name]
           codes.push(PROJECT_MISSING_DIRECTORY) if not v[:directory]
           codes.push(PROJECT_MISSING_FOLDERS) if not v[:folders]
           codes.push(PROJECT_FOLDERS_BAD) if v[:folders] and not v[:folders].is_a?(Array)
           codes.push(PROJECT_MISSING_FILES) if not v[:files]
           codes.push(PROJECT_FILES_BAD) if v[:files] and not v[:files].is_a?(Array)
-          v[:stages].each {|k,v|
-            codes.push(STAGE_MISSING_BRANCH) if not v[:branch]
+          v[:stages].each {|stage,value|
+            codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
           }
         }
       end
