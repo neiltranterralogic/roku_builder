@@ -15,50 +15,50 @@ class ControllerTest < Minitest::Test
       sideload: true,
       package: true
     }
-    assert_equal RokuBuilder::Controller::EXTRA_COMMANDS, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::EXTRA_COMMANDS, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {}
-    assert_equal RokuBuilder::Controller::NO_COMMANDS,  RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::NO_COMMANDS,  RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       sideload: true,
       working: true,
       current: true
     }
-    assert_equal RokuBuilder::Controller::EXTRA_SOURCES, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::EXTRA_SOURCES, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       sideload: true,
       working: true
     }
-    assert_equal RokuBuilder::Controller::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       package: true
     }
-    assert_equal RokuBuilder::Controller::NO_SOURCE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::NO_SOURCE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       package: true,
       current: true
     }
-    assert_equal RokuBuilder::Controller::BAD_CURRENT, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::BAD_CURRENT, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       deeplink: true
     }
-    assert_equal RokuBuilder::Controller::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       deeplink: true,
       deeplink_options: ""
     }
-    assert_equal RokuBuilder::Controller::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::BAD_DEEPLINK, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       sideload: true,
       in: "",
       current: true
     }
-    assert_equal RokuBuilder::Controller::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::VALID, RokuBuilder::Controller.validate_options(options: options, logger: logger)
     options = {
       package: true,
       in: "",
       set_stage: true
     }
-    assert_equal RokuBuilder::Controller::BAD_IN_FILE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
+    assert_equal RokuBuilder::BAD_IN_FILE, RokuBuilder::Controller.validate_options(options: options, logger: logger)
   end
   def test_controller_configure
     logger = Logger.new("/dev/null")
@@ -94,7 +94,7 @@ class ControllerTest < Minitest::Test
 
     code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
 
-    assert_equal RokuBuilder::Controller::CONFIG_OVERWRITE, code
+    assert_equal RokuBuilder::CONFIG_OVERWRITE, code
 
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -107,7 +107,7 @@ class ControllerTest < Minitest::Test
     # Test Missing Config
     options = {validate: true, config: target_config}
     code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
-    assert_equal RokuBuilder::Controller::MISSING_CONFIG, code
+    assert_equal RokuBuilder::MISSING_CONFIG, code
 
     FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
 
@@ -116,21 +116,21 @@ class ControllerTest < Minitest::Test
     RokuBuilder::ConfigManager.stub(:get_config, nil) do
       code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
     end
-    assert_equal RokuBuilder::Controller::INVALID_CONFIG, code
+    assert_equal RokuBuilder::INVALID_CONFIG, code
 
     # Test Invalid config
     options = {validate: true, config: target_config}
     RokuBuilder::ConfigManager.stub(:validate_config, [1]) do
       code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
     end
-    assert_equal RokuBuilder::Controller::INVALID_CONFIG, code
+    assert_equal RokuBuilder::INVALID_CONFIG, code
 
     # Test Depricated Config
     options = {validate: true, stage: 'production', config: target_config}
     RokuBuilder::ConfigManager.stub(:validate_config, [-1]) do
       code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
     end
-    assert_equal RokuBuilder::Controller::DEPRICATED_CONFIG, code
+    assert_equal RokuBuilder::DEPRICATED_CONFIG, code
 
     # Test valid Config
     options = {validate: true, stage: 'production', config: target_config}
@@ -139,7 +139,7 @@ class ControllerTest < Minitest::Test
         code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
 
     # Test valid config in pwd
     options = {validate: true, stage: 'production', config: target_config}
@@ -150,7 +150,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
 
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -179,7 +179,7 @@ class ControllerTest < Minitest::Test
         code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
 
     # Test Failure
     loader.expect(:sideload, false, [sideload_config])
@@ -188,7 +188,7 @@ class ControllerTest < Minitest::Test
         code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
       end
     end
-    assert_equal RokuBuilder::Controller::FAILED_SIDELOAD, code
+    assert_equal RokuBuilder::FAILED_SIDELOAD, code
 
     loader.verify
     File.delete(target_config) if File.exist?(target_config)
@@ -235,7 +235,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
 
     keyer.verify
     loader.verify
@@ -285,7 +285,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
 
     keyer.verify
     loader.verify
@@ -319,7 +319,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     loader.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -345,7 +345,7 @@ class ControllerTest < Minitest::Test
       end
     end
     mock.verify
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     File.delete(target_config) if File.exist?(target_config)
   end
 
@@ -368,7 +368,7 @@ class ControllerTest < Minitest::Test
       end
     end
     mock.verify
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     File.delete(target_config) if File.exist?(target_config)
   end
   def test_controller_delete
@@ -388,7 +388,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     loader.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -409,7 +409,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     monitor.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -430,7 +430,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -451,7 +451,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::FAILED_NAVIGATING, code
+    assert_equal RokuBuilder::FAILED_NAVIGATING, code
     navigator.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -472,7 +472,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -493,7 +493,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -514,7 +514,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -535,7 +535,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     tester.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -556,7 +556,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     inspector.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -577,7 +577,7 @@ class ControllerTest < Minitest::Test
         end
       end
     end
-    assert_equal RokuBuilder::Controller::FAILED_SCREENCAPTURE, code
+    assert_equal RokuBuilder::FAILED_SCREENCAPTURE, code
     inspector.verify
     File.delete(target_config) if File.exist?(target_config)
   end
@@ -586,41 +586,41 @@ class ControllerTest < Minitest::Test
     error_groups = {
       fatal: {
         options_code: [
-          RokuBuilder::Controller::EXTRA_COMMANDS,
-          RokuBuilder::Controller::NO_COMMANDS,
-          RokuBuilder::Controller::EXTRA_SOURCES,
-          RokuBuilder::Controller::NO_SOURCE,
-          RokuBuilder::Controller::BAD_CURRENT,
-          RokuBuilder::Controller::BAD_DEEPLINK,
-          RokuBuilder::Controller::BAD_IN_FILE
+          RokuBuilder::EXTRA_COMMANDS,
+          RokuBuilder::NO_COMMANDS,
+          RokuBuilder::EXTRA_SOURCES,
+          RokuBuilder::NO_SOURCE,
+          RokuBuilder::BAD_CURRENT,
+          RokuBuilder::BAD_DEEPLINK,
+          RokuBuilder::BAD_IN_FILE
         ],
         device_code: [
-          RokuBuilder::Controller::BAD_DEVICE,
-          RokuBuilder::Controller::NO_DEVICES,
+          RokuBuilder::BAD_DEVICE,
+          RokuBuilder::NO_DEVICES,
         ],
         handle_code: [
-          RokuBuilder::Controller::CONFIG_OVERWRITE,
-          RokuBuilder::Controller::MISSING_CONFIG,
-          RokuBuilder::Controller::INVALID_CONFIG,
-          RokuBuilder::Controller::MISSING_MANIFEST,
-          RokuBuilder::Controller::UNKNOWN_DEVICE,
-          RokuBuilder::Controller::UNKNOWN_PROJECT,
-          RokuBuilder::Controller::UNKNOWN_STAGE,
-          RokuBuilder::Controller::FAILED_SIDELOAD,
-          RokuBuilder::Controller::FAILED_SIGNING,
-          RokuBuilder::Controller::FAILED_DEEPLINKING,
-          RokuBuilder::Controller::FAILED_NAVIGATING,
-          RokuBuilder::Controller::FAILED_SCREENCAPTURE
+          RokuBuilder::CONFIG_OVERWRITE,
+          RokuBuilder::MISSING_CONFIG,
+          RokuBuilder::INVALID_CONFIG,
+          RokuBuilder::MISSING_MANIFEST,
+          RokuBuilder::UNKNOWN_DEVICE,
+          RokuBuilder::UNKNOWN_PROJECT,
+          RokuBuilder::UNKNOWN_STAGE,
+          RokuBuilder::FAILED_SIDELOAD,
+          RokuBuilder::FAILED_SIGNING,
+          RokuBuilder::FAILED_DEEPLINKING,
+          RokuBuilder::FAILED_NAVIGATING,
+          RokuBuilder::FAILED_SCREENCAPTURE
         ]
       },
       info: {
         device_code: [
-          RokuBuilder::Controller::CHANGED_DEVICE
+          RokuBuilder::CHANGED_DEVICE
         ]
       },
       warn: {
         handle_code: [
-          RokuBuilder::Controller::DEPRICATED_CONFIG
+          RokuBuilder::DEPRICATED_CONFIG
         ]
       }
     }
@@ -656,24 +656,24 @@ class ControllerTest < Minitest::Test
 
       ping.expect(:ping?, true, [configs[:device_config][:ip], 1, 0.2, 1])
       code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
-      assert_equal RokuBuilder::Controller::GOOD_DEVICE, code
+      assert_equal RokuBuilder::GOOD_DEVICE, code
 
       ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
       ping.expect(:ping?, false, [config[:devices][:a][:ip], 1, 0.2, 1])
       ping.expect(:ping?, false, [config[:devices][:b][:ip], 1, 0.2, 1])
       code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
-      assert_equal RokuBuilder::Controller::NO_DEVICES, code
+      assert_equal RokuBuilder::NO_DEVICES, code
 
       ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
       ping.expect(:ping?, true, [config[:devices][:a][:ip], 1, 0.2, 1])
       code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
-      assert_equal RokuBuilder::Controller::CHANGED_DEVICE, code
+      assert_equal RokuBuilder::CHANGED_DEVICE, code
       assert_equal config[:devices][:a][:ip], ret[:device_config][:ip]
 
       options[:device_given] = true
       ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
       code, ret = RokuBuilder::Controller.check_devices(options: options, config: config, configs: configs, logger: logger)
-      assert_equal RokuBuilder::Controller::BAD_DEVICE, code
+      assert_equal RokuBuilder::BAD_DEVICE, code
     end
   end
 

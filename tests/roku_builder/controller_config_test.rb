@@ -11,7 +11,7 @@ class ControllerConfigTest < Minitest::Test
     }
     code, config, configs = RokuBuilder::Controller.load_config(options: options, logger: logger)
 
-    assert_equal RokuBuilder::Controller::SUCCESS, code
+    assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
     assert_equal "/dev/null", configs[:manifest_config][:root_dir]
     assert_equal logger, configs[:manifest_config][:logger]
