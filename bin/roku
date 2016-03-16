@@ -16,75 +16,75 @@ options[:fetch] = false
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
 
-  opts.on("-l", "--sideload", "Command: Sideload an app") do |s|
-    options[:sideload] = s
+  opts.on("-l", "--sideload", "Command: Sideload an app") do
+    options[:sideload] = true
   end
 
-  opts.on("-p", "--package", "Command: Package an app") do |p|
-    options[:package] = p
+  opts.on("-p", "--package", "Command: Package an app") do
+    options[:package] = true
   end
 
-  opts.on("-t", "--test", "Command: Test an app") do |t|
-    options[:test] = t
+  opts.on("-t", "--test", "Command: Test an app") do
+    options[:test] = true
   end
 
-  opts.on("-L", "--deeplink", "Command: Deeplink into app. Requires mgid and type options.") do |d|
-    options[:deeplink] = d
+  opts.on("-L", "--deeplink", "Command: Deeplink into app. Requires mgid and type options.") do
+    options[:deeplink] = true
   end
 
-  opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.json'") do |c|
-    options[:configure] = c
+  opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.json'") do
+    options[:configure] = true
   end
 
-  opts.on("--validate", "Command: Validate configuration'") do |v|
-    options[:validate] = v
+  opts.on("--validate", "Command: Validate configuration'") do
+    options[:validate] = true
   end
 
-  opts.on("-d", "--delete", "Command: Delete the currently sideloaded app") do |d|
-    options[:delete] = d
+  opts.on("-d", "--delete", "Command: Delete the currently sideloaded app") do
+    options[:delete] = true
   end
 
   opts.on("-N", "--navigate CMD", "Command: send the given command to the roku") do |n|
     options[:navigate] = n
   end
 
-  opts.on("-S", "--screencapture", "Command: save a screencapture to the output file/folder") do |s|
-    options[:screencapture] = s
+  opts.on("-S", "--screencapture", "Command: save a screencapture to the output file/folder") do
+    options[:screencapture] = true
   end
 
   opts.on("-y", "--type TEXT", "Command: type the given text on the roku device") do |t|
     options[:text] = t
   end
 
-  opts.on("-b", "--build", "Command: build a zip to be sideloaded") do |b|
-    options[:build] = b
+  opts.on("-b", "--build", "Command: build a zip to be sideloaded") do
+    options[:build] = true
   end
 
   opts.on("--screen SCREEN", "Command: show a screen") do |s|
     options[:screen] = s
   end
 
-  opts.on("--screens", "Command: show possible screens") do |s|
-    options[:screens] = s
+  opts.on("--screens", "Command: show possible screens") do
+    options[:screens] = true
   end
 
   opts.on("-m", "--monitor TYPE", "Command: run telnet to monitor roku log") do |m|
     options[:monitor] = m
   end
 
-  opts.on("-u", "--update-manifest", "Command: update the manifest file") do |u|
-    options[:update] = u
+  opts.on("-u", "--update-manifest", "Command: update the manifest file") do
+    options[:update] = true
   end
 
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
 
-  opts.on("-w", "--working", "Use working directory to sideload or test") do |w|
-    options[:working] = w
+  opts.on("-w", "--working", "Use working directory to sideload or test") do
+    options[:working] = true
   end
 
-  opts.on("-c", "--current", "Use current directory to sideload or test. Overides any project config") do |w|
+  opts.on("-c", "--current", "Use current directory to sideload or test. Overides any project config") do
     options[:current] = true
   end
 
@@ -93,11 +93,11 @@ OptionParser.new do |opts|
     options[:set_stage] = true
   end
 
-  opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do |n|
+  opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do
     options[:update_manifest] = true
   end
 
-  opts.on("-i", "--inspect", "Print inspection information while packaging") do |n|
+  opts.on("-i", "--inspect", "Print inspection information while packaging") do
     options[:inspect] = true
   end
 
@@ -134,15 +134,15 @@ OptionParser.new do |opts|
     options[:in] = i
   end
 
-  opts.on("-V", "--verbose", "Print Info message") do |v|
-    options[:verbose] = v
+  opts.on("-V", "--verbose", "Print Info message") do
+    options[:verbose] = true
   end
 
-  opts.on("--debug", "Print Debug messages") do |d|
-    options[:debug] = d
+  opts.on("--debug", "Print Debug messages") do
+    options[:debug] = true
   end
 
-  opts.on("-h", "--help", "Show this message") do |h|
+  opts.on("-h", "--help", "Show this message") do
     puts opts
     exit
   end
