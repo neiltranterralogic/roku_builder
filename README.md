@@ -1,5 +1,10 @@
 # RokuBuilder
 
+[![Gem Version](https://badge.fury.io/rb/roku_builder.svg)](https://badge.fury.io/rb/roku_builder)
+[![Dependency Status](https://gemnasium.com/ViacomInc/roku_builder.svg)](https://gemnasium.com/ViacomInc/roku_builder)
+[![Build Status](https://travis-ci.org/ViacomInc/roku_builder.svg?branch=master)](https://travis-ci.org/ViacomInc/roku_builder)
+[![Code Climate](https://codeclimate.com/github/ViacomInc/roku_builder/badges/gpa.svg)](https://codeclimate.com/github/ViacomInc/roku_builder)
+
 A tool to help with Roku Development. Assists with the following roku
 development tasks:
 
@@ -267,8 +272,9 @@ directory:
 
 ## Improvements
 
+ * Account for missing folders or files
  * Increase testing
-   * More Unit Tests
+   * Config Unit Tests
    * Intergration Tests
  * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
