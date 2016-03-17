@@ -321,15 +321,15 @@ module RokuBuilder
       config = ConfigManager.get_config(config: config_file, logger: logger)
       return INVALID_CONFIG unless config
       configs = {}
-      codes = ConfigManager.validate_config(config: config, logger: logger)
+      codes = ConfigValidator.validate_config(config: config, logger: logger)
       fatal = false
       warning = false
       codes.each {|a_code|
         if a_code > 0
-          logger.fatal "Invalid Config: "+ ConfigManager.error_codes()[a_code]
+          logger.fatal "Invalid Config: "+ ConfigValidator.error_codes()[a_code]
           fatal = true
         elsif a_code < 0
-          logger.warn "Depricated Config: "+ ConfigManager.error_codes()[a_code]
+          logger.warn "Depricated Config: "+ ConfigValidator.error_codes()[a_code]
           warning = true
         elsif a_code == 0 and options[:validate]
           logger.info "Config Valid"

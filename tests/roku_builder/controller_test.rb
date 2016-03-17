@@ -120,21 +120,21 @@ class ControllerTest < Minitest::Test
 
     # Test Invalid config
     options = {validate: true, config: target_config}
-    RokuBuilder::ConfigManager.stub(:validate_config, [1]) do
+    RokuBuilder::ConfigValidator.stub(:validate_config, [1]) do
       code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
     end
     assert_equal RokuBuilder::INVALID_CONFIG, code
 
     # Test Depricated Config
     options = {validate: true, stage: 'production', config: target_config}
-    RokuBuilder::ConfigManager.stub(:validate_config, [-1]) do
+    RokuBuilder::ConfigValidator.stub(:validate_config, [-1]) do
       code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
     end
     assert_equal RokuBuilder::DEPRICATED_CONFIG, code
 
     # Test valid Config
     options = {validate: true, stage: 'production', config: target_config}
-    RokuBuilder::ConfigManager.stub(:validate_config, [0]) do
+    RokuBuilder::ConfigValidator.stub(:validate_config, [0]) do
       RokuBuilder::Controller.stub(:check_devices, [0, nil]) do
         code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
       end
@@ -143,7 +143,7 @@ class ControllerTest < Minitest::Test
 
     # Test valid config in pwd
     options = {validate: true, stage: 'production', config: target_config}
-    RokuBuilder::ConfigManager.stub(:validate_config, [0]) do
+    RokuBuilder::ConfigValidator.stub(:validate_config, [0]) do
       RokuBuilder::Controller.stub(:system, "/dev/null/test") do
         RokuBuilder::Controller.stub(:check_devices, [0, nil]) do
           code = RokuBuilder::Controller.handle_options(options: options, logger: logger)
