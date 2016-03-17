@@ -25,39 +25,17 @@ module RokuBuilder
     # @return [Array] error codes for valid config (see self.error_codes)
     def self.validate_config(config:, logger:)
       codes = []
-      codes.push(MISSING_DEVICES) if not config[:devices]
-      codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
-      codes.push(DEVICE_DEFAULT_BAD) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
-      codes.push(MISSING_PROJECTS) if not config[:projects]
-      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and not config[:projects][:default]
-      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
-      codes.push(PROJECTS_DEFAULT_BAD) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
+      validate_structure(codes: codes, config: config)
       if config[:devices]
         config[:devices].each {|k,v|
           next if k == :default
-          codes.push(DEVICE_MISSING_IP) if not v[:ip]
-          codes.push(DEVICE_MISSING_IP) if v[:ip] == "xxx.xxx.xxx.xxx"
-          codes.push(DEVICE_MISSING_IP) if v[:ip] == ""
-          codes.push(DEVICE_MISSING_USER) if not v[:user]
-          codes.push(DEVICE_MISSING_USER) if v[:user] == "<username>"
-          codes.push(DEVICE_MISSING_USER) if v[:user] == ""
-          codes.push(DEVICE_MISSING_PASSWORD) if not v[:password]
-          codes.push(DEVICE_MISSING_PASSWORD) if v[:password] == "<password>"
-          codes.push(DEVICE_MISSING_PASSWORD) if v[:password] == ""
+          validate_device(codes: codes, device: v)
         }
       end
       if config[:projects]
         config[:projects].each {|project,v|
           next if project == :default
-          codes.push(PROJECT_MISSING_APP_NAME) if not v[:app_name]
-          codes.push(PROJECT_MISSING_DIRECTORY) if not v[:directory]
-          codes.push(PROJECT_MISSING_FOLDERS) if not v[:folders]
-          codes.push(PROJECT_FOLDERS_BAD) if v[:folders] and not v[:folders].is_a?(Array)
-          codes.push(PROJECT_MISSING_FILES) if not v[:files]
-          codes.push(PROJECT_FILES_BAD) if v[:files] and not v[:files].is_a?(Array)
-          v[:stages].each {|stage,value|
-            codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
-          }
+          validate_project(codes: codes, project: v)
         }
       end
       codes.push(0) if codes.empty?
@@ -88,6 +66,42 @@ module RokuBuilder
         "A project stage is missing its branch."
         #===============WARNINGS===============#
       ]
+    end
+
+    private
+
+    def self.validate_structure(codes:, config:)
+      codes.push(MISSING_DEVICES) if not config[:devices]
+      codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
+      codes.push(DEVICE_DEFAULT_BAD) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
+      codes.push(MISSING_PROJECTS) if not config[:projects]
+      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and not config[:projects][:default]
+      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
+      codes.push(PROJECTS_DEFAULT_BAD) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
+    end
+
+    def self.validate_device(codes:, device:)
+      codes.push(DEVICE_MISSING_IP) if not device[:ip]
+      codes.push(DEVICE_MISSING_IP) if device[:ip] == "xxx.xxx.xxx.xxx"
+      codes.push(DEVICE_MISSING_IP) if device[:ip] == ""
+      codes.push(DEVICE_MISSING_USER) if not device[:user]
+      codes.push(DEVICE_MISSING_USER) if device[:user] == "<username>"
+      codes.push(DEVICE_MISSING_USER) if device[:user] == ""
+      codes.push(DEVICE_MISSING_PASSWORD) if not device[:password]
+      codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == "<password>"
+      codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == ""
+    end
+
+    def self.validate_project(codes:, project:)
+      codes.push(PROJECT_MISSING_APP_NAME) if not project[:app_name]
+      codes.push(PROJECT_MISSING_DIRECTORY) if not project[:directory]
+      codes.push(PROJECT_MISSING_FOLDERS) if not project[:folders]
+      codes.push(PROJECT_FOLDERS_BAD) if project[:folders] and not project[:folders].is_a?(Array)
+      codes.push(PROJECT_MISSING_FILES) if not project[:files]
+      codes.push(PROJECT_FILES_BAD) if project[:files] and not project[:files].is_a?(Array)
+      project[:stages].each {|stage,value|
+        codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
+      }
     end
   end
 end
