@@ -21,11 +21,11 @@ module RokuBuilder
 
       options_code = self.validate_options(options: options, logger: logger)
 
-      self.handle_error_codes(options: options, options_code: options_code, logger: logger)
+      self.handle_options_codes(options: options, options_code: options_code, logger: logger)
 
       handle_code = self.handle_options(options: options, logger: logger)
 
-      self.handle_error_codes(options: options, handle_code: handle_code, logger: logger)
+      self.handle_command_codes(options: options, command_code: handle_code, logger: logger)
     end
 
     protected
@@ -68,7 +68,7 @@ module RokuBuilder
 
       # Check devices
       device_code, configs = self.check_devices(options: options, config: config, configs: configs, logger: logger)
-      self.handle_error_codes(options: options, device_code: device_code, logger: logger)
+      self.handle_device_codes(options: options, device_code: device_code, logger: logger)
 
       command = (self.commands & options.keys).first
       case command
@@ -196,87 +196,94 @@ module RokuBuilder
       [:sideload, :package, :test, :build]
     end
 
-    # Handle error codes
+    # Handle codes returned from validating options
     # @param options_code [Integer] the error code returned by validate_options
-    # @param handle_code [Integer] the error code returned by handle_options
     # @param logger [Logger] system logger
-    def self.handle_error_codes(options:, options_code: nil, device_code: nil, handle_code: nil, logger:)
-      if options_code
-        case options_code
-        when EXTRA_COMMANDS
-          logger.fatal "Only one command is allowed"
-          abort
-        when NO_COMMANDS
-          logger.fatal "At least one command is required"
-          abort
-        when EXTRA_SOURCES
-          logger.fatal "Only use one of --ref, --working, --current or --stage"
-          abort
-        when NO_SOURCE
-          logger.fatal "Must use at least one of --ref, --working, --current or --stage"
-          abort
-        when BAD_CURRENT
-          logger.fatal "Can only sideload or build 'current' directory"
-          abort
-        when BAD_DEEPLINK
-          logger.fatal "Must supply deeplinking options when deeplinking"
-          abort
-        when BAD_IN_FILE
-          logger.fatal "Can only supply in file for building"
-          abort
-        end
-      elsif device_code
-        case device_code
-        when CHANGED_DEVICE
-          logger.info "The default device was not online so a secondary device is being used"
-        when BAD_DEVICE
-          logger.fatal "The selected device was not online"
-          abort
-        when NO_DEVICES
-          logger.fatal "No configured devices were found"
-          abort
-        end
-      elsif handle_code
-        case handle_code
-        when DEPRICATED_CONFIG
-          logger.warn 'Depricated config. See Above'
-        when CONFIG_OVERWRITE
-          logger.fatal 'Config already exists. To create default please remove config first.'
-          abort
-        when MISSING_CONFIG
-          logger.fatal "Missing config file: #{options[:config]}"
-          abort
-        when INVALID_CONFIG
-          logger.fatal 'Invalid config. See Above'
-          abort
-        when MISSING_MANIFEST
-          logger.fatal 'Manifest file missing'
-          abort
-        when UNKNOWN_DEVICE
-          logger.fatal "Unkown device id"
-          abort
-        when UNKNOWN_PROJECT
-          logger.fatal "Unknown project id"
-          abort
-        when UNKNOWN_STAGE
-          logger.fatal "Unknown stage"
-          abort
-        when FAILED_SIDELOAD
-          logger.fatal "Failed Sideloading App"
-          abort
-        when FAILED_SIGNING
-          logger.fatal "Failed Signing App"
-          abort
-        when FAILED_DEEPLINKING
-          logger.fatal "Failed Deeplinking To App"
-          abort
-        when FAILED_NAVIGATING
-          logger.fatal "Command not sent"
-          abort
-        when FAILED_SCREENCAPTURE
-          logger.fatal "Failed to Capture Screen"
-          abort
-        end
+    def self.handle_options_codes(options:, options_code:, logger:)
+      case options_code
+      when EXTRA_COMMANDS
+        logger.fatal "Only one command is allowed"
+        abort
+      when NO_COMMANDS
+        logger.fatal "At least one command is required"
+        abort
+      when EXTRA_SOURCES
+        logger.fatal "Only use one of --ref, --working, --current or --stage"
+        abort
+      when NO_SOURCE
+        logger.fatal "Must use at least one of --ref, --working, --current or --stage"
+        abort
+      when BAD_CURRENT
+        logger.fatal "Can only sideload or build 'current' directory"
+        abort
+      when BAD_DEEPLINK
+        logger.fatal "Must supply deeplinking options when deeplinking"
+        abort
+      when BAD_IN_FILE
+        logger.fatal "Can only supply in file for building"
+        abort
+      end
+    end
+
+    # Handle codes returned from checking devices
+    # @param device_code [Integer] the error code returned by check_devices
+    # @param logger [Logger] system logger
+    def self.handle_device_codes(options:, device_code:, logger:)
+      case device_code
+      when CHANGED_DEVICE
+        logger.info "The default device was not online so a secondary device is being used"
+      when BAD_DEVICE
+        logger.fatal "The selected device was not online"
+        abort
+      when NO_DEVICES
+        logger.fatal "No configured devices were found"
+        abort
+      end
+    end
+
+    # Handle codes returned from handeling commands devices
+    # @param device_code [Integer] the error code returned by handle_options
+    # @param logger [Logger] system logger
+    def self.handle_command_codes(options:, command_code:, logger:)
+      case command_code
+      when DEPRICATED_CONFIG
+        logger.warn 'Depricated config. See Above'
+      when CONFIG_OVERWRITE
+        logger.fatal 'Config already exists. To create default please remove config first.'
+        abort
+      when MISSING_CONFIG
+        logger.fatal "Missing config file: #{options[:config]}"
+        abort
+      when INVALID_CONFIG
+        logger.fatal 'Invalid config. See Above'
+        abort
+      when MISSING_MANIFEST
+        logger.fatal 'Manifest file missing'
+        abort
+      when UNKNOWN_DEVICE
+        logger.fatal "Unkown device id"
+        abort
+      when UNKNOWN_PROJECT
+        logger.fatal "Unknown project id"
+        abort
+      when UNKNOWN_STAGE
+        logger.fatal "Unknown stage"
+        abort
+      when FAILED_SIDELOAD
+        logger.fatal "Failed Sideloading App"
+        abort
+      when FAILED_SIGNING
+        logger.fatal "Failed Signing App"
+        abort
+      when FAILED_DEEPLINKING
+        logger.fatal "Failed Deeplinking To App"
+        abort
+      when FAILED_NAVIGATING
+        logger.fatal "Command not sent"
+        abort
+      when FAILED_SCREENCAPTURE
+        logger.fatal "Failed to Capture Screen"
+        abort
       end
     end
 

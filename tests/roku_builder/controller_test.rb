@@ -598,7 +598,7 @@ class ControllerTest < Minitest::Test
           RokuBuilder::BAD_DEVICE,
           RokuBuilder::NO_DEVICES,
         ],
-        handle_code: [
+        command_code: [
           RokuBuilder::CONFIG_OVERWRITE,
           RokuBuilder::MISSING_CONFIG,
           RokuBuilder::INVALID_CONFIG,
@@ -619,7 +619,7 @@ class ControllerTest < Minitest::Test
         ]
       },
       warn: {
-        handle_code: [
+        command_code: [
           RokuBuilder::DEPRICATED_CONFIG
         ]
       }
@@ -632,7 +632,8 @@ class ControllerTest < Minitest::Test
           options = {options: {}, logger: logger}
           options[key] = code
           logger.expect(type, nil)  {|string| string.class == String}
-          RokuBuilder::Controller.handle_error_codes(**options)
+          method = "handle_#{key}s"
+          RokuBuilder::Controller.send(method.to_sym, **options)
           logger.verify
         end
       end
@@ -687,8 +688,10 @@ class ControllerTest < Minitest::Test
     logger.expect(:level=, nil, [Logger::DEBUG])
     RokuBuilder::Controller.stub(:validate_options, nil) do
       RokuBuilder::Controller.stub(:handle_options, nil) do
-        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
-          RokuBuilder::Controller.run(options: options)
+        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
+          RokuBuilder::Controller.stub(:handle_command_codes, nil) do
+            RokuBuilder::Controller.run(options: options)
+          end
         end
       end
     end
@@ -703,8 +706,10 @@ class ControllerTest < Minitest::Test
     logger.expect(:level=, nil, [Logger::INFO])
     RokuBuilder::Controller.stub(:validate_options, nil) do
       RokuBuilder::Controller.stub(:handle_options, nil) do
-        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
-          RokuBuilder::Controller.run(options: options)
+        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
+          RokuBuilder::Controller.stub(:handle_command_codes, nil) do
+            RokuBuilder::Controller.run(options: options)
+          end
         end
       end
     end
@@ -719,8 +724,10 @@ class ControllerTest < Minitest::Test
     logger.expect(:level=, nil, [Logger::WARN])
     RokuBuilder::Controller.stub(:validate_options, nil) do
       RokuBuilder::Controller.stub(:handle_options, nil) do
-        RokuBuilder::Controller.stub(:handle_error_codes, nil) do
-          RokuBuilder::Controller.run(options: options)
+        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
+          RokuBuilder::Controller.stub(:handle_command_codes, nil) do
+            RokuBuilder::Controller.run(options: options)
+          end
         end
       end
     end
