@@ -10,3 +10,35 @@ SimpleCov.start
 require "byebug"
 require "roku_builder"
 require "minitest/autorun"
+
+
+def good_config
+  {
+    devices: {
+      default: :roku,
+      roku: {
+        ip: "192.168.0.100",
+        user: "user",
+        password: "password"
+      }
+    },
+    projects: {
+      default: :project1,
+      project1: {
+        directory: "/dev/null",
+        folders: ["resources","source"],
+        files: ["manifest"],
+        app_name: "<app name>",
+        stages:{
+          production: {
+            branch: "production",
+            key: {
+              keyed_pkg: "/dev/null",
+              password: "<password for pkg>"
+            }
+          }
+        }
+      }
+    }
+  }
+end

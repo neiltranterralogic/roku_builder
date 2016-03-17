@@ -16,6 +16,71 @@ class ConfigManagerTest < Minitest::Test
     assert_equal :project1, config[:projects][:default], :project1
   end
 
+  def test_config_manger_load_config
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exist?(target_config)
+
+    code = nil
+    config = nil
+    configs = nil
+    # Test Missing Config
+    options = {validate: true, config: target_config}
+    code = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    assert_equal RokuBuilder::MISSING_CONFIG, code
+
+    FileUtils.cp(File.join(File.dirname(target_config), "valid_config.json"), target_config)
+
+    # Test Invalid config json
+    options = {validate: true, config: target_config}
+    RokuBuilder::ConfigManager.stub(:get_config, nil) do
+      code = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    end
+    assert_equal RokuBuilder::INVALID_CONFIG, code
+    assert_nil config
+    assert_nil configs
+
+    # Test Invalid config
+    options = {validate: true, config: target_config}
+    RokuBuilder::ConfigValidator.stub(:validate_config, [1]) do
+      code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    end
+    assert_equal RokuBuilder::INVALID_CONFIG, code
+    assert_nil config
+    assert_nil configs
+
+    # Test Depricated Config
+    options = {validate: true, stage: 'production', config: target_config}
+    RokuBuilder::ConfigValidator.stub(:validate_config, [-1]) do
+      code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    end
+    assert_equal RokuBuilder::DEPRICATED_CONFIG, code
+    assert_equal Hash, config.class
+    assert_equal Hash, configs.class
+
+    # Test valid Config
+    options = {validate: true, stage: 'production', config: target_config}
+    RokuBuilder::ConfigValidator.stub(:validate_config, [0]) do
+      code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    end
+    assert_equal RokuBuilder::SUCCESS, code
+    assert_equal Hash, config.class
+    assert_equal Hash, configs.class
+
+    # Test valid config in pwd
+    options = {validate: true, stage: 'production', config: target_config}
+    RokuBuilder::ConfigValidator.stub(:validate_config, [0]) do
+      RokuBuilder::Controller.stub(:system, "/dev/null/test") do
+        code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+      end
+    end
+    assert_equal RokuBuilder::SUCCESS, code
+    assert_equal Hash, config.class
+    assert_equal Hash, configs.class
+
+    File.delete(target_config) if File.exist?(target_config)
+  end
+
   def test_config_manager_read_invalid_config
     logger = Logger.new("/dev/null")
     config_path = "config/file/path"
@@ -197,34 +262,4 @@ class ConfigManagerTest < Minitest::Test
     io.verify
   end
 
-  def good_config
-    {
-      devices: {
-        default: :roku,
-        roku: {
-          ip: "192.168.0.100",
-          user: "user",
-          password: "password"
-        }
-      },
-      projects: {
-        default: :project1,
-        project1: {
-          directory: "<path/to/repo>",
-          folders: ["resources","source"],
-          files: ["manifest"],
-          app_name: "<app name>",
-          stages:{
-            production: {
-              branch: "production",
-              key: {
-                keyed_pkg: "<path/to/signed/pkg>",
-                password: "<password for pkg>"
-              }
-            }
-          }
-        }
-      }
-    }
-  end
 end

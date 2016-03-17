@@ -177,35 +177,4 @@ class ConfigValidatorTest < Minitest::Test
     codes = RokuBuilder::ConfigValidator.validate_config(config: config, logger: logger)
     assert_equal [15], codes
   end
-
-  def good_config
-    {
-      devices: {
-        default: :roku,
-        roku: {
-          ip: "192.168.0.100",
-          user: "user",
-          password: "password"
-        }
-      },
-      projects: {
-        default: :project1,
-        project1: {
-          directory: "<path/to/repo>",
-          folders: ["resources","source"],
-          files: ["manifest"],
-          app_name: "<app name>",
-          stages:{
-            production: {
-              branch: "production",
-              key: {
-                keyed_pkg: "<path/to/signed/pkg>",
-                password: "<password for pkg>"
-              }
-            }
-          }
-        }
-      }
-    }
-  end
 end

@@ -18,14 +18,25 @@ module RokuBuilder
         logger.level = Logger::WARN
       end
 
+      # Validate Options
+      options_code = validate_options(options: options, logger: logger)
+      handle_options_codes(options: options, options_code: options_code, logger: logger)
 
-      options_code = self.validate_options(options: options, logger: logger)
+      # Configure Gem
+      configure_code = configure(options: options, logger: logger)
+      handle_configure_codes(options: options, configure_code: configure_code, logger: logger)
 
-      self.handle_options_codes(options: options, options_code: options_code, logger: logger)
+      # Load Config
+      load_code, config, configs = ConfigManager.load_config(options: options, logger: logger)
+      handle_load_codes(options: options, load_code: load_code, logger: logger)
 
-      handle_code = self.handle_options(options: options, logger: logger)
+      # Check devices
+      device_code, configs = check_devices(options: options, config: config, configs: configs, logger: logger)
+      handle_device_codes(options: options, device_code: device_code, logger: logger)
 
-      self.handle_command_codes(options: options, command_code: handle_code, logger: logger)
+      # Run Commands
+      command_code = execute_commands(options: options, logger: logger)
+      handle_command_codes(options: options, command_code: command_code, logger: logger)
     end
 
     protected
@@ -59,16 +70,8 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
-    def self.handle_options(options:, logger:)
-      if options[:configure]
-        return configure(options: options, logger: logger)
-      end
-      code, config, configs = self.load_config(options: options, logger: logger)
-      return code if code != SUCCESS
+    def self.execute_commands(options:, config:, configs:, logger:)
 
-      # Check devices
-      device_code, configs = self.check_devices(options: options, config: config, configs: configs, logger: logger)
-      self.handle_device_codes(options: options, device_code: device_code, logger: logger)
 
       command = (self.commands & options.keys).first
       case command
@@ -225,6 +228,48 @@ module RokuBuilder
       end
     end
 
+    # Handle codes returned from configuring
+    # @param configure_code [Integer] the error code returned by configure
+    # @param logger [Logger] system logger
+    def self.handle_configure_codes(options:, configure_code:, logger:)
+      case configure_code
+      when CONFIG_OVERWRITE
+        logger.fatal 'Config already exists. To create default please remove config first.'
+        abort
+      when SUCCESS
+        logger.info 'Configure successful'
+        abort
+      end
+    end
+
+    # Handle codes returned from load_config
+    # @param load_code [Integer] the error code returned by configure
+    # @param logger [Logger] system logger
+    def self.handle_load_codes(options:, load_code:, logger:)
+      case load_code
+      when DEPRICATED_CONFIG
+        logger.warn 'Depricated config. See Above'
+      when MISSING_CONFIG
+        logger.fatal "Missing config file: #{options[:config]}"
+        abort
+      when INVALID_CONFIG
+        logger.fatal 'Invalid config. See Above'
+        abort
+      when MISSING_MANIFEST
+        logger.fatal 'Manifest file missing'
+        abort
+      when UNKNOWN_DEVICE
+        logger.fatal "Unkown device id"
+        abort
+      when UNKNOWN_PROJECT
+        logger.fatal "Unknown project id"
+        abort
+      when UNKNOWN_STAGE
+        logger.fatal "Unknown stage"
+        abort
+      end
+    end
+
     # Handle codes returned from checking devices
     # @param device_code [Integer] the error code returned by check_devices
     # @param logger [Logger] system logger
@@ -246,29 +291,6 @@ module RokuBuilder
     # @param logger [Logger] system logger
     def self.handle_command_codes(options:, command_code:, logger:)
       case command_code
-      when DEPRICATED_CONFIG
-        logger.warn 'Depricated config. See Above'
-      when CONFIG_OVERWRITE
-        logger.fatal 'Config already exists. To create default please remove config first.'
-        abort
-      when MISSING_CONFIG
-        logger.fatal "Missing config file: #{options[:config]}"
-        abort
-      when INVALID_CONFIG
-        logger.fatal 'Invalid config. See Above'
-        abort
-      when MISSING_MANIFEST
-        logger.fatal 'Manifest file missing'
-        abort
-      when UNKNOWN_DEVICE
-        logger.fatal "Unkown device id"
-        abort
-      when UNKNOWN_PROJECT
-        logger.fatal "Unknown project id"
-        abort
-      when UNKNOWN_STAGE
-        logger.fatal "Unknown stage"
-        abort
       when FAILED_SIDELOAD
         logger.fatal "Failed Sideloading App"
         abort
@@ -292,196 +314,25 @@ module RokuBuilder
     # @return [Integer] Success or failure code
     # @param logger [Logger] system logger
     def self.configure(options:, logger:)
-      source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
-      target_config = File.expand_path(options[:config])
-      if File.exist?(target_config)
-        unless options[:edit_params]
-          return CONFIG_OVERWRITE
-        end
-      else
-        ### Copy Config File ###
-        FileUtils.copy(source_config, target_config)
-      end
-      if options[:edit_params]
-        ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage], logger: logger)
-      end
-      return SUCCESS
-    end
-
-    # Load config file and generate intermeidate configs
-    # @param options [Hash] The options hash
-    # @param logger [Logger] system logger
-    # @return [Integer] Return code
-    # @return [Hash] Loaded config
-    # @return [Hash] Intermeidate configs
-    def self.load_config(options:, logger:)
-      config_file = File.expand_path(options[:config])
-      return MISSING_CONFIG unless File.exist?(config_file)
-      code = SUCCESS
-      config = ConfigManager.get_config(config: config_file, logger: logger)
-      return INVALID_CONFIG unless config
-      configs = {}
-      codes = ConfigValidator.validate_config(config: config, logger: logger)
-      fatal = false
-      warning = false
-      codes.each {|a_code|
-        if a_code > 0
-          logger.fatal "Invalid Config: "+ ConfigValidator.error_codes()[a_code]
-          fatal = true
-        elsif a_code < 0
-          logger.warn "Depricated Config: "+ ConfigValidator.error_codes()[a_code]
-          warning = true
-        elsif a_code == 0 and options[:validate]
-          logger.info "Config Valid"
-        end
-      }
-      return [INVALID_CONFIG, nil, nil] if fatal
-      code = DEPRICATED_CONFIG if warning
-
-      #set device
-      unless options[:device]
-        options[:device] = config[:devices][:default]
-      end
-      #set project
-      if options[:current] or not options[:project]
-        path = self.system(command: "pwd")
-        project = nil
-        config[:projects].each_pair {|key,value|
-          if value.is_a?(Hash)
-            repo_path = Pathname.new(value[:directory]).realdirpath.to_s
-            if path.start_with?(repo_path)
-              project = key
-              break
-            end
+      if options[:configure]
+        source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
+        target_config = File.expand_path(options[:config])
+        if File.exist?(target_config)
+          unless options[:edit_params]
+            return CONFIG_OVERWRITE
           end
-        }
-        if project
-          options[:project] = project
         else
-          options[:project] = config[:projects][:default]
+          ### Copy Config File ###
+          FileUtils.copy(source_config, target_config)
         end
-      end
-      #set outfile
-      options[:out_folder] = nil
-      options[:out_file] = nil
-      if options[:out]
-        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
-          options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
-        else
-          options[:out_folder] = options[:out]
+        if options[:edit_params]
+          ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage], logger: logger)
         end
+        return SUCCESS
       end
-      unless options[:out_folder]
-        options[:out_folder] = "/tmp"
-      end
-
-      # Create Device Config
-      configs[:device_config] = config[:devices][options[:device].to_sym]
-      return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
-      configs[:device_config][:logger] = logger
-
-      #Create Project Config
-      project_config = {}
-      if options[:current]
-        pwd =  self.system(command: "pwd")
-        return [MISSING_MANIFEST, nil, nil] unless File.exist?(File.join(pwd, "manifest"))
-        project_config = {
-          directory: pwd,
-          folders: nil,
-          files: nil,
-          stages: { production: { branch: nil } }
-        }
-      else
-        project_config = config[:projects][options[:project].to_sym]
-      end
-      return [UNKNOWN_PROJECT, nil, nil] unless project_config
-      configs[:project_config] = project_config
-      stage = options[:stage].to_sym
-      return [UNKNOWN_STAGE, nil, nil] unless project_config[:stages][stage]
-      configs[:stage] = stage
-
-      root_dir = project_config[:directory]
-      branch = project_config[:stages][stage][:branch]
-      branch = options[:ref] if options[:ref]
-      branch = nil if options[:current]
-      branch = nil if options[:working]
-
-      # Create Sideload Config
-      configs[:sideload_config] = {
-        root_dir: root_dir,
-        branch: branch,
-        update_manifest: options[:update_manifest],
-        fetch: options[:fetch],
-        folders: project_config[:folders],
-        files: project_config[:files]
-      }
-      if options[:package]
-        # Create Key Config
-        configs[:key] = project_config[:stages][stage][:key]
-        # Create Package Config
-        configs[:package_config] = {
-          password: configs[:key][:password],
-          app_name_version: "#{project_config[:app_name]} - #{stage}"
-        }
-        if options[:out_file]
-          configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
-        end
-        # Create Inspector Config
-        configs[:inspect_config] = {
-          pkg: configs[:package_config][:out_file],
-          password: configs[:key][:password]
-        }
-      end if
-      # Create Build Config
-      configs[:build_config] = {
-        root_dir: root_dir,
-        branch: branch,
-        fetch: options[:fetch],
-        folders: project_config[:folders],
-        files: project_config[:files]
-      }
-      # Create Manifest Config
-      configs[:manifest_config] = {
-        root_dir: project_config[:directory],
-        logger: logger
-      }
-      # Create Deeplink Config
-      configs[:deeplink_config] ={
-        options: options[:deeplink_options]
-      }
-      # Create Monitor Config
-      if options[:monitor]
-        configs[:monitor_config] = {
-          type: options[:monitor].to_sym
-        }
-      end
-      # Create Navigate Config
-      if options[:navigate]
-        configs[:navigate_config] = {
-          command: options[:navigate].to_sym
-        }
-      end
-      # Create Text Config
-      configs[:text_config] = {
-        text: options[:text]
-      }
-      # Create Test Config
-      configs[:test_config] = {
-        sideload_config: configs[:sideload_config]
-      }
-      #Create screencapture config
-      configs[:screencapture_config] = {
-        out_folder: options[:out_folder],
-        out_file: options[:out_file]
-      }
-
-      if options[:screen]
-        configs[:screen_config] = {
-          type: options[:screen].to_sym
-        }
-      end
-      return [code, config, configs]
+      nil
     end
+
 
     # Update the intermeidate configs
     # @param configs [Hash] Intermeidate configs hash

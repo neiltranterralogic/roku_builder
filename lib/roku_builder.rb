@@ -23,12 +23,19 @@ require "roku_builder/tester"
 require "roku_builder/manifest_manager"
 require "roku_builder/config_manager"
 require "roku_builder/config_validator"
+require "roku_builder/config_parser"
 require "roku_builder/navigator"
 require "roku_builder/monitor"
 require "roku_builder/version"
 
 # Wrapping module for the Roku Builder Gem
 module RokuBuilder
+
+  ### Global Codes ###
+
+  # Success
+  SUCCESS         = 0
+
   ### Validation Codes ###
 
   # Valid Options
@@ -72,14 +79,10 @@ module RokuBuilder
   NO_DEVICES = 2
 
 
-
-  ### Run Codes ###
+  ### Execute Codes ###
 
   # Config has deplicated options
   DEPRICATED_CONFIG  = -1
-
-  # Valid config
-  SUCCESS            = 0
 
   # Tring to overwrite existing config file
   CONFIG_OVERWRITE   = 1
@@ -101,6 +104,9 @@ module RokuBuilder
 
   # Unknown stage given
   UNKNOWN_STAGE      = 7
+
+
+  ### Execute Codes ###
 
   # Failed to sideload app
   FAILED_SIDELOAD    = 8

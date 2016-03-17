@@ -3,6 +3,43 @@ module RokuBuilder
   # Load and validate config files.
   class ConfigManager
 
+    # Load config file and generate intermeidate configs
+    # @param options [Hash] The options hash
+    # @param logger [Logger] system logger
+    # @return [Integer] Return code
+    # @return [Hash] Loaded config
+    # @return [Hash] Intermeidate configs
+    def self.load_config(options:, logger:)
+      config_file = File.expand_path(options[:config])
+      return MISSING_CONFIG unless File.exist?(config_file)
+      code = SUCCESS
+      config = ConfigManager.get_config(config: config_file, logger: logger)
+      return INVALID_CONFIG unless config
+      configs = {}
+      codes = ConfigValidator.validate_config(config: config, logger: logger)
+      fatal = false
+      warning = false
+      codes.each {|a_code|
+        if a_code > 0
+          logger.fatal "Invalid Config: "+ ConfigValidator.error_codes()[a_code]
+          fatal = true
+        elsif a_code < 0
+          logger.warn "Depricated Config: "+ ConfigValidator.error_codes()[a_code]
+          warning = true
+        elsif a_code == 0 and options[:validate]
+          logger.info "Config Valid"
+        end
+      }
+      return [INVALID_CONFIG, nil, nil] if fatal
+      code = DEPRICATED_CONFIG if warning
+
+      parse_code, configs = ConfigParser.parse_config(options: options, config: config, logger: logger)
+      unless parse_code == SUCCESS
+        return [parse_code, nil, nil]
+      end
+      [code, config, configs]
+    end
+
     # Loads the roku config from file
     # @param config [String] path for the roku config
     # @return [Hash] roku config object

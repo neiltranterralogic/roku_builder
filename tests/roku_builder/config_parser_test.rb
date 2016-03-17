@@ -1,6 +1,6 @@
 require_relative "test_helper.rb"
 
-class ControllerConfigTest < Minitest::Test
+class ConfigParserTest < Minitest::Test
   def test_manifest_config
     logger = Logger.new("/dev/null")
     options = {
@@ -9,13 +9,12 @@ class ControllerConfigTest < Minitest::Test
       update_manifest: false,
       fetch: false,
     }
-    code, config, configs = RokuBuilder::Controller.load_config(options: options, logger: logger)
+    config = good_config
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
 
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
     assert_equal "/dev/null", configs[:manifest_config][:root_dir]
     assert_equal logger, configs[:manifest_config][:logger]
-
-
   end
 end

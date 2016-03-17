@@ -70,6 +70,9 @@ module RokuBuilder
 
     private
 
+    # Validates the roku config main structure
+    # @param codes [Array] array of error codes
+    # @param config [Hash] roku config object
     def self.validate_structure(codes:, config:)
       codes.push(MISSING_DEVICES) if not config[:devices]
       codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
@@ -80,6 +83,9 @@ module RokuBuilder
       codes.push(PROJECTS_DEFAULT_BAD) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
     end
 
+    # Validates a roku config device
+    # @param codes [Array] array of error codes
+    # @param device [Hash] device config object
     def self.validate_device(codes:, device:)
       codes.push(DEVICE_MISSING_IP) if not device[:ip]
       codes.push(DEVICE_MISSING_IP) if device[:ip] == "xxx.xxx.xxx.xxx"
@@ -92,6 +98,9 @@ module RokuBuilder
       codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == ""
     end
 
+    # Validates a roku config project
+    # @param codes [Array] array of error codes
+    # @param project [Hash] project config object
     def self.validate_project(codes:, project:)
       codes.push(PROJECT_MISSING_APP_NAME) if not project[:app_name]
       codes.push(PROJECT_MISSING_DIRECTORY) if not project[:directory]
