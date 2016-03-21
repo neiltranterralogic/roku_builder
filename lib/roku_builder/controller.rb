@@ -20,23 +20,23 @@ module RokuBuilder
 
       # Validate Options
       options_code = validate_options(options: options, logger: logger)
-      handle_options_codes(options: options, options_code: options_code, logger: logger)
+      ErrorHandler.handle_options_codes(options: options, options_code: options_code, logger: logger)
 
       # Configure Gem
       configure_code = configure(options: options, logger: logger)
-      handle_configure_codes(options: options, configure_code: configure_code, logger: logger)
+      ErrorHandler.handle_configure_codes(options: options, configure_code: configure_code, logger: logger)
 
       # Load Config
       load_code, config, configs = ConfigManager.load_config(options: options, logger: logger)
-      handle_load_codes(options: options, load_code: load_code, logger: logger)
+      ErrorHandler.handle_load_codes(options: options, load_code: load_code, logger: logger)
 
       # Check devices
       device_code, configs = check_devices(options: options, config: config, configs: configs, logger: logger)
-      handle_device_codes(options: options, device_code: device_code, logger: logger)
+      ErrorHandler.handle_device_codes(options: options, device_code: device_code, logger: logger)
 
       # Run Commands
       command_code = execute_commands(options: options, logger: logger)
-      handle_command_codes(options: options, command_code: command_code, logger: logger)
+      ErrorHandler.handle_command_codes(options: options, command_code: command_code, logger: logger)
     end
 
     protected
@@ -71,91 +71,197 @@ module RokuBuilder
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
     def self.execute_commands(options:, config:, configs:, logger:)
-
-
       command = (self.commands & options.keys).first
-      case command
-      when :validate
-        # Do Nothing #
-      when :sideload
-        ### Sideload App ###
-        loader = Loader.new(**configs[:device_config])
-        success = loader.sideload(**configs[:sideload_config])
-        return FAILED_SIDELOAD unless success
-      when :package
-        ### Package App ###
-        keyer = Keyer.new(**configs[:device_config])
-        loader = Loader.new(**configs[:device_config])
-        packager = Packager.new(**configs[:device_config])
-        inspector = Inspector.new(**configs[:device_config])
-        logger.warn "Packaging working directory" if options[:working]
-        # Sideload #
-        build_version = loader.sideload(**configs[:sideload_config])
-        return FAILED_SIGNING unless build_version
-        # Key #
-        success = keyer.rekey(**configs[:key])
-        logger.info "Key did not change" unless success
-        # Package #
-        options[:build_version] = build_version
-        configs = self.update_configs(configs: configs, options: options)
-        success = packager.package(**configs[:package_config])
-        logger.info "Signing Successful: #{configs[:package_config][:out_file]}" if success
-        return FAILED_SIGNING unless success
-        # Inspect #
-        if options[:inspect]
-          info = inspector.inspect(configs[:inspect_config])
-          logger.unknown "App Name: #{info[:app_name]}"
-          logger.unknown "Dev ID: #{info[:dev_id]}"
-          logger.unknown "Creation Date: #{info[:creation_date]}"
-          logger.unknown "dev.zip: #{info[:dev_zip]}"
-        end
-      when :build
-        ### Build ###
-        loader = Loader.new(**configs[:device_config])
-        build_version = ManifestManager.build_version(**configs[:manifest_config])
-        options[:build_version] = build_version
-        configs = self.update_configs(configs: configs, options: options)
-        outfile = loader.build(**configs[:build_config])
-        logger.info "Build: #{outfile}"
-      when :update
-        ### Update ###
-        old_version = ManifestManager.build_version(**configs[:manifest_config])
-        new_version = ManifestManager.update_build(**configs[:manifest_config])
-        logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
-      when :deeplink
-        ### Deeplink ###
-        linker = Linker.new(**configs[:device_config])
-        success = linker.link(**configs[:deeplink_config])
-        return FAILED_DEEPLINKING unless success
-      when :delete
-        loader = Loader.new(**configs[:device_config])
-        loader.unload()
-      when :monitor
-        monitor = Monitor.new(**configs[:device_config])
-        monitor.monitor(**configs[:monitor_config])
-      when :navigate
-        navigator = Navigator.new(**configs[:device_config])
-        success = navigator.nav(**configs[:navigate_config])
-        return FAILED_NAVIGATING unless success
-      when :screen
-        navigator = Navigator.new(**configs[:device_config])
-        success = navigator.screen(**configs[:screen_config])
-        return FAILED_NAVIGATING unless success
-      when :screens
-        navigator = Navigator.new(**configs[:device_config])
-        navigator.screens
-      when :text
-        navigator = Navigator.new(**configs[:device_config])
-        navigator.type(**configs[:text_config])
-      when :test
-        tester = Tester.new(**configs[:device_config])
-        tester.run_tests(**configs[:test_config])
-      when :screencapture
-        inspector = Inspector.new(**configs[:device_config])
-        success = inspector.screencapture(**configs[:screencapture_config])
-        return FAILED_SCREENCAPTURE unless success
+      args = {
+        options: options,
+        config: config,
+        configs: configs,
+        logger: logger
+      }
+
+      self.send(command, args)
+    end
+    def self.validate(options:, config:, configs:, logger:)
+      SUCCESS
+    end
+    # Run Sideload
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.sideload(options:, config:, configs:, logger:)
+      loader = Loader.new(**configs[:device_config])
+      success = loader.sideload(**configs[:sideload_config])
+      return FAILED_SIDELOAD unless success
+      SUCCESS
+    end
+    # Run Package
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.package(options:, config:, configs:, logger:)
+      keyer = Keyer.new(**configs[:device_config])
+      loader = Loader.new(**configs[:device_config])
+      packager = Packager.new(**configs[:device_config])
+      inspector = Inspector.new(**configs[:device_config])
+      logger.warn "Packaging working directory" if options[:working]
+      # Sideload #
+      build_version = loader.sideload(**configs[:sideload_config])
+      return FAILED_SIGNING unless build_version
+      # Key #
+      success = keyer.rekey(**configs[:key])
+      logger.info "Key did not change" unless success
+      # Package #
+      options[:build_version] = build_version
+      configs = update_configs(configs: configs, options: options)
+      success = packager.package(**configs[:package_config])
+      logger.info "Signing Successful: #{configs[:package_config][:out_file]}" if success
+      return FAILED_SIGNING unless success
+      # Inspect #
+      if options[:inspect]
+        info = inspector.inspect(configs[:inspect_config])
+        logger.unknown "App Name: #{info[:app_name]}"
+        logger.unknown "Dev ID: #{info[:dev_id]}"
+        logger.unknown "Creation Date: #{info[:creation_date]}"
+        logger.unknown "dev.zip: #{info[:dev_zip]}"
       end
-      return SUCCESS
+      SUCCESS
+    end
+    # Run Build
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.build(options:, config:, configs:, logger:)
+      ### Build ###
+      loader = Loader.new(**configs[:device_config])
+      build_version = ManifestManager.build_version(**configs[:manifest_config])
+      options[:build_version] = build_version
+      configs = update_configs(configs: configs, options: options)
+      outfile = loader.build(**configs[:build_config])
+      logger.info "Build: #{outfile}"
+      SUCCESS
+    end
+    # Run update
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.update(options:, config:, configs:, logger:)
+      ### Update ###
+      old_version = ManifestManager.build_version(**configs[:manifest_config])
+      new_version = ManifestManager.update_build(**configs[:manifest_config])
+      logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
+      SUCCESS
+    end
+    # Run deeplink
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.deeplink(options:, config:, configs:, logger:)
+      ### Deeplink ###
+      linker = Linker.new(**configs[:device_config])
+      success = linker.link(**configs[:deeplink_config])
+      return FAILED_DEEPLINKING unless success
+      SUCCESS
+    end
+    # Run delete
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.delete(options:, config:, configs:, logger:)
+      loader = Loader.new(**configs[:device_config])
+      loader.unload()
+      SUCCESS
+    end
+    # Run Monitor
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.monitor(options:, config:, configs:, logger:)
+      monitor = Monitor.new(**configs[:device_config])
+      monitor.monitor(**configs[:monitor_config])
+      SUCCESS
+    end
+    # Run navigate
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.navigate(options:, config:, configs:, logger:)
+      navigator = Navigator.new(**configs[:device_config])
+      success = navigator.nav(**configs[:navigate_config])
+      return FAILED_NAVIGATING unless success
+      SUCCESS
+    end
+    # Run screen
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.screen(options:, config:, configs:, logger:)
+      navigator = Navigator.new(**configs[:device_config])
+      success = navigator.screen(**configs[:screen_config])
+      return FAILED_NAVIGATING unless success
+      SUCCESS
+    end
+    # Run screens
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.screens(options:, config:, configs:, logger:)
+      navigator = Navigator.new(**configs[:device_config])
+      navigator.screens
+      SUCCESS
+    end
+    # Run text
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.text(options:, config:, configs:, logger:)
+      navigator = Navigator.new(**configs[:device_config])
+      navigator.type(**configs[:text_config])
+      SUCCESS
+    end
+    # Run test
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.test(options:, config:, configs:, logger:)
+      tester = Tester.new(**configs[:device_config])
+      tester.run_tests(**configs[:test_config])
+      SUCCESS
+    end
+    # Run Screencapture
+    # @param options [Hash] user options
+    # @param config [Hash] loaded config object
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.screencapture(options:, config:, configs:, logger:)
+      inspector = Inspector.new(**configs[:device_config])
+      success = inspector.screencapture(**configs[:screencapture_config])
+      return FAILED_SCREENCAPTURE unless success
+      SUCCESS
     end
 
     # Ensure that the selected device is accessable
@@ -199,115 +305,6 @@ module RokuBuilder
       [:sideload, :package, :test, :build]
     end
 
-    # Handle codes returned from validating options
-    # @param options_code [Integer] the error code returned by validate_options
-    # @param logger [Logger] system logger
-    def self.handle_options_codes(options:, options_code:, logger:)
-      case options_code
-      when EXTRA_COMMANDS
-        logger.fatal "Only one command is allowed"
-        abort
-      when NO_COMMANDS
-        logger.fatal "At least one command is required"
-        abort
-      when EXTRA_SOURCES
-        logger.fatal "Only use one of --ref, --working, --current or --stage"
-        abort
-      when NO_SOURCE
-        logger.fatal "Must use at least one of --ref, --working, --current or --stage"
-        abort
-      when BAD_CURRENT
-        logger.fatal "Can only sideload or build 'current' directory"
-        abort
-      when BAD_DEEPLINK
-        logger.fatal "Must supply deeplinking options when deeplinking"
-        abort
-      when BAD_IN_FILE
-        logger.fatal "Can only supply in file for building"
-        abort
-      end
-    end
-
-    # Handle codes returned from configuring
-    # @param configure_code [Integer] the error code returned by configure
-    # @param logger [Logger] system logger
-    def self.handle_configure_codes(options:, configure_code:, logger:)
-      case configure_code
-      when CONFIG_OVERWRITE
-        logger.fatal 'Config already exists. To create default please remove config first.'
-        abort
-      when SUCCESS
-        logger.info 'Configure successful'
-        abort
-      end
-    end
-
-    # Handle codes returned from load_config
-    # @param load_code [Integer] the error code returned by configure
-    # @param logger [Logger] system logger
-    def self.handle_load_codes(options:, load_code:, logger:)
-      case load_code
-      when DEPRICATED_CONFIG
-        logger.warn 'Depricated config. See Above'
-      when MISSING_CONFIG
-        logger.fatal "Missing config file: #{options[:config]}"
-        abort
-      when INVALID_CONFIG
-        logger.fatal 'Invalid config. See Above'
-        abort
-      when MISSING_MANIFEST
-        logger.fatal 'Manifest file missing'
-        abort
-      when UNKNOWN_DEVICE
-        logger.fatal "Unkown device id"
-        abort
-      when UNKNOWN_PROJECT
-        logger.fatal "Unknown project id"
-        abort
-      when UNKNOWN_STAGE
-        logger.fatal "Unknown stage"
-        abort
-      end
-    end
-
-    # Handle codes returned from checking devices
-    # @param device_code [Integer] the error code returned by check_devices
-    # @param logger [Logger] system logger
-    def self.handle_device_codes(options:, device_code:, logger:)
-      case device_code
-      when CHANGED_DEVICE
-        logger.info "The default device was not online so a secondary device is being used"
-      when BAD_DEVICE
-        logger.fatal "The selected device was not online"
-        abort
-      when NO_DEVICES
-        logger.fatal "No configured devices were found"
-        abort
-      end
-    end
-
-    # Handle codes returned from handeling commands devices
-    # @param device_code [Integer] the error code returned by handle_options
-    # @param logger [Logger] system logger
-    def self.handle_command_codes(options:, command_code:, logger:)
-      case command_code
-      when FAILED_SIDELOAD
-        logger.fatal "Failed Sideloading App"
-        abort
-      when FAILED_SIGNING
-        logger.fatal "Failed Signing App"
-        abort
-      when FAILED_DEEPLINKING
-        logger.fatal "Failed Deeplinking To App"
-        abort
-      when FAILED_NAVIGATING
-        logger.fatal "Command not sent"
-        abort
-      when FAILED_SCREENCAPTURE
-        logger.fatal "Failed to Capture Screen"
-        abort
-      end
-    end
 
     # Configure the gem
     # @param options [Hash] The options hash

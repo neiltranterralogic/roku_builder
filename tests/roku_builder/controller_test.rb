@@ -400,71 +400,6 @@ class ControllerTest < Minitest::Test
     inspector.verify
   end
 
-  def test_controller_handel_error_codes
-    error_groups = {
-      fatal: {
-        options_code: [
-          RokuBuilder::EXTRA_COMMANDS,
-          RokuBuilder::NO_COMMANDS,
-          RokuBuilder::EXTRA_SOURCES,
-          RokuBuilder::NO_SOURCE,
-          RokuBuilder::BAD_CURRENT,
-          RokuBuilder::BAD_DEEPLINK,
-          RokuBuilder::BAD_IN_FILE
-        ],
-        configure_code:[
-          RokuBuilder::CONFIG_OVERWRITE,
-        ],
-        device_code: [
-          RokuBuilder::BAD_DEVICE,
-          RokuBuilder::NO_DEVICES,
-        ],
-        load_code: [
-          RokuBuilder::MISSING_CONFIG,
-          RokuBuilder::INVALID_CONFIG,
-          RokuBuilder::MISSING_MANIFEST,
-          RokuBuilder::UNKNOWN_DEVICE,
-          RokuBuilder::UNKNOWN_PROJECT,
-          RokuBuilder::UNKNOWN_STAGE,
-        ],
-        command_code: [
-          RokuBuilder::FAILED_SIDELOAD,
-          RokuBuilder::FAILED_SIGNING,
-          RokuBuilder::FAILED_DEEPLINKING,
-          RokuBuilder::FAILED_NAVIGATING,
-          RokuBuilder::FAILED_SCREENCAPTURE
-        ]
-      },
-      info: {
-        device_code: [
-          RokuBuilder::CHANGED_DEVICE
-        ],
-        configure_code:[
-          RokuBuilder::SUCCESS
-        ]
-      },
-      warn: {
-        load_code: [
-          RokuBuilder::DEPRICATED_CONFIG
-        ]
-      }
-    }
-
-    error_groups.each_pair do |type,errors|
-      errors.each_pair do |key,value|
-        value.each do |code|
-          logger = Minitest::Mock.new
-          options = {options: {}, logger: logger}
-          options[key] = code
-          logger.expect(type, nil)  {|string| string.class == String}
-          method = "handle_#{key}s"
-          RokuBuilder::Controller.send(method.to_sym, **options)
-          logger.verify
-        end
-      end
-    end
-  end
-
   def test_controller_check_devices
     logger = Logger.new("/dev/null")
     ping = Minitest::Mock.new
@@ -504,25 +439,30 @@ class ControllerTest < Minitest::Test
   end
 
   def test_controller_run_debug
-    logger = Minitest::Mock.new
-    options = {debug: true}
-
-    logger.expect(:formatter=, nil) do |proc_object|
-      proc_object.class == Proc and proc_object.arity == 4
-    end
-    logger.expect(:level=, nil, [Logger::DEBUG])
-    Logger.stub(:new, logger) do
-      RokuBuilder::Controller.stub(:validate_options, nil) do
-        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
-          RokuBuilder::Controller.stub(:configure, nil) do
-            RokuBuilder::Controller.stub(:handle_configure_codes, nil) do
-              RokuBuilder::ConfigManager.stub(:load_config, nil) do
-                RokuBuilder::Controller.stub(:handle_load_codes, nil) do
-                  RokuBuilder::Controller.stub(:check_devices, nil) do
-                    RokuBuilder::Controller.stub(:handle_device_codes, nil) do
-                      RokuBuilder::Controller.stub(:execute_commands, nil) do
-                        RokuBuilder::Controller.stub(:handle_command_codes, nil) do
-                          RokuBuilder::Controller.run(options: options)
+    tests = [
+      {options: {debug: true}, level: Logger::DEBUG},
+      {options: {verbose: true}, level: Logger::INFO},
+      {options: {}, level: Logger::WARN}
+    ]
+    tests.each do |test|
+      logger = Minitest::Mock.new
+      logger.expect(:formatter=, nil) do |proc_object|
+        proc_object.class == Proc and proc_object.arity == 4
+      end
+      logger.expect(:level=, nil, [test[:level]])
+      Logger.stub(:new, logger) do
+        RokuBuilder::Controller.stub(:validate_options, nil) do
+          RokuBuilder::ErrorHandler.stub(:handle_options_codes, nil) do
+            RokuBuilder::Controller.stub(:configure, nil) do
+              RokuBuilder::ErrorHandler.stub(:handle_configure_codes, nil) do
+                RokuBuilder::ConfigManager.stub(:load_config, nil) do
+                  RokuBuilder::ErrorHandler.stub(:handle_load_codes, nil) do
+                    RokuBuilder::Controller.stub(:check_devices, nil) do
+                      RokuBuilder::ErrorHandler.stub(:handle_device_codes, nil) do
+                        RokuBuilder::Controller.stub(:execute_commands, nil) do
+                          RokuBuilder::ErrorHandler.stub(:handle_command_codes, nil) do
+                            RokuBuilder::Controller.run(options: test[:options])
+                          end
                         end
                       end
                     end
@@ -533,74 +473,8 @@ class ControllerTest < Minitest::Test
           end
         end
       end
+      logger.verify
     end
-    logger.verify
-  end
-  def test_controller_run_info
-    logger = Minitest::Mock.new
-    options = {verbose: true}
-
-    logger.expect(:formatter=, nil) do |proc_object|
-      proc_object.class == Proc and proc_object.arity == 4
-    end
-    logger.expect(:level=, nil, [Logger::INFO])
-    Logger.stub(:new, logger) do
-      RokuBuilder::Controller.stub(:validate_options, nil) do
-        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
-          RokuBuilder::Controller.stub(:configure, nil) do
-            RokuBuilder::Controller.stub(:handle_configure_codes, nil) do
-              RokuBuilder::ConfigManager.stub(:load_config, nil) do
-                RokuBuilder::Controller.stub(:handle_load_codes, nil) do
-                  RokuBuilder::Controller.stub(:check_devices, nil) do
-                    RokuBuilder::Controller.stub(:handle_device_codes, nil) do
-                      RokuBuilder::Controller.stub(:execute_commands, nil) do
-                        RokuBuilder::Controller.stub(:handle_command_codes, nil) do
-                          RokuBuilder::Controller.run(options: options)
-                        end
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    logger.verify
-  end
-  def test_controller_run_warn
-    logger = Minitest::Mock.new
-    options = {}
-
-    logger.expect(:formatter=, nil) do |proc_object|
-      proc_object.class == Proc and proc_object.arity == 4
-    end
-    logger.expect(:level=, nil, [Logger::WARN])
-    Logger.stub(:new, logger) do
-      RokuBuilder::Controller.stub(:validate_options, nil) do
-        RokuBuilder::Controller.stub(:handle_options_codes, nil) do
-          RokuBuilder::Controller.stub(:configure, nil) do
-            RokuBuilder::Controller.stub(:handle_configure_codes, nil) do
-              RokuBuilder::ConfigManager.stub(:load_config, nil) do
-                RokuBuilder::Controller.stub(:handle_load_codes, nil) do
-                  RokuBuilder::Controller.stub(:check_devices, nil) do
-                    RokuBuilder::Controller.stub(:handle_device_codes, nil) do
-                      RokuBuilder::Controller.stub(:execute_commands, nil) do
-                        RokuBuilder::Controller.stub(:handle_command_codes, nil) do
-                          RokuBuilder::Controller.run(options: options)
-                        end
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    logger.verify
   end
 end
 
