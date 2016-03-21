@@ -25,6 +25,7 @@ class LoaderTest < Minitest::Test
     }
     path = "/plugin_install"
 
+    faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
     faraday.expect(:request, nil, [:url_encoded])
@@ -83,6 +84,7 @@ class LoaderTest < Minitest::Test
     }
     path = "/plugin_install"
 
+    faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
     faraday.expect(:request, nil, [:url_encoded])

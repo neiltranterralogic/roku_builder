@@ -47,7 +47,7 @@ module RokuBuilder
     # @return [Boolean] Success
     def screencapture(out_folder:, out_file: nil)
       path = "/plugin_inspect"
-      conn = basic_connection
+      conn = multipart_connection
       payload =  {
         mysubmit: "Screenshot",
         passwd: @dev_password,
@@ -63,10 +63,7 @@ module RokuBuilder
         out_file = "dev_#{out_file[1]}.jpg" if out_file
       end
 
-      conn = Faraday.new(url: @url) do |f|
-        f.request :digest, @dev_username, @dev_password
-        f.adapter Faraday.default_adapter
-      end
+      conn = simple_connection
 
       response = conn.get path
 

@@ -54,6 +54,8 @@ class NavigatorTest < Minitest::Test
           response.expect(:success?, true)
         end
       end
+      faraday.expect(:headers, {})
+      faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
       faraday.expect(:request, nil, [:multipart])
       faraday.expect(:request, nil, [:url_encoded])
       faraday.expect(:adapter, nil, [Faraday.default_adapter])

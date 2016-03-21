@@ -13,11 +13,8 @@ module RokuBuilder
     def sideload(root_dir:, branch: nil, update_manifest: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
-      stash = nil
-      current_dir = Dir.pwd
       begin
         git_switch_to(branch: branch)
-
         # Update manifest
         build_version = ""
         if update_manifest
@@ -25,11 +22,8 @@ module RokuBuilder
         else
           build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger)
         end
-
         outfile = build(root_dir: root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
-
         path = "/plugin_install"
-
         # Connect to roku and upload file
         conn = multipart_connection
         payload =  {
@@ -37,22 +31,15 @@ module RokuBuilder
           archive: Faraday::UploadIO.new(outfile, 'application/zip')
         }
         response = conn.post path, payload
-
         # Cleanup
         File.delete(outfile)
-
-        if response.status == 200 and response.body =~ /Install Success/
-          result = build_version
-        end
-
-        git_switch_from
-
-      rescue Git::GitExecuteError => e
-        @logger.error "Branch or ref does not exist"
-        @logger.error e.message
-        @logger.error e.backtrace
+        result = build_version if response.status==200 and response.body=~/Install Success/
+        git_switch_from(branch: branch)
+      rescue Git::GitExecuteError
+        git_rescue
       ensure
-        Dir.chdir(current_dir) unless current_dir == Dir.pwd
+        @current_dir ||= Dir.pwd
+        Dir.chdir(@current_dir) unless @current_dir == Dir.pwd
       end
       result
     end
@@ -68,11 +55,8 @@ module RokuBuilder
     # @return [String] Path of the build
     def build(root_dir:, branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
       @root_dir = root_dir
-      stash = nil
-      current_dir = Dir.pwd
       begin
         git_switch_to(branch: branch)
-
         build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger) unless build_version
         unless folders
           folders = Dir.entries(root_dir).select {|entry| File.directory? File.join(root_dir, entry) and !(entry =='.' || entry == '..') }
@@ -81,10 +65,8 @@ module RokuBuilder
           files = Dir.entries(root_dir).select {|entry| File.file? File.join(root_dir, entry)}
         end
         outfile = "/tmp/build_#{build_version}.zip" unless outfile
-
         File.delete(outfile) if File.exist?(outfile)
         io = Zip::File.open(outfile, Zip::File::CREATE)
-
         # Add folders to zip
         folders.each do |folder|
           base_folder = File.join(@root_dir, folder)
@@ -93,19 +75,15 @@ module RokuBuilder
           entries.delete("..")
           writeEntries(@root_dir, entries, folder, io)
         end
-
         # Add file to zip
         writeEntries(@root_dir, files, "", io)
-
         io.close()
-
-        git_switch_from
-      rescue Git::GitExecuteError => e
-        @logger.error "Branch or ref does not exist"
-        @logger.error e.message
-        @logger.error e.backtrace
+        git_switch_from(branch: branch)
+      rescue Git::GitExecuteError
+        git_rescue
       ensure
-        Dir.chdir(current_dir) unless current_dir == Dir.pwd
+        @current_dir ||= Dir.pwd
+        Dir.chdir(@current_dir) unless @current_dir == Dir.pwd
       end
       outfile
     end
@@ -150,6 +128,7 @@ module RokuBuilder
 
     def git_switch_to(branch:)
       if branch
+        @current_dir = Dir.pwd
         @git ||= Git.open(@root_dir)
         if branch != @git.current_branch
           Dir.chdir(@root_dir)
@@ -159,11 +138,19 @@ module RokuBuilder
         end
       end
     end
-    def git_switch_from
-      if @git and @current_branch
-        @git.checkout(@current_branch)
-        @git.branch.stashes.apply if @stash
+    def git_switch_from(branch:)
+      if branch
+        @git ||= Git.open(@root_dir)
+        if @git and @current_branch
+          @git.checkout(@current_branch)
+          @git.branch.stashes.apply if @stash
+        end
       end
+    end
+    def git_rescue
+      @logger.error "Branch or ref does not exist"
+      @logger.error e.message
+      @logger.error e.backtrace
     end
   end
 end

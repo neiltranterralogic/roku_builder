@@ -93,6 +93,7 @@ class KeyerTest < Minitest::Test
       assert_equal payload[:password], arg2[:passwd]
       assert payload[:archive] === arg2[:archive]
     end
+    faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
     faraday.expect(:request, nil, [:url_encoded])

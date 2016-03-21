@@ -16,6 +16,7 @@ class LinkerTest < Minitest::Test
     options = 'a:A, b:B:C, d:a\b'
 
     connection.expect(:post, response, [path])
+    faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
     faraday.expect(:request, nil, [:url_encoded])
