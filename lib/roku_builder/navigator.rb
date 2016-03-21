@@ -38,11 +38,7 @@ module RokuBuilder
     # @return [Boolean] Success
     def nav(command:)
       if @commands.has_key?(command)
-        conn = Faraday.new(url: "#{@url}:8060") do |f|
-          f.request :multipart
-          f.request :url_encoded
-          f.adapter Faraday.default_adapter
-        end
+        conn = multipart_connection(port: 8060)
 
         path = "/keypress/#{@commands[command]}"
         response = conn.post path
@@ -56,11 +52,7 @@ module RokuBuilder
     # @param text [String] The text to type on the device
     # @return [Boolean] Success
     def type(text:)
-      conn = Faraday.new(url: "#{@url}:8060") do |f|
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
+      conn = multipart_connection(port: 8060)
       text.split(//).each do |c|
         path = "/keypress/LIT_#{CGI::escape(c)}"
         response = conn.post path

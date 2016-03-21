@@ -31,12 +31,7 @@ module RokuBuilder
         path = "/plugin_install"
 
         # Connect to roku and upload file
-        conn = Faraday.new(url: @url) do |f|
-          f.request :digest, @dev_username, @dev_password
-          f.request :multipart
-          f.request :url_encoded
-          f.adapter Faraday.default_adapter
-        end
+        conn = multipart_connection
         payload =  {
           mysubmit: "Replace",
           archive: Faraday::UploadIO.new(outfile, 'application/zip')
@@ -120,13 +115,7 @@ module RokuBuilder
         path = "/plugin_install"
 
         # Connect to roku and upload file
-        conn = Faraday.new(url: @url) do |f|
-          f.headers['Content-Type'] = Faraday::Request::Multipart.mime_type
-          f.request :digest, @dev_username, @dev_password
-          f.request :multipart
-          f.request :url_encoded
-          f.adapter Faraday.default_adapter
-        end
+        conn = multipart_connection
         payload =  {
           mysubmit: "Delete",
           archive: ""

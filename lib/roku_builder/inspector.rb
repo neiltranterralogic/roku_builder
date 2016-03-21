@@ -15,12 +15,7 @@ module RokuBuilder
 
       # upload new key with password
       path = "/plugin_inspect"
-      conn = Faraday.new(url: @url) do |f|
-        f.request :digest, @dev_username, @dev_password
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
+      conn = multipart_connection
       payload =  {
         mysubmit: "Inspect",
         passwd: password,
@@ -52,12 +47,7 @@ module RokuBuilder
     # @return [Boolean] Success
     def screencapture(out_folder:, out_file: nil)
       path = "/plugin_inspect"
-      conn = Faraday.new(url: @url) do |f|
-        f.request :digest, @dev_username, @dev_password
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
+      conn = basic_connection
       payload =  {
         mysubmit: "Screenshot",
         passwd: @dev_password,

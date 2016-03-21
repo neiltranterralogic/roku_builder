@@ -23,12 +23,7 @@ module RokuBuilder
       end
 
       path = "#{path}?#{parameterize(payload)}"
-      conn = Faraday.new(url: "#{@url}:8060") do |f|
-        f.request :digest, @dev_username, @dev_password
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter Faraday.default_adapter
-      end
+      conn = multipart_connection(port: 8060)
 
       response = conn.post path
       return response.success?

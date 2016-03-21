@@ -27,5 +27,24 @@ module RokuBuilder
     def init
       #Override in subclass
     end
+
+    def simple_connection
+      Faraday.new(url: @url) do |f|
+        f.request :digest, @dev_username, @dev_password
+        f.adapter Faraday.default_adapter
+      end
+    end
+
+    def multipart_connection(port: nil)
+      url = @url
+      url = "#{url}:#{port}" if port
+      Faraday.new(url: url) do |f|
+        f.headers['Content-Type'] = Faraday::Request::Multipart.mime_type
+        f.request :digest, @dev_username, @dev_password
+        f.request :multipart
+        f.request :url_encoded
+        f.adapter Faraday.default_adapter
+      end
+    end
   end
 end
