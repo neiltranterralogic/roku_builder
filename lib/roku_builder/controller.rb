@@ -35,7 +35,7 @@ module RokuBuilder
       ErrorHandler.handle_device_codes(options: options, device_code: device_code, logger: logger)
 
       # Run Commands
-      command_code = execute_commands(options: options, logger: logger)
+      command_code = execute_commands(options: options, config: config, configs: configs, logger: logger)
       ErrorHandler.handle_command_codes(options: options, command_code: command_code, logger: logger)
     end
 

@@ -95,12 +95,9 @@ module RokuBuilder
       SUCCESS
     end
     # Run Monitor
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.monitor(options:, config:, configs:, logger:)
+    def self.monitor(configs:)
       monitor = Monitor.new(**configs[:device_config])
       monitor.monitor(**configs[:monitor_config])
       SUCCESS
