@@ -2,24 +2,15 @@ module RokuBuilder
 
   # Commands that the controller uses to interface with the rest of the gem.
   class ControllerCommands
-
     # Validate Config
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
-    # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.validate(options:, config:, configs:, logger:)
+    def self.validate()
       SUCCESS
     end
-
     # Run Sideload
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.sideload(options:, config:, configs:, logger:)
+    def self.sideload(configs:)
       loader = Loader.new(**configs[:device_config])
       success = loader.sideload(**configs[:sideload_config])
       return FAILED_SIDELOAD unless success
@@ -27,11 +18,10 @@ module RokuBuilder
     end
     # Run Package
     # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
     # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.package(options:, config:, configs:, logger:)
+    def self.package(options:, configs:, logger:)
       keyer = Keyer.new(**configs[:device_config])
       loader = Loader.new(**configs[:device_config])
       packager = Packager.new(**configs[:device_config])
@@ -65,7 +55,7 @@ module RokuBuilder
     # @param configs [Hash] parsed configs
     # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.build(options:, config:, configs:, logger:)
+    def self.build(options:, configs:, logger:)
       ### Build ###
       loader = Loader.new(**configs[:device_config])
       build_version = ManifestManager.build_version(**configs[:manifest_config])
@@ -76,12 +66,10 @@ module RokuBuilder
       SUCCESS
     end
     # Run update
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
     # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.update(options:, config:, configs:, logger:)
+    def self.update(configs:, logger:)
       ### Update ###
       old_version = ManifestManager.build_version(**configs[:manifest_config])
       new_version = ManifestManager.update_build(**configs[:manifest_config])
@@ -89,12 +77,9 @@ module RokuBuilder
       SUCCESS
     end
     # Run deeplink
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.deeplink(options:, config:, configs:, logger:)
+    def self.deeplink(configs:)
       ### Deeplink ###
       linker = Linker.new(**configs[:device_config])
       success = linker.link(**configs[:deeplink_config])
@@ -102,12 +87,9 @@ module RokuBuilder
       SUCCESS
     end
     # Run delete
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.delete(options:, config:, configs:, logger:)
+    def self.delete(configs:)
       loader = Loader.new(**configs[:device_config])
       loader.unload()
       SUCCESS
@@ -124,69 +106,51 @@ module RokuBuilder
       SUCCESS
     end
     # Run navigate
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.navigate(options:, config:, configs:, logger:)
+    def self.navigate(configs:)
       navigator = Navigator.new(**configs[:device_config])
       success = navigator.nav(**configs[:navigate_config])
       return FAILED_NAVIGATING unless success
       SUCCESS
     end
     # Run screen
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.screen(options:, config:, configs:, logger:)
+    def self.screen(configs:)
       navigator = Navigator.new(**configs[:device_config])
       success = navigator.screen(**configs[:screen_config])
       return FAILED_NAVIGATING unless success
       SUCCESS
     end
     # Run screens
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.screens(options:, config:, configs:, logger:)
+    def self.screens(configs:)
       navigator = Navigator.new(**configs[:device_config])
       navigator.screens
       SUCCESS
     end
     # Run text
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.text(options:, config:, configs:, logger:)
+    def self.text(configs:)
       navigator = Navigator.new(**configs[:device_config])
       navigator.type(**configs[:text_config])
       SUCCESS
     end
     # Run test
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.test(options:, config:, configs:, logger:)
+    def self.test(configs:)
       tester = Tester.new(**configs[:device_config])
       tester.run_tests(**configs[:test_config])
       SUCCESS
     end
     # Run Screencapture
-    # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.screencapture(options:, config:, configs:, logger:)
+    def self.screencapture( configs:)
       inspector = Inspector.new(**configs[:device_config])
       success = inspector.screencapture(**configs[:screencapture_config])
       return FAILED_SCREENCAPTURE unless success

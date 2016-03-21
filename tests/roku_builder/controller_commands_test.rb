@@ -1,6 +1,6 @@
 require_relative "test_helper.rb"
 
-class ControllerCommandsTest < Minitest::Tester
+class ControllerCommandsTest < Minitest::Test
 
   def test_controller_commands_sideload
     logger = Logger.new("/dev/null")

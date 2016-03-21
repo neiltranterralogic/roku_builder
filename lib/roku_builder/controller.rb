@@ -72,13 +72,20 @@ module RokuBuilder
     # @param logger [Logger] system logger
     def self.execute_commands(options:, config:, configs:, logger:)
       command = (self.commands & options.keys).first
-      args = {
-        options: options,
-        config: config,
-        configs: configs,
-        logger: logger
-      }
-
+      params = ControllerCommands.method(command.to_s).parameters.collect{|a|a[1]}
+      args = {}
+      params.each do |key|
+        case key
+        when :options
+          args[:options] = options
+        when :config
+          args[:config] = config
+        when :configs
+          args[:configs] = configs
+        when :logger
+          args[:logger] = logger
+        end
+      end
       ControllerCommands.send(command, args)
     end
 
