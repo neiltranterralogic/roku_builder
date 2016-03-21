@@ -11,10 +11,9 @@ module RokuBuilder
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.sideload(configs:)
-      loader = Loader.new(**configs[:device_config])
-      success = loader.sideload(**configs[:sideload_config])
-      return FAILED_SIDELOAD unless success
-      SUCCESS
+      args = { klass: Loader, method: :sideload, config_key: :sideload_config,
+        configs: configs, failure: FAILED_SIDELOAD }
+      simple_command(**args)
     end
     # Run Package
     # @param options [Hash] user options
@@ -81,76 +80,83 @@ module RokuBuilder
     # @return [Integer] Success or Failure Code
     def self.deeplink(configs:)
       ### Deeplink ###
-      linker = Linker.new(**configs[:device_config])
-      success = linker.link(**configs[:deeplink_config])
-      return FAILED_DEEPLINKING unless success
-      SUCCESS
+      args = { klass: Linker, method: :link, config_key: :deeplink_config,
+        configs: configs, failure: FAILED_DEEPLINKING }
+      simple_command(**args)
     end
     # Run delete
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.delete(configs:)
-      loader = Loader.new(**configs[:device_config])
-      loader.unload()
-      SUCCESS
+      args = { klass: Loader, method: :unload, configs: configs }
+      simple_command(**args)
     end
     # Run Monitor
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.monitor(configs:)
-      monitor = Monitor.new(**configs[:device_config])
-      monitor.monitor(**configs[:monitor_config])
-      SUCCESS
+      args = { klass: Monitor, method: :monitor,
+        config_key: :monitor_config, configs: configs }
+      simple_command(**args)
     end
     # Run navigate
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.navigate(configs:)
-      navigator = Navigator.new(**configs[:device_config])
-      success = navigator.nav(**configs[:navigate_config])
-      return FAILED_NAVIGATING unless success
-      SUCCESS
+      args = { klass: Navigator, method: :nav, config_key: :navigate_config,
+        configs: configs, failure: FAILED_NAVIGATING }
+      simple_command(**args)
     end
     # Run screen
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.screen(configs:)
-      navigator = Navigator.new(**configs[:device_config])
-      success = navigator.screen(**configs[:screen_config])
-      return FAILED_NAVIGATING unless success
-      SUCCESS
+      args = { klass: Navigator, method: :screen, config_key: :screen_config,
+        configs: configs, failure: FAILED_NAVIGATING }
+      simple_command(**args)
     end
     # Run screens
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.screens(configs:)
-      navigator = Navigator.new(**configs[:device_config])
-      navigator.screens
-      SUCCESS
+      args = { klass: Navigator, method: :screens, configs: configs  }
+      simple_command(**args)
     end
     # Run text
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.text(configs:)
-      navigator = Navigator.new(**configs[:device_config])
-      navigator.type(**configs[:text_config])
-      SUCCESS
+      args = { klass: Navigator, method: :type, config_key: :text_config,
+        configs: configs  }
+      simple_command(**args)
     end
     # Run test
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
     def self.test(configs:)
-      tester = Tester.new(**configs[:device_config])
-      tester.run_tests(**configs[:test_config])
-      SUCCESS
+      args = { klass: Tester, method: :run_tests, config_key: :test_config,
+        configs: configs  }
+      simple_command(**args)
     end
     # Run Screencapture
     # @param configs [Hash] parsed configs
     # @return [Integer] Success or Failure Code
-    def self.screencapture( configs:)
-      inspector = Inspector.new(**configs[:device_config])
-      success = inspector.screencapture(**configs[:screencapture_config])
-      return FAILED_SCREENCAPTURE unless success
+    def self.screencapture(configs:)
+      args = { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
+        configs: configs, failure: FAILED_SCREENCAPTURE }
+      simple_command(**args)
+    end
+
+    private
+
+    def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil)
+      instance = klass.new(**configs[:device_config])
+      if config_key
+        success = instance.send(method, configs[config_key])
+      else
+        success = instance.send(method)
+      end
+      return failure unless failure.nil? or success
       SUCCESS
     end
   end
