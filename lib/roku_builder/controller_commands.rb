@@ -2,18 +2,31 @@ module RokuBuilder
 
   # Commands that the controller uses to interface with the rest of the gem.
   class ControllerCommands
+
+    def self.simple_commands
+      {
+        sideload: { klass: Loader, method: :sideload, config_key: :sideload_config,
+          failure: FAILED_SIDELOAD },
+        deeplink: { klass: Linker, method: :link, config_key: :deeplink_config,
+          failure: FAILED_DEEPLINKING },
+        delete: { klass: Loader, method: :unload },
+        monitor: { klass: Monitor, method: :monitor,
+          config_key: :monitor_config },
+        navigate: { klass: Navigator, method: :nav, config_key: :navigate_config,
+          failure: FAILED_NAVIGATING },
+        screen: { klass: Navigator, method: :screen, config_key: :screen_config,
+          failure: FAILED_NAVIGATING },
+        screens: { klass: Navigator, method: :screens },
+        text: { klass: Navigator, method: :type, config_key: :text_config },
+        test: { klass: Tester, method: :run_tests, config_key: :test_config },
+        screencapture: { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
+          failure: FAILED_SCREENCAPTURE }
+      }
+    end
     # Validate Config
     # @return [Integer] Success or Failure Code
     def self.validate()
       SUCCESS
-    end
-    # Run Sideload
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.sideload(configs:)
-      args = { klass: Loader, method: :sideload, config_key: :sideload_config,
-        configs: configs, failure: FAILED_SIDELOAD }
-      simple_command(**args)
     end
     # Run Package
     # @param options [Hash] user options
@@ -75,80 +88,14 @@ module RokuBuilder
       logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
       SUCCESS
     end
-    # Run deeplink
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.deeplink(configs:)
-      ### Deeplink ###
-      args = { klass: Linker, method: :link, config_key: :deeplink_config,
-        configs: configs, failure: FAILED_DEEPLINKING }
-      simple_command(**args)
-    end
-    # Run delete
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.delete(configs:)
-      args = { klass: Loader, method: :unload, configs: configs }
-      simple_command(**args)
-    end
-    # Run Monitor
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.monitor(configs:)
-      args = { klass: Monitor, method: :monitor,
-        config_key: :monitor_config, configs: configs }
-      simple_command(**args)
-    end
-    # Run navigate
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.navigate(configs:)
-      args = { klass: Navigator, method: :nav, config_key: :navigate_config,
-        configs: configs, failure: FAILED_NAVIGATING }
-      simple_command(**args)
-    end
-    # Run screen
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.screen(configs:)
-      args = { klass: Navigator, method: :screen, config_key: :screen_config,
-        configs: configs, failure: FAILED_NAVIGATING }
-      simple_command(**args)
-    end
-    # Run screens
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.screens(configs:)
-      args = { klass: Navigator, method: :screens, configs: configs  }
-      simple_command(**args)
-    end
-    # Run text
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.text(configs:)
-      args = { klass: Navigator, method: :type, config_key: :text_config,
-        configs: configs  }
-      simple_command(**args)
-    end
-    # Run test
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.test(configs:)
-      args = { klass: Tester, method: :run_tests, config_key: :test_config,
-        configs: configs  }
-      simple_command(**args)
-    end
-    # Run Screencapture
-    # @param configs [Hash] parsed configs
-    # @return [Integer] Success or Failure Code
-    def self.screencapture(configs:)
-      args = { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
-        configs: configs, failure: FAILED_SCREENCAPTURE }
-      simple_command(**args)
-    end
 
-    private
-
+    # Run a simple command
+    # @param klass [Class] class of object to create
+    # @param method [Symbol] methog to run on klass
+    # @param config_key [Symbol] config to send from configs if not nil
+    # @param configs [Hash] parsed roku config
+    # @param failure [Integer] failure code to return on failure if not nil
+    # @return [Integer] Success of failure code
     def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil)
       instance = klass.new(**configs[:device_config])
       if config_key
