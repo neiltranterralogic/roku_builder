@@ -82,7 +82,6 @@ module RokuBuilder
         root_dir: root_dir,
         branch: branch,
         update_manifest: options[:update_manifest],
-        fetch: options[:fetch],
         folders: project_config[:folders],
         files: project_config[:files]
       }
@@ -107,7 +106,6 @@ module RokuBuilder
       configs[:build_config] = {
         root_dir: root_dir,
         branch: branch,
-        fetch: options[:fetch],
         folders: project_config[:folders],
         files: project_config[:files]
       }

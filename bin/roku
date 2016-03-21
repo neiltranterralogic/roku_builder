@@ -11,7 +11,6 @@ options = {}
 options[:config] = '~/.roku_config.json'
 options[:stage] = 'production'
 options[:update_manifest] = false
-options[:fetch] = false
 
 OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
@@ -99,10 +98,6 @@ OptionParser.new do |opts|
 
   opts.on("-i", "--inspect", "Print inspection information while packaging") do
     options[:inspect] = true
-  end
-
-  opts.on("-f", "--fetch", "Preform a `git fetch --all` on the repository before building or sideloading.") do
-    options[:fetch] = true
   end
 
   opts.on("-o", "--deeplink-options TYPE", "Additional deeplink options. (eg. a:b, c:d,e:f)") do |o|

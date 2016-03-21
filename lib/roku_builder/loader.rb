@@ -7,12 +7,10 @@ module RokuBuilder
     # @param root_dir [String] Path to the root directory of the roku app
     # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
     # @param update_manifest [Boolean] Flag to update the manifest file before sideloading. Default: false
-    # @param fetch [Boolean] Flag to fetch all remotes before sideloading. Default: false
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
-    # @param infile [String] 
     # @return [String] Build version on success, nil otherwise
-    def sideload(root_dir:, branch: nil, update_manifest: false, fetch: false, folders: nil, files: nil, infile: nil)
+    def sideload(root_dir:, branch: nil, update_manifest: false, folders: nil, files: nil)
       @root_dir = root_dir
       result = nil
       stash = nil
@@ -86,11 +84,10 @@ module RokuBuilder
     # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
     # @param build_version [String] Version to assigne to the build. If nil will pull the build version form the manifest. Default: nil
     # @param outfile [String] Path for the output file. If nil will create a file in /tmp. Default: nil
-    # @param fetch [Boolean] Flag to fetch all remotes before sideloading. Default: false
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Path of the build
-    def build(root_dir:, branch: nil, build_version: nil, outfile: nil, fetch: false, folders: nil, files: nil)
+    def build(root_dir:, branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
       @root_dir = root_dir
       stash = nil
       if branch
