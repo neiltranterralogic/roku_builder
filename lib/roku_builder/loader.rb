@@ -14,22 +14,9 @@ module RokuBuilder
       @root_dir = root_dir
       result = nil
       stash = nil
-      if branch
-        git = Git.open(@root_dir)
-        if fetch
-          for remote in git.remotes
-            git.fetch(remote)
-          end
-        end
-      end
       current_dir = Dir.pwd
       begin
-        if git and branch and branch != git.current_branch
-          Dir.chdir(@root_dir)
-          current_branch = git.current_branch
-          stash = git.branch.stashes.save("roku-builder-temp-stash")
-          git.checkout(branch)
-        end
+        git_switch_to(branch: branch)
 
         # Update manifest
         build_version = ""
@@ -59,14 +46,11 @@ module RokuBuilder
         # Cleanup
         File.delete(outfile)
 
-        if git and current_branch
-          git.checkout(current_branch)
-          git.branch.stashes.apply if stash
-        end
-
         if response.status == 200 and response.body =~ /Install Success/
           result = build_version
         end
+
+        git_switch_from
 
       rescue Git::GitExecuteError => e
         @logger.error "Branch or ref does not exist"
@@ -90,22 +74,9 @@ module RokuBuilder
     def build(root_dir:, branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
       @root_dir = root_dir
       stash = nil
-      if branch
-        git = Git.open(@root_dir)
-        if fetch
-          for remote in git.remotes
-            git.fetch(remote)
-          end
-        end
-      end
       current_dir = Dir.pwd
       begin
-        if git and branch and branch != git.current_branch
-          Dir.chdir(@root_dir)
-          current_branch = git.current_branch
-          stash = git.branch.stashes.save("roku-builder-temp-stash")
-          git.checkout(branch)
-        end
+        git_switch_to(branch: branch)
 
         build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger) unless build_version
         unless folders
@@ -133,10 +104,7 @@ module RokuBuilder
 
         io.close()
 
-        if git and current_branch
-          git.checkout(current_branch)
-          git.branch.stashes.apply if stash
-        end
+        git_switch_from
       rescue Git::GitExecuteError => e
         @logger.error "Branch or ref does not exist"
         @logger.error e.message
@@ -189,6 +157,24 @@ module RokuBuilder
           io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
         end
       }
+    end
+
+    def git_switch_to(branch:)
+      if branch
+        @git ||= Git.open(@root_dir)
+        if branch != @git.current_branch
+          Dir.chdir(@root_dir)
+          @current_branch = @git.current_branch
+          @stash = @git.branch.stashes.save("roku-builder-temp-stash")
+          @git.checkout(branch)
+        end
+      end
+    end
+    def git_switch_from
+      if @git and @current_branch
+        @git.checkout(@current_branch)
+        @git.branch.stashes.apply if @stash
+      end
     end
   end
 end
