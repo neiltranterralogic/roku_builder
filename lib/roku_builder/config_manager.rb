@@ -104,5 +104,21 @@ module RokuBuilder
       file.close
       return true
     end
+
+    # Update the intermeidate configs
+    # @param configs [Hash] Intermeidate configs hash
+    # @param options [Hash] Options hash
+    # @return [Hash] New intermeidate configs hash
+    def self.update_configs(configs:, options:)
+      if options[:build_version]
+        configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
+        unless options[:outfile]
+          configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg") if configs[:package_config]
+          configs[:build_config][:outfile] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.zip") if configs[:build_config]
+          configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
+        end
+      end
+      return configs
+    end
   end
 end

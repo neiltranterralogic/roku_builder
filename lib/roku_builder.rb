@@ -13,6 +13,7 @@ require "git"
 require 'json'
 
 require "roku_builder/controller"
+require "roku_builder/controller_commands"
 require "roku_builder/util"
 require "roku_builder/keyer"
 require "roku_builder/inspector"
