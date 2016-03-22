@@ -1,4 +1,7 @@
 module RokuBuilder
+
+  # Contains methods that will parse the loaded config and generate
+  # intermeidate configs for each of the tools.
   class ConfigParser
 
     # Parse config and generate intermeidate configs
@@ -14,6 +17,35 @@ module RokuBuilder
         options[:device] = config[:devices][:default]
       end
       #set project
+      setup_project(config: config, options: options)
+      #set outfile
+      setup_outfile(options: options)
+      # Create Device Config
+      configs[:device_config] = config[:devices][options[:device].to_sym]
+      return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
+      configs[:device_config][:logger] = logger
+      project_config = setup_project_config(config: config, options: options)
+      return [UNKNOWN_PROJECT, nil, nil] unless project_config
+      configs[:project_config] = project_config
+      stage = options[:stage].to_sym
+      return [UNKNOWN_STAGE, nil, nil] unless project_config[:stages][stage]
+      configs[:stage] = stage
+      branch = project_config[:stages][stage][:branch]
+      branch = options[:ref] if options[:ref]
+      branch = nil if options[:current]
+      branch = nil if options[:working]
+      setup_sideload_config(configs: configs, options: options, branch: branch)
+      setup_package_config(configs: configs, options: options, stage: stage)
+      setup_simple_configs(configs: configs, options: options, logger: logger)
+      return [SUCCESS, configs]
+    end
+
+    private
+
+    # Pick or choose the project being used
+    # @param config [Hash] The loaded config hash
+    # @param options [Hash] The options hash
+    def self.setup_project(config:, options:)
       if options[:current] or not options[:project]
         path = Controller.system(command: "pwd")
         project = nil
@@ -32,7 +64,11 @@ module RokuBuilder
           options[:project] = config[:projects][:default]
         end
       end
-      #set outfile
+    end
+
+    # Setup the out folder/file options
+    # @param options [Hash] The options hash
+    def self.setup_outfile(options:)
       options[:out_folder] = nil
       options[:out_file] = nil
       if options[:out]
@@ -45,12 +81,13 @@ module RokuBuilder
       unless options[:out_folder]
         options[:out_folder] = "/tmp"
       end
+    end
 
-      # Create Device Config
-      configs[:device_config] = config[:devices][options[:device].to_sym]
-      return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
-      configs[:device_config][:logger] = logger
-
+    # Setup the project config with the chosen project
+    # @param config [Hash] The loaded config hash
+    # @param options [Hash] The options hash
+    # @return [Hash] The project config hash
+    def self.setup_project_config(config:, options:)
       #Create Project Config
       project_config = {}
       if options[:current]
@@ -65,33 +102,44 @@ module RokuBuilder
       else
         project_config = config[:projects][options[:project].to_sym]
       end
-      return [UNKNOWN_PROJECT, nil, nil] unless project_config
-      configs[:project_config] = project_config
-      stage = options[:stage].to_sym
-      return [UNKNOWN_STAGE, nil, nil] unless project_config[:stages][stage]
-      configs[:stage] = stage
+      project_config
+    end
 
-      root_dir = project_config[:directory]
-      branch = project_config[:stages][stage][:branch]
-      branch = options[:ref] if options[:ref]
-      branch = nil if options[:current]
-      branch = nil if options[:working]
-
+    # Setup config hashes for sideloading
+    # @param configs [Hash] The parsed configs hash
+    # @param options [Hash] The options hash
+    # @param branch [String] the branch to sideload
+    def self.setup_sideload_config(configs:, options:, branch:)
+      root_dir = configs[:project_config][:directory]
       # Create Sideload Config
       configs[:sideload_config] = {
         root_dir: root_dir,
         branch: branch,
         update_manifest: options[:update_manifest],
-        folders: project_config[:folders],
-        files: project_config[:files]
+        folders: configs[:project_config][:folders],
+        files: configs[:project_config][:files]
       }
+      # Create Build Config
+      configs[:build_config] = {
+        root_dir: root_dir,
+        branch: branch,
+        folders: configs[:project_config][:folders],
+        files: configs[:project_config][:files]
+      }
+    end
+
+    # Setup config hashes for packaging
+    # @param configs [Hash] The parsed configs hash
+    # @param options [Hash] The options hash
+    # @param stage [Symbol] The stage to package
+    def self.setup_package_config(configs:, options:, stage:)
       if options[:package]
         # Create Key Config
-        configs[:key] = project_config[:stages][stage][:key]
+        configs[:key] = configs[:project_config][:stages][stage][:key]
         # Create Package Config
         configs[:package_config] = {
           password: configs[:key][:password],
-          app_name_version: "#{project_config[:app_name]} - #{stage}"
+          app_name_version: "#{configs[:project_config][:app_name]} - #{stage}"
         }
         if options[:out_file]
           configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
@@ -101,55 +149,41 @@ module RokuBuilder
           pkg: configs[:package_config][:out_file],
           password: configs[:key][:password]
         }
-      end if
-      # Create Build Config
-      configs[:build_config] = {
-        root_dir: root_dir,
-        branch: branch,
-        folders: project_config[:folders],
-        files: project_config[:files]
-      }
+      end
+    end
+
+    # Setup other configs
+    # @param configs [Hash] The parsed configs hash
+    # @param options [Hash] The options hash
+    # @param logger [Logger] System logger
+    def self.setup_simple_configs(configs:, options:, logger:)
       # Create Manifest Config
       configs[:manifest_config] = {
-        root_dir: project_config[:directory],
+        root_dir: configs[:project_config][:directory],
         logger: logger
       }
       # Create Deeplink Config
-      configs[:deeplink_config] ={
-        options: options[:deeplink_options]
-      }
+      configs[:deeplink_config] ={options: options[:deeplink_options]}
       # Create Monitor Config
       if options[:monitor]
-        configs[:monitor_config] = {
-          type: options[:monitor].to_sym
-        }
+        configs[:monitor_config] = {type: options[:monitor].to_sym}
       end
       # Create Navigate Config
       if options[:navigate]
-        configs[:navigate_config] = {
-          command: options[:navigate].to_sym
-        }
+        configs[:navigate_config] = {command: options[:navigate].to_sym}
       end
       # Create Text Config
-      configs[:text_config] = {
-        text: options[:text]
-      }
+      configs[:text_config] = {text: options[:text]}
       # Create Test Config
-      configs[:test_config] = {
-        sideload_config: configs[:sideload_config]
-      }
+      configs[:test_config] = {sideload_config: configs[:sideload_config]}
       #Create screencapture config
       configs[:screencapture_config] = {
         out_folder: options[:out_folder],
         out_file: options[:out_file]
       }
-
       if options[:screen]
-        configs[:screen_config] = {
-          type: options[:screen].to_sym
-        }
+        configs[:screen_config] = {type: options[:screen].to_sym}
       end
-      return [SUCCESS, configs]
     end
   end
 end

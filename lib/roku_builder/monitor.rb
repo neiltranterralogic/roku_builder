@@ -17,7 +17,6 @@ module RokuBuilder
 
     # Monitor a development log on the Roku device
     # @param type [Symbol] The log type to monitor
-    # @param verbose [Boolean] Print status messages.
     def monitor(type:)
       telnet_config = {
         'Host' => @roku_ip_address,

@@ -3,6 +3,9 @@ module RokuBuilder
   # Commands that the controller uses to interface with the rest of the gem.
   class ControllerCommands
 
+    # Provides a hash of all of the options needed to run simple commands via
+    # the simple_command method
+    # @return [Hash] options to run simple commands
     def self.simple_commands
       {
         sideload: { klass: Loader, method: :sideload, config_key: :sideload_config,
@@ -63,7 +66,6 @@ module RokuBuilder
     end
     # Run Build
     # @param options [Hash] user options
-    # @param config [Hash] loaded config object
     # @param configs [Hash] parsed configs
     # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code

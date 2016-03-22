@@ -5,6 +5,7 @@ module RokuBuilder
   # with other testing libraries
   class Tester < Util
 
+    # Initialize starting and ending regular expressions
     def init()
       @end_reg = /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
       @start_reg = /\*\*\*\*\* STARTING TESTS \*\*\*\*\*/

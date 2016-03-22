@@ -15,8 +15,7 @@ module RokuBuilder
       code = SUCCESS
       config = ConfigManager.get_config(config: config_file, logger: logger)
       return INVALID_CONFIG unless config
-      configs = {}
-      codes = ConfigValidator.validate_config(config: config, logger: logger)
+      codes = ConfigValidator.validate_config(config: config)
       fatal = false
       warning = false
       codes.each {|a_code|
@@ -66,35 +65,19 @@ module RokuBuilder
     def self.edit_config(config:, options:, device:, project:, stage:, logger:)
       config_object = get_config(config: config, logger: logger)
       return false unless config_object
-      unless project
-        project = config_object[:projects][:default]
-      else
-        project = project.to_sym
-      end
-      unless device
-        device = config_object[:devices][:default]
-      else
-        device = device.to_sym
-      end
-      unless stage
-        stage = :production
-      else
-        stage = stage.to_sym
-      end
-      changes = {}
-      opts = options.split(/,\s*/)
-      opts.each do |opt|
-        opt = opt.split(":")
-        key = opt.shift.to_sym
-        value = opt.join(":")
-        changes[key] = value
-      end
+      project = project.to_sym if project
+      project = config_object[:projects][:default] unless project
+      device = device.to_sym if device
+      device = config_object[:devices][:default] unless device
+      stage = stage.to_sym if stage
+      stage = :production unless stage
+      changes = Util.options_parse(options: options)
       changes.each {|key,value|
         if [:ip, :user, :password].include?(key)
           config_object[:devices][device][key] = value
         elsif [:directory, :app_name].include?(key) #:folders, :files
           config_object[:projects][project][key] = value
-        elsif [:branch]
+        elsif [:branch].include?(key)
           config_object[:projects][project][:stages][stage][key] = value
         end
       }
@@ -113,8 +96,9 @@ module RokuBuilder
       if options[:build_version]
         configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
         unless options[:outfile]
-          configs[:package_config][:out_file] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.pkg") if configs[:package_config]
-          configs[:build_config][:outfile] = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}.zip") if configs[:build_config]
+          pathname = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}")
+          configs[:package_config][:out_file] =  pathname+".pkg" if configs[:package_config]
+          configs[:build_config][:outfile]    = pathname+".zip" if configs[:build_config]
           configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
         end
       end

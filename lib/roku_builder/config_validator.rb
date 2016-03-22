@@ -23,9 +23,10 @@ module RokuBuilder
     # Validates the roku config
     # @param config [Hash] roku config object
     # @return [Array] error codes for valid config (see self.error_codes)
-    def self.validate_config(config:, logger:)
+    def self.validate_config(config:)
       codes = []
-      validate_structure(codes: codes, config: config)
+      validate_device_structure(codes: codes, config: config)
+      validate_project_structure(codes: codes, config: config)
       if config[:devices]
         config[:devices].each {|k,v|
           next if k == :default
@@ -70,13 +71,19 @@ module RokuBuilder
 
     private
 
-    # Validates the roku config main structure
+    # Validates the roku config config structure
     # @param codes [Array] array of error codes
     # @param config [Hash] roku config object
-    def self.validate_structure(codes:, config:)
+    def self.validate_device_structure(codes:, config:)
       codes.push(MISSING_DEVICES) if not config[:devices]
       codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
       codes.push(DEVICE_DEFAULT_BAD) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
+    end
+
+    # Validates the roku config project structure
+    # @param codes [Array] array of error codes
+    # @param config [Hash] roku config object
+    def self.validate_project_structure(codes:, config:)
       codes.push(MISSING_PROJECTS) if not config[:projects]
       codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and not config[:projects][:default]
       codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
@@ -108,7 +115,7 @@ module RokuBuilder
       codes.push(PROJECT_FOLDERS_BAD) if project[:folders] and not project[:folders].is_a?(Array)
       codes.push(PROJECT_MISSING_FILES) if not project[:files]
       codes.push(PROJECT_FILES_BAD) if project[:files] and not project[:files].is_a?(Array)
-      project[:stages].each {|stage,value|
+      project[:stages].each {|_stage,value|
         codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
       }
     end

@@ -8,15 +8,8 @@ module RokuBuilder
     # @note Any options will be accepted and sent to the app
     def link(options:)
       path = "/launch/dev"
-      payload = {}
       return false unless options
-      opts = options.split(/,\s*/)
-      opts.each do |opt|
-        opt = opt.split(":")
-        key = opt.shift.to_sym
-        value = opt.join(":")
-        payload[key] = value
-      end
+      payload = Util.options_parse(options: options)
 
       unless payload.keys.count > 0
         return false

@@ -1,9 +1,11 @@
 module RokuBuilder
+
+  # Contains methods to handle errors from different sources.
   class ErrorHandler
     # Handle codes returned from validating options
     # @param options_code [Integer] the error code returned by validate_options
     # @param logger [Logger] system logger
-    def self.handle_options_codes(options:, options_code:, logger:)
+    def self.handle_options_codes(options_code:, logger:)
       case options_code
       when EXTRA_COMMANDS
         logger.fatal "Only one command is allowed"
@@ -32,7 +34,7 @@ module RokuBuilder
     # Handle codes returned from configuring
     # @param configure_code [Integer] the error code returned by configure
     # @param logger [Logger] system logger
-    def self.handle_configure_codes(options:, configure_code:, logger:)
+    def self.handle_configure_codes(configure_code:, logger:)
       case configure_code
       when CONFIG_OVERWRITE
         logger.fatal 'Config already exists. To create default please remove config first.'
@@ -44,6 +46,7 @@ module RokuBuilder
     end
 
     # Handle codes returned from load_config
+    # @param options [Hash] the options hash
     # @param load_code [Integer] the error code returned by configure
     # @param logger [Logger] system logger
     def self.handle_load_codes(options:, load_code:, logger:)
@@ -74,7 +77,7 @@ module RokuBuilder
     # Handle codes returned from checking devices
     # @param device_code [Integer] the error code returned by check_devices
     # @param logger [Logger] system logger
-    def self.handle_device_codes(options:, device_code:, logger:)
+    def self.handle_device_codes(device_code:, logger:)
       case device_code
       when CHANGED_DEVICE
         logger.info "The default device was not online so a secondary device is being used"
@@ -88,9 +91,9 @@ module RokuBuilder
     end
 
     # Handle codes returned from handeling commands devices
-    # @param device_code [Integer] the error code returned by handle_options
+    # @param command_code [Integer] the error code returned by handle_options
     # @param logger [Logger] system logger
-    def self.handle_command_codes(options:, command_code:, logger:)
+    def self.handle_command_codes(command_code:, logger:)
       case command_code
       when FAILED_SIDELOAD
         logger.fatal "Failed Sideloading App"

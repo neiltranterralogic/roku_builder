@@ -28,6 +28,8 @@ module RokuBuilder
       #Override in subclass
     end
 
+    # Generates a simpe Faraday connection with digest credentials
+    # @return [Faraday] The faraday connection
     def simple_connection
       Faraday.new(url: @url) do |f|
         f.request :digest, @dev_username, @dev_password
@@ -35,6 +37,9 @@ module RokuBuilder
       end
     end
 
+    # Generates a multipart Faraday connection with digest credentials
+    # @param port [Integer] optional port to connect to
+    # @return [Faraday] The faraday connection
     def multipart_connection(port: nil)
       url = @url
       url = "#{url}:#{port}" if port
@@ -45,6 +50,21 @@ module RokuBuilder
         f.request :url_encoded
         f.adapter Faraday.default_adapter
       end
+    end
+
+    # Parses a string into and options hash
+    # @param options [String] string of options in the format "a:b, c:d"
+    # @return [Hash] Options hash generated
+    def self.options_parse(options:)
+      parsed = {}
+      opts = options.split(/,\s*/)
+      opts.each do |opt|
+        opt = opt.split(":")
+        key = opt.shift.to_sym
+        value = opt.join(":")
+        parsed[key] = value
+      end
+      parsed
     end
   end
 end

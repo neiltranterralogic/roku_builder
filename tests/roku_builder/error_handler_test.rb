@@ -62,7 +62,8 @@ class ErrorHandlerTest < Minitest::Test
       errors.each_pair do |key,value|
         value.each do |code|
           logger = Minitest::Mock.new
-          options = {options: {}, logger: logger}
+          options = {logger: logger}
+          options[:options] = {} if key == :load_code
           options[key] = code
           logger.expect(type, nil)  {|string| string.class == String}
           method = "handle_#{key}s"

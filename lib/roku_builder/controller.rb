@@ -20,11 +20,11 @@ module RokuBuilder
 
       # Validate Options
       options_code = validate_options(options: options, logger: logger)
-      ErrorHandler.handle_options_codes(options: options, options_code: options_code, logger: logger)
+      ErrorHandler.handle_options_codes(options_code: options_code, logger: logger)
 
       # Configure Gem
       configure_code = configure(options: options, logger: logger)
-      ErrorHandler.handle_configure_codes(options: options, configure_code: configure_code, logger: logger)
+      ErrorHandler.handle_configure_codes(configure_code: configure_code, logger: logger)
 
       # Load Config
       load_code, config, configs = ConfigManager.load_config(options: options, logger: logger)
@@ -32,11 +32,11 @@ module RokuBuilder
 
       # Check devices
       device_code, configs = check_devices(options: options, config: config, configs: configs, logger: logger)
-      ErrorHandler.handle_device_codes(options: options, device_code: device_code, logger: logger)
+      ErrorHandler.handle_device_codes(device_code: device_code, logger: logger)
 
       # Run Commands
       command_code = execute_commands(options: options, config: config, configs: configs, logger: logger)
-      ErrorHandler.handle_command_codes(options: options, command_code: command_code, logger: logger)
+      ErrorHandler.handle_command_codes(command_code: command_code, logger: logger)
     end
 
     protected

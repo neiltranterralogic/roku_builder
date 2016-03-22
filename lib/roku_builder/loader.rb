@@ -126,6 +126,7 @@ module RokuBuilder
       }
     end
 
+    # Switch to the correct branch
     def git_switch_to(branch:)
       if branch
         @current_dir = Dir.pwd
@@ -138,6 +139,8 @@ module RokuBuilder
         end
       end
     end
+
+    # Switch back to the previous branch
     def git_switch_from(branch:)
       if branch
         @git ||= Git.open(@root_dir)
@@ -147,6 +150,8 @@ module RokuBuilder
         end
       end
     end
+
+    # Called if resuce from git exception
     def git_rescue
       @logger.error "Branch or ref does not exist"
       @logger.error e.message
