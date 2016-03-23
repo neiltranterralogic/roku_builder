@@ -69,8 +69,6 @@ module RokuBuilder
       ]
     end
 
-    private
-
     # Validates the roku config config structure
     # @param codes [Array] array of error codes
     # @param config [Hash] roku config object
@@ -79,6 +77,7 @@ module RokuBuilder
       codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
       codes.push(DEVICE_DEFAULT_BAD) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
     end
+    private_class_method :validate_device_structure
 
     # Validates the roku config project structure
     # @param codes [Array] array of error codes
@@ -89,6 +88,7 @@ module RokuBuilder
       codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
       codes.push(PROJECTS_DEFAULT_BAD) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
     end
+    private_class_method :validate_project_structure
 
     # Validates a roku config device
     # @param codes [Array] array of error codes
@@ -104,6 +104,7 @@ module RokuBuilder
       codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == "<password>"
       codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == ""
     end
+    private_class_method :validate_device
 
     # Validates a roku config project
     # @param codes [Array] array of error codes
@@ -119,5 +120,6 @@ module RokuBuilder
         codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
       }
     end
+    private_class_method :validate_project
   end
 end

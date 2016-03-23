@@ -99,6 +99,8 @@ class KeyerTest < Minitest::Test
     faraday.expect(:request, nil, [:url_encoded])
     faraday.expect(:adapter, nil, [Faraday.default_adapter])
 
+    # This test fails with SEED=21894 due to the random number generator
+    # spitting out the same number twice
     dev_id = Proc.new { Random.rand(100) }
     keyer = RokuBuilder::Keyer.new(**device_config)
     key_changed = nil

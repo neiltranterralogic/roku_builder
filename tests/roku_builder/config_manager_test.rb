@@ -99,10 +99,9 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "ip:192.168.0.200",
-      device: :roku,
-      project: nil,
-      stage: nil,
+      options: {edit_params: "ip:192.168.0.200",
+        device: :roku,
+      },
       logger: logger
     }
     new_config = good_config
@@ -123,10 +122,7 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "user:new_user",
-      device: "roku",
-      project: nil,
-      stage: nil,
+      options: {edit_params: "user:new_user"},
       logger: logger
     }
     new_config = good_config
@@ -147,10 +143,7 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "password:new_password",
-      device: nil,
-      project: nil,
-      stage: nil,
+      options: {edit_params: "password:new_password"},
       logger: logger
     }
     new_config = good_config
@@ -171,10 +164,9 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "app_name:new name",
-      device: nil,
-      project: :project1,
-      stage: nil,
+      options: {edit_params: "app_name:new name",
+        project: :project1
+      },
       logger: logger
     }
     new_config = good_config
@@ -195,10 +187,9 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "directory:new/directory/path",
-      device: nil,
-      project: "project1",
-      stage: nil,
+      options: {edit_params: "directory:new/directory/path",
+        project: :project1
+      },
       logger: logger
     }
     new_config = good_config
@@ -219,10 +210,9 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "branch:new-branch",
-      device: nil,
-      project: nil,
-      stage: :production,
+      options: {edit_params: "branch:new-branch",
+        stage: :production
+      },
       logger: logger
     }
     new_config = good_config
@@ -243,10 +233,7 @@ class ConfigManagerTest < Minitest::Test
     config_path = "config/file/path"
     args = {
       config: config_path,
-      options: "branch:new-branch",
-      device: nil,
-      project: nil,
-      stage: nil,
+      options: {edit_params: "branch:new-branch"},
       logger: logger
     }
     new_config = good_config

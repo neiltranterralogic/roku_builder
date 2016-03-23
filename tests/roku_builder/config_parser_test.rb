@@ -15,6 +15,5 @@ class ConfigParserTest < Minitest::Test
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
     assert_equal "/dev/null", configs[:manifest_config][:root_dir]
-    assert_equal logger, configs[:manifest_config][:logger]
   end
 end

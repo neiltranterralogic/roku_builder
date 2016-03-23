@@ -40,8 +40,6 @@ module RokuBuilder
       return [SUCCESS, configs]
     end
 
-    private
-
     # Pick or choose the project being used
     # @param config [Hash] The loaded config hash
     # @param options [Hash] The options hash
@@ -65,6 +63,7 @@ module RokuBuilder
         end
       end
     end
+    private_class_method :setup_project
 
     # Setup the out folder/file options
     # @param options [Hash] The options hash
@@ -82,6 +81,7 @@ module RokuBuilder
         options[:out_folder] = "/tmp"
       end
     end
+    private_class_method :setup_outfile
 
     # Setup the project config with the chosen project
     # @param config [Hash] The loaded config hash
@@ -104,6 +104,7 @@ module RokuBuilder
       end
       project_config
     end
+    private_class_method :setup_project_config
 
     # Setup config hashes for sideloading
     # @param configs [Hash] The parsed configs hash
@@ -127,6 +128,7 @@ module RokuBuilder
         files: configs[:project_config][:files]
       }
     end
+    private_class_method :setup_sideload_config
 
     # Setup config hashes for packaging
     # @param configs [Hash] The parsed configs hash
@@ -151,6 +153,7 @@ module RokuBuilder
         }
       end
     end
+    private_class_method :setup_package_config
 
     # Setup other configs
     # @param configs [Hash] The parsed configs hash
@@ -159,8 +162,7 @@ module RokuBuilder
     def self.setup_simple_configs(configs:, options:, logger:)
       # Create Manifest Config
       configs[:manifest_config] = {
-        root_dir: configs[:project_config][:directory],
-        logger: logger
+        root_dir: configs[:project_config][:directory]
       }
       # Create Deeplink Config
       configs[:deeplink_config] ={options: options[:deeplink_options]}
@@ -185,5 +187,6 @@ module RokuBuilder
         configs[:screen_config] = {type: options[:screen].to_sym}
       end
     end
+    private_class_method :setup_simple_configs
   end
 end

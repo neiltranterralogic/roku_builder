@@ -12,14 +12,14 @@ class ControllerCommandsTest < Minitest::Test
     # Test Success
     loader.expect(:sideload, true, [configs[:sideload_config]])
     RokuBuilder::Loader.stub(:new, loader) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
 
     # Test Failure
     loader.expect(:sideload, false, [configs[:sideload_config]])
     RokuBuilder::Loader.stub(:new, loader) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::FAILED_SIDELOAD, code
 
@@ -48,7 +48,7 @@ class ControllerCommandsTest < Minitest::Test
       RokuBuilder::Loader.stub(:new, loader) do
         RokuBuilder::Packager.stub(:new, packager) do
           RokuBuilder::Inspector.stub(:new, inspector) do
-            code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+            code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
           end
         end
       end
@@ -83,7 +83,7 @@ class ControllerCommandsTest < Minitest::Test
       RokuBuilder::Loader.stub(:new, loader) do
         RokuBuilder::Packager.stub(:new, packager) do
           RokuBuilder::Inspector.stub(:new, inspector) do
-            code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+            code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
           end
         end
       end
@@ -107,7 +107,7 @@ class ControllerCommandsTest < Minitest::Test
     loader.expect(:build, "/tmp/build", [configs[:build_config]])
     RokuBuilder::Loader.stub(:new, loader) do
       RokuBuilder::ManifestManager.stub(:build_version, "1") do
-        code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
       end
     end
     assert_equal RokuBuilder::SUCCESS, code
@@ -125,7 +125,7 @@ class ControllerCommandsTest < Minitest::Test
     mock.expect(:call, "2", [configs[:manifest_config]])
     RokuBuilder::ManifestManager.stub(:build_version, mock) do
       RokuBuilder::ManifestManager.stub(:update_build, mock) do
-        code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
       end
     end
     mock.verify
@@ -142,7 +142,7 @@ class ControllerCommandsTest < Minitest::Test
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     mock.expect(:link, "true", [configs[:deeplink_config]])
     RokuBuilder::Linker.stub(:new, mock) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     mock.verify
     assert_equal RokuBuilder::SUCCESS, code
@@ -158,7 +158,7 @@ class ControllerCommandsTest < Minitest::Test
     code = nil
     RokuBuilder::Loader.stub(:new, loader) do
       RokuBuilder::ManifestManager.stub(:build_version, "1") do
-        code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
       end
     end
     assert_equal RokuBuilder::SUCCESS, code
@@ -175,7 +175,7 @@ class ControllerCommandsTest < Minitest::Test
     code = nil
     RokuBuilder::Monitor.stub(:new, monitor) do
       RokuBuilder::ManifestManager.stub(:build_version, "1") do
-        code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
       end
     end
     assert_equal RokuBuilder::SUCCESS, code
@@ -191,7 +191,7 @@ class ControllerCommandsTest < Minitest::Test
     navigator.expect(:nav, true, [configs[:navigate_config]])
     code = nil
     RokuBuilder::Navigator.stub(:new, navigator) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
@@ -206,7 +206,7 @@ class ControllerCommandsTest < Minitest::Test
     navigator.expect(:nav, nil, [configs[:navigate_config]])
     code = nil
     RokuBuilder::Navigator.stub(:new, navigator) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::FAILED_NAVIGATING, code
     navigator.verify
@@ -221,7 +221,7 @@ class ControllerCommandsTest < Minitest::Test
     navigator.expect(:screen, true, [configs[:screen_config]])
     code = nil
     RokuBuilder::Navigator.stub(:new, navigator) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
@@ -236,7 +236,7 @@ class ControllerCommandsTest < Minitest::Test
     navigator.expect(:screens, true)
     code = nil
     RokuBuilder::Navigator.stub(:new, navigator) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
@@ -251,7 +251,7 @@ class ControllerCommandsTest < Minitest::Test
     navigator.expect(:type, true, [configs[:text_config]])
     code = nil
     RokuBuilder::Navigator.stub(:new, navigator) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     navigator.verify
@@ -266,7 +266,7 @@ class ControllerCommandsTest < Minitest::Test
     tester.expect(:run_tests, true, [configs[:test_config]])
     code = nil
     RokuBuilder::Tester.stub(:new, tester) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     tester.verify
@@ -281,7 +281,7 @@ class ControllerCommandsTest < Minitest::Test
     inspector.expect(:screencapture, true, [configs[:screencapture_config]])
     code = nil
     RokuBuilder::Inspector.stub(:new, inspector) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::SUCCESS, code
     inspector.verify
@@ -296,7 +296,7 @@ class ControllerCommandsTest < Minitest::Test
     inspector.expect(:screencapture, false, [configs[:screencapture_config]])
     code = nil
     RokuBuilder::Inspector.stub(:new, inspector) do
-      code = RokuBuilder::Controller.execute_commands(options: options, config: config, configs: configs, logger: logger)
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
     assert_equal RokuBuilder::FAILED_SCREENCAPTURE, code
     inspector.verify

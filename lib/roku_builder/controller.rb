@@ -7,7 +7,7 @@ module RokuBuilder
     # @param options [Hash] The options hash
     def self.run(options:)
       logger = Logger.new(STDOUT)
-      logger.formatter = proc {|severity, datetime, progname, msg|
+      logger.formatter = proc {|severity, datetime, _progname, msg|
         "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
       }
       if options[:debug]
@@ -19,7 +19,7 @@ module RokuBuilder
       end
 
       # Validate Options
-      options_code = validate_options(options: options, logger: logger)
+      options_code = validate_options(options: options)
       ErrorHandler.handle_options_codes(options_code: options_code, logger: logger)
 
       # Configure Gem
@@ -39,39 +39,67 @@ module RokuBuilder
       ErrorHandler.handle_command_codes(command_code: command_code, logger: logger)
     end
 
-    protected
-
-    # Validates the commands
+    # Validates the user options
     # @param options [Hash] The options hash
     # @return [Integer] Status code for command validation
-    # @param logger [Logger] system logger
-    def self.validate_options(options:, logger:)
-      commands = options.keys & self.commands
-      return EXTRA_COMMANDS if commands.count > 1
-      return NO_COMMANDS if commands.count < 1
-      sources = options.keys & self.sources
-      return EXTRA_SOURCES if sources.count > 1
-      if (options.keys & self.source_commands).count == 1
-        return NO_SOURCE unless sources.count == 1
+    def self.validate_options(options:)
+      command_result = validate_command_options(options: options)
+      return command_result unless command_result == VALID
+      source_result = validate_source_options(options: options)
+      return source_result unless source_result == VALID
+      combination_result = validate_option_combinations(options: options)
+      return combination_result
+    end
+    private_class_method :validate_options
+
+    # Validates use of command options
+    # @param options [Hash] The options hash
+    # @return [Integer] Status code for command validation
+    def self.validate_command_options(options:)
+      all_commands = options.keys & commands
+      return EXTRA_COMMANDS if all_commands.count > 1
+      return NO_COMMANDS if all_commands.count < 1
+      VALID
+    end
+    private_class_method :validate_command_options
+
+    # Validates use of source options
+    # @param options [Hash] The options hash
+    # @return [Integer] Status code for command validation
+    def self.validate_source_options(options:)
+      all_sources = options.keys & sources
+      return EXTRA_SOURCES if all_sources.count > 1
+      if (options.keys & source_commands).count == 1
+        return NO_SOURCE unless all_sources.count == 1
       end
-      if sources.include?(:current)
+      VALID
+    end
+    private_class_method :validate_source_options
+
+    # Validates proper option combinations
+    # @param options [Hash] The options hash
+    # @return [Integer] Status code for command validation
+    def self.validate_option_combinations(options:)
+      all_sources = options.keys & sources
+      if all_sources.include?(:current)
         return BAD_CURRENT unless options[:build] or options[:sideload]
       end
       if options[:in]
         return BAD_IN_FILE unless options[:sideload]
       end
       if options[:deeplink]
-        return BAD_DEEPLINK if !options[:deeplink_options] or options[:deeplink_options].chomp == ""
+        return BAD_DEEPLINK if options[:deeplink_options].to_s.empty?
       end
-      return VALID
+      VALID
     end
+    private_class_method :validate_option_combinations
 
     # Run commands
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
     def self.execute_commands(options:, config:, configs:, logger:)
-      command = (self.commands & options.keys).first
+      command = (commands & options.keys).first
       if ControllerCommands.simple_commands.keys.include?(command)
         params = ControllerCommands.simple_commands[command]
         params[:configs] = configs
@@ -94,6 +122,7 @@ module RokuBuilder
         ControllerCommands.send(command, args)
       end
     end
+    private_class_method :execute_commands
 
     # Ensure that the selected device is accessable
     # @param options [Hash] The options hash
@@ -115,6 +144,7 @@ module RokuBuilder
       }
       return [NO_DEVICES, nil]
     end
+    private_class_method :check_devices
 
     # List of command options
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
@@ -123,18 +153,21 @@ module RokuBuilder
         :navigate, :text, :build, :monitor, :update, :screencapture, :screen,
         :screens]
     end
+    private_class_method :commands
 
     # List of source options
     # @return [Array<Symbol>] List of source symbols that can be used in the options hash
     def self.sources
       [:ref, :set_stage, :working, :current]
     end
+    private_class_method :sources
 
     # List of commands requiring a source option
     # @return [Array<Symbol>] List of command symbols that require a source in the options hash
     def self.source_commands
       [:sideload, :package, :test, :build]
     end
+    private_class_method :source_commands
 
 
     # Configure the gem
@@ -154,12 +187,13 @@ module RokuBuilder
           FileUtils.copy(source_config, target_config)
         end
         if options[:edit_params]
-          ConfigManager.edit_config(config: target_config, options: options[:edit_params], device: options[:device], project: options[:project], stage: options[:stage], logger: logger)
+          ConfigManager.edit_config(config: target_config, options: options, logger: logger)
         end
         return SUCCESS
       end
       nil
     end
+    private_class_method :configure
 
     # Run a system command
     # @param command [String] The command to be run

@@ -62,31 +62,45 @@ module RokuBuilder
     # @param project [String] which project to use
     # @param stage[String] which stage to use
     # @return [Boolean] success
-    def self.edit_config(config:, options:, device:, project:, stage:, logger:)
+    def self.edit_config(config:, options:, logger:)
       config_object = get_config(config: config, logger: logger)
       return false unless config_object
-      project = project.to_sym if project
-      project = config_object[:projects][:default] unless project
-      device = device.to_sym if device
-      device = config_object[:devices][:default] unless device
-      stage = stage.to_sym if stage
-      stage = :production unless stage
-      changes = Util.options_parse(options: options)
-      changes.each {|key,value|
-        if [:ip, :user, :password].include?(key)
-          config_object[:devices][device][key] = value
-        elsif [:directory, :app_name].include?(key) #:folders, :files
-          config_object[:projects][project][key] = value
-        elsif [:branch].include?(key)
-          config_object[:projects][project][:stages][stage][key] = value
-        end
+      project = options[:project].to_sym if options[:project]
+      project = config_object[:projects][:default] unless options[:project]
+      device = options[:device].to_sym if options[:device]
+      device = config_object[:devices][:default] unless options[:device]
+      stage = options[:stage].to_sym if options[:stage]
+      stage = :production unless options[:stage]
+      state = {
+        project: project,
+        device: device,
+        stage: stage
       }
+      apply_options(config_object: config_object, options: options[:edit_params], state: state)
       config_string = JSON.pretty_generate(config_object)
       file = File.open(config, "w")
       file.write(config_string)
       file.close
       return true
     end
+
+    # Apply the changes in the options string to the config object
+    # @param config_object [Hash] The config loaded from file
+    # @param options [String] The string of options passed in by the user
+    # @param state [Hash] The state of the config the user is editing
+    def self.apply_options(config_object:, options:, state:)
+      changes = Util.options_parse(options: options)
+      changes.each {|key,value|
+        if [:ip, :user, :password].include?(key)
+          config_object[:devices][state[:device]][key] = value
+        elsif [:directory, :app_name].include?(key) #:folders, :files
+          config_object[:projects][state[:project]][key] = value
+        elsif [:branch].include?(key)
+          config_object[:projects][state[:project]][:stages][state[:stage]][key] = value
+        end
+      }
+    end
+    private_class_method :apply_options
 
     # Update the intermeidate configs
     # @param configs [Hash] Intermeidate configs hash
