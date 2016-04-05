@@ -40,13 +40,17 @@ module RokuBuilder
       }
       running = true
       while running
-        @logger.info "Q to exit"
-        command = gets.chomp
-        if command == "q"
-          thread.exit
-          running = false
-        else
-          thread[:connection].puts(command)
+        begin
+          @logger.info "Q to exit"
+          command = gets.chomp
+          if command == "q"
+            thread.exit
+            running = false
+          else
+            thread[:connection].puts(command)
+          end
+        rescue SystemExit, Interrupt
+          thread[:connection].puts("\C-c")
         end
       end
     end
