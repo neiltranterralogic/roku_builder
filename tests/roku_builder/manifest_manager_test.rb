@@ -31,4 +31,12 @@ class ManifestManagerTest < Minitest::Test
     assert_equal "010101.1", build_version
     FileUtils.rm(File.join(root_dir, "manifest"))
   end
+
+  def test_manifest_manager_update_title
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "manifest_manager_test")
+    FileUtils.cp(File.join(root_dir, "manifest_template"), File.join(root_dir, "manifest"))
+    RokuBuilder::ManifestManager.update_title(root_dir: root_dir, title: "New Title")
+    assert FileUtils.compare_file(File.join(root_dir, "manifest"), File.join(root_dir, "updated_title_manifest"))
+    FileUtils.rm(File.join(root_dir, "manifest"))
+  end
 end

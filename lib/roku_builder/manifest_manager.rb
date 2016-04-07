@@ -58,5 +58,28 @@ module RokuBuilder
       end
       build_version
     end
+
+    # Update the title in the app manifest
+    # @param title [String] The new app title
+    def self.update_title(root_dir:, title:)
+      temp_file = Tempfile.new('manifest')
+      path = File.join(root_dir, 'manifest')
+      begin
+        File.open(path, 'r') do |file|
+          file.each_line do |line|
+            if line.include?("title=")
+              temp_file.puts "title=#{title}"
+            else
+              temp_file.puts line
+            end
+          end
+        end
+        temp_file.rewind
+        FileUtils.cp(temp_file.path, path)
+      ensure
+        temp_file.close
+        temp_file.unlink
+      end
+    end
   end
 end
