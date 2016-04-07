@@ -3,6 +3,12 @@ module RokuBuilder
   # Load/Unload/Build roku applications
   class Loader < Util
 
+
+    # Set the root directory
+    def init(root_dir: nil)
+      @root_dir = root_dir
+    end
+
     # Sideload an app onto a roku device
     # @param root_dir [String] Path to the root directory of the roku app
     # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
@@ -10,19 +16,18 @@ module RokuBuilder
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Build version on success, nil otherwise
-    def sideload(root_dir:, branch: nil, update_manifest: false, folders: nil, files: nil)
-      @root_dir = root_dir
+    def sideload(branch: nil, update_manifest: false, folders: nil, files: nil)
       result = nil
       begin
         git_switch_to(branch: branch)
         # Update manifest
         build_version = ""
         if update_manifest
-          build_version = ManifestManager.update_build(root_dir: root_dir)
+          build_version = ManifestManager.update_build(root_dir: @root_dir)
         else
-          build_version = ManifestManager.build_version(root_dir: root_dir)
+          build_version = ManifestManager.build_version(root_dir: @root_dir)
         end
-        outfile = build(root_dir: root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
+        outfile = build(root_dir: @root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
         path = "/plugin_install"
         # Connect to roku and upload file
         conn = multipart_connection
@@ -53,16 +58,15 @@ module RokuBuilder
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Path of the build
-    def build(root_dir:, branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
-      @root_dir = root_dir
+    def build(branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
       begin
         git_switch_to(branch: branch)
-        build_version = ManifestManager.build_version(root_dir: root_dir, logger: @logger) unless build_version
+        build_version = ManifestManager.build_version(root_dir: @root_dir, logger: @logger) unless build_version
         unless folders
-          folders = Dir.entries(root_dir).select {|entry| File.directory? File.join(root_dir, entry) and !(entry =='.' || entry == '..') }
+          folders = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
         end
         unless files
-          files = Dir.entries(root_dir).select {|entry| File.file? File.join(root_dir, entry)}
+          files = Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
         end
         outfile = "/tmp/build_#{build_version}.zip" unless outfile
         File.delete(outfile) if File.exist?(outfile)

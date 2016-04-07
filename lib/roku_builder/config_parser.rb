@@ -11,7 +11,7 @@ module RokuBuilder
     # @return [Integer] Return code
     # @return [Hash] Intermeidate configs
     def self.parse_config(options:, config:, logger:)
-      configs = {}
+      configs = {init_params: {}}
       #set device
       unless options[:device]
         options[:device] = config[:devices][:default]
@@ -114,7 +114,6 @@ module RokuBuilder
       root_dir = configs[:project_config][:directory]
       # Create Sideload Config
       configs[:sideload_config] = {
-        root_dir: root_dir,
         branch: branch,
         update_manifest: options[:update_manifest],
         folders: configs[:project_config][:folders],
@@ -122,10 +121,12 @@ module RokuBuilder
       }
       # Create Build Config
       configs[:build_config] = {
-        root_dir: root_dir,
         branch: branch,
         folders: configs[:project_config][:folders],
         files: configs[:project_config][:files]
+      }
+      configs[:init_params][:loader] = {
+        root_dir: root_dir
       }
     end
     private_class_method :setup_sideload_config

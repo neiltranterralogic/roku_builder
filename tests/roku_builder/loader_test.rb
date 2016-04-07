@@ -12,10 +12,10 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: root_dir}
     }
     loader_config = {
-      root_dir: root_dir,
       folders: ["source"],
       files: ["manifest"]
     }
@@ -70,10 +70,10 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: root_dir}
     }
     loader_config = {
-      root_dir: root_dir,
       update_manifest: true,
       folders: ["source"],
       files: ["manifest"]
@@ -125,10 +125,10 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: root_dir}
     }
     build_config = {
-      root_dir: root_dir,
       folders: ["source"],
       files: ["manifest"]
     }
@@ -150,11 +150,10 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: root_dir}
     }
-    build_config = {
-      root_dir: root_dir,
-    }
+    build_config = {}
     loader = RokuBuilder::Loader.new(**device_config)
     outfile = nil
     RokuBuilder::ManifestManager.stub(:build_version, "build_version") do
@@ -177,7 +176,8 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: "/dev/null"}
     }
     payload = {
       mysubmit: "Delete",
@@ -219,7 +219,8 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {root_dir: "/dev/null"}
     }
     payload = {
       mysubmit: "Delete",

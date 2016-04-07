@@ -125,3 +125,15 @@ module RokuBuilder
   # Failed to capture screen
   FAILED_SCREENCAPTURE = 12
 end
+
+class String
+  def underscore
+    word = self.dup
+    word.gsub!(/::/, '/')
+    word.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+    word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+    word.tr!("-", "_")
+    word.downcase!
+    word
+  end
+end

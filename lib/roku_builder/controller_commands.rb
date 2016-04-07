@@ -99,7 +99,12 @@ module RokuBuilder
     # @param failure [Integer] failure code to return on failure if not nil
     # @return [Integer] Success of failure code
     def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil)
-      instance = klass.new(**configs[:device_config])
+      config = configs[:device_config].dup
+      key = klass.to_s.underscore.to_sym
+      if configs[:init_params][key]
+        config[:init_params] = configs[:init_params][key]
+      end
+      instance = klass.new(**config)
       if config_key
         success = instance.send(method, configs[config_key])
       else

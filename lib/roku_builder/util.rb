@@ -9,7 +9,7 @@ module RokuBuilder
     # @param ip [String] IP address of roku device
     # @param user [String] Username for roku device
     # @param password [String] Password for roku device
-    def initialize(ip:, user:, password:, logger:)
+    def initialize(ip:, user:, password:, logger:, init_params: nil)
       @device_config = {
         ip: ip,
         user: user,
@@ -20,7 +20,11 @@ module RokuBuilder
       @dev_password = password
       @url = "http://#{@roku_ip_address}"
       @logger = logger
-      init()
+      if init_params
+        init(**init_params)
+      else
+        init
+      end
     end
 
     # Second initializer to be overwriten
