@@ -8,14 +8,16 @@ class LoaderTest < Minitest::Test
     response = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
+    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
+      logger: logger,
       init_params: {root_dir: root_dir}
     }
     loader_config = {
+      stage: {method: :working, root_dir: root_dir, logger: logger},
       folders: ["source"],
       files: ["manifest"]
     }
@@ -66,14 +68,16 @@ class LoaderTest < Minitest::Test
     response = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
+    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
+      logger: logger,
       init_params: {root_dir: root_dir}
     }
     loader_config = {
+      stage: {method: :working, root_dir: root_dir, logger: logger},
       update_manifest: true,
       folders: ["source"],
       files: ["manifest"]
@@ -121,14 +125,16 @@ class LoaderTest < Minitest::Test
 
   def test_loader_build_defining_folder_and_files
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
+    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
+      logger: logger,
       init_params: {root_dir: root_dir}
     }
     build_config = {
+      stage: {method: :working, root_dir: root_dir, logger: logger},
       folders: ["source"],
       files: ["manifest"]
     }
@@ -146,14 +152,15 @@ class LoaderTest < Minitest::Test
   end
   def test_loader_build_all_contents
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
+    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
+      logger: logger,
       init_params: {root_dir: root_dir}
     }
-    build_config = {}
+    build_config = {stage: {method: :working, root_dir: root_dir, logger: logger}}
     loader = RokuBuilder::Loader.new(**device_config)
     outfile = nil
     RokuBuilder::ManifestManager.stub(:build_version, "build_version") do

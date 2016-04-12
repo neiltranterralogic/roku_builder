@@ -47,6 +47,12 @@ module RokuBuilder
         config = JSON.parse(File.open(config).read, {symbolize_names: true})
         config[:devices][:default] = config[:devices][:default].to_sym
         config[:projects][:default] = config[:projects][:default].to_sym
+        config[:projects].each_pair do |key,value|
+          next if key == :default
+          if value[:stage_method]
+            value[:stage_method] = value[:stage_method].to_sym
+          end
+        end
         config
       rescue JSON::ParserError
         logger.fatal "Config file is not valid JSON"

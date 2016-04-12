@@ -11,15 +11,15 @@ module RokuBuilder
 
     # Sideload an app onto a roku device
     # @param root_dir [String] Path to the root directory of the roku app
-    # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
+    # @param stage [Hash] stage to use for sideloading.
     # @param update_manifest [Boolean] Flag to update the manifest file before sideloading. Default: false
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Build version on success, nil otherwise
-    def sideload(branch: nil, update_manifest: false, folders: nil, files: nil)
+    def sideload(stage:, update_manifest: false, folders: nil, files: nil)
       result = nil
-      begin
-        git_switch_to(branch: branch)
+      stager = Stager.new(**stage)
+      if stager.stage
         # Update manifest
         build_version = ""
         if update_manifest
@@ -27,7 +27,7 @@ module RokuBuilder
         else
           build_version = ManifestManager.build_version(root_dir: @root_dir)
         end
-        outfile = build(root_dir: @root_dir, branch: branch, build_version: build_version, folders: folders, files: files)
+        outfile = build(stage: stage, build_version: build_version, folders: folders, files: files)
         path = "/plugin_install"
         # Connect to roku and upload file
         conn = multipart_connection
@@ -39,28 +39,23 @@ module RokuBuilder
         # Cleanup
         File.delete(outfile)
         result = build_version if response.status==200 and response.body=~/Install Success/
-        git_switch_from(branch: branch)
-      rescue Git::GitExecuteError
-        git_rescue
-      ensure
-        @current_dir ||= Dir.pwd
-        Dir.chdir(@current_dir) unless @current_dir == Dir.pwd
       end
+      stager.unstage
       result
     end
 
 
     # Build an app to sideload later
     # @param root_dir [String] Path to the root directory of the roku app
-    # @param branch [String] Branch of the git repository to sideload. Pass nil to use working directory. Default: nil
+    # @param stage [Hash] stage to use for sideloading.
     # @param build_version [String] Version to assigne to the build. If nil will pull the build version form the manifest. Default: nil
     # @param outfile [String] Path for the output file. If nil will create a file in /tmp. Default: nil
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Path of the build
-    def build(branch: nil, build_version: nil, outfile: nil, folders: nil, files: nil)
-      begin
-        git_switch_to(branch: branch)
+    def build(stage:, build_version: nil, outfile: nil, folders: nil, files: nil)
+      stager = Stager.new(**stage)
+      if stager.stage
         build_version = ManifestManager.build_version(root_dir: @root_dir, logger: @logger) unless build_version
         unless folders
           folders = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
@@ -82,13 +77,8 @@ module RokuBuilder
         # Add file to zip
         writeEntries(@root_dir, files, "", io)
         io.close()
-        git_switch_from(branch: branch)
-      rescue Git::GitExecuteError
-        git_rescue
-      ensure
-        @current_dir ||= Dir.pwd
-        Dir.chdir(@current_dir) unless @current_dir == Dir.pwd
       end
+      stager.unstage
       outfile
     end
 
@@ -128,38 +118,6 @@ module RokuBuilder
           io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
         end
       }
-    end
-
-    # Switch to the correct branch
-    def git_switch_to(branch:)
-      if branch
-        @current_dir = Dir.pwd
-        @git ||= Git.open(@root_dir)
-        if branch != @git.current_branch
-          Dir.chdir(@root_dir)
-          @current_branch = @git.current_branch
-          @stash = @git.branch.stashes.save("roku-builder-temp-stash")
-          @git.checkout(branch)
-        end
-      end
-    end
-
-    # Switch back to the previous branch
-    def git_switch_from(branch:)
-      if branch
-        @git ||= Git.open(@root_dir)
-        if @git and @current_branch
-          @git.checkout(@current_branch)
-          @git.branch.stashes.apply if @stash
-        end
-      end
-    end
-
-    # Called if resuce from git exception
-    def git_rescue
-      @logger.error "Branch or ref does not exist"
-      @logger.error e.message
-      @logger.error e.backtrace
     end
   end
 end

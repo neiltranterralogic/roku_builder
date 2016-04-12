@@ -100,7 +100,7 @@ module RokuBuilder
     # @return [Integer] Success of failure code
     def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil)
       config = configs[:device_config].dup
-      key = klass.to_s.underscore.to_sym
+      key = klass.to_s.split("::")[-1].underscore.to_sym
       if configs[:init_params][key]
         config[:init_params] = configs[:init_params][key]
       end

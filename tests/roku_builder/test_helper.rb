@@ -29,6 +29,7 @@ def good_config
         folders: ["resources","source"],
         files: ["manifest"],
         app_name: "<app name>",
+        stage_method: :git,
         stages:{
           production: {
             branch: "production",

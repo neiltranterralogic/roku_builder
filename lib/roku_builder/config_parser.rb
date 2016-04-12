@@ -27,14 +27,10 @@ module RokuBuilder
       project_config = setup_project_config(config: config, options: options)
       return [UNKNOWN_PROJECT, nil, nil] unless project_config
       configs[:project_config] = project_config
-      stage = options[:stage].to_sym
-      return [UNKNOWN_STAGE, nil, nil] unless project_config[:stages][stage]
-      configs[:stage] = stage
-      branch = project_config[:stages][stage][:branch]
-      branch = options[:ref] if options[:ref]
-      branch = nil if options[:current]
-      branch = nil if options[:working]
-      setup_sideload_config(configs: configs, options: options, branch: branch)
+      stage_config, stage = setup_stage_config(configs: configs, options: options, logger: logger)
+      return [UNKNOWN_STAGE, nil, nil] unless stage
+      configs[:stage_config] = stage_config
+      setup_sideload_config(configs: configs, options: options)
       setup_package_config(configs: configs, options: options, stage: stage)
       setup_simple_configs(configs: configs, options: options, logger: logger)
       return [SUCCESS, configs]
@@ -97,31 +93,59 @@ module RokuBuilder
           directory: pwd,
           folders: nil,
           files: nil,
-          stages: { production: { branch: nil } }
+          stage_method: :current
         }
       else
         project_config = config[:projects][options[:project].to_sym]
+        project_config[:stage_method] = :working if options[:working]
       end
       project_config
     end
     private_class_method :setup_project_config
 
+    # Setup the project stage config
+    # @param configs [Hash] The loaded config hash
+    # @param options [Hash] The options hash
+    # @return [Hash] The stage config hash
+    def self.setup_stage_config(configs:, options:, logger:)
+      stage_config = {logger: logger}
+      stage = options[:stage].to_sym
+      project_config = configs[:project_config]
+      stage_config[:root_dir] = project_config[:directory]
+      stage_config[:method] = project_config[:stage_method]
+      stage_config[:method] ||= :git
+      case stage_config[:method]
+      when :git
+        if options[:ref]
+          stage_config[:key] = options[:ref]
+        else
+          return nil unless project_config[:stages][stage]
+          stage_config[:key] = project_config[:stages][stage][:branch]
+        end
+      when :script
+        return nil unless project_config[:stages][stage]
+        stage_config[:key] = project_config[:stages][stage][:script]
+      end
+      configs[:stage] = stage_config
+      [stage_config, stage]
+    end
+
     # Setup config hashes for sideloading
     # @param configs [Hash] The parsed configs hash
     # @param options [Hash] The options hash
     # @param branch [String] the branch to sideload
-    def self.setup_sideload_config(configs:, options:, branch:)
+    def self.setup_sideload_config(configs:, options:)
       root_dir = configs[:project_config][:directory]
       # Create Sideload Config
       configs[:sideload_config] = {
-        branch: branch,
+        stage: configs[:stage_config],
         update_manifest: options[:update_manifest],
         folders: configs[:project_config][:folders],
         files: configs[:project_config][:files]
       }
       # Create Build Config
       configs[:build_config] = {
-        branch: branch,
+        stage: configs[:stage_config],
         folders: configs[:project_config][:folders],
         files: configs[:project_config][:files]
       }

@@ -273,6 +273,8 @@ directory:
 
 ## Improvements
 
+ * Pull build number from correct stage
+ * Don't require a device for non device tasks
  * Account for missing folders or files
  * Increase testing
    * Config Unit Tests

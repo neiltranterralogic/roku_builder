@@ -16,6 +16,11 @@ module RokuBuilder
   PROJECT_MISSING_FILES     = 14
   PROJECT_FILES_BAD         = 15
   STAGE_MISSING_BRANCH      = 16
+  STAGE_MISSING_SCRIPT      = 17
+  PROJECT_STAGE_METHOD_BAD  = 18
+
+
+  MISSING_STAGE_METHOD      = -1
 
   # Validate Config File
   class ConfigValidator
@@ -39,6 +44,7 @@ module RokuBuilder
           validate_project(codes: codes, project: v)
         }
       end
+      codes.uniq!
       codes.push(0) if codes.empty?
       codes
     end
@@ -64,8 +70,11 @@ module RokuBuilder
         "A project config's folders is not an array.",
         "A project config is missing its files.",
         "A project config's files is not an array.", #15
-        "A project stage is missing its branch."
+        "A project stage is missing its branch.",
+        "A project stage is missing its script.",
+        "A project as an invalid stage method.",
         #===============WARNINGS===============#
+        "A project is missing its stage method."
       ]
     end
 
@@ -116,8 +125,11 @@ module RokuBuilder
       codes.push(PROJECT_FOLDERS_BAD) if project[:folders] and not project[:folders].is_a?(Array)
       codes.push(PROJECT_MISSING_FILES) if not project[:files]
       codes.push(PROJECT_FILES_BAD) if project[:files] and not project[:files].is_a?(Array)
+      codes.push(MISSING_STAGE_METHOD) unless project[:stage_method]
+      codes.push(PROJECT_STAGE_METHOD_BAD) unless [:git, :script, nil].include?(project[:stage_method])
       project[:stages].each {|_stage,value|
-        codes.push(STAGE_MISSING_BRANCH) if not value[:branch]
+        codes.push(STAGE_MISSING_BRANCH) if not value[:branch] and project[:stage_method] == :git
+        codes.push(STAGE_MISSING_SCRIPT) if not value[:script] and project[:stage_method] == :script
       }
     end
     private_class_method :validate_project
