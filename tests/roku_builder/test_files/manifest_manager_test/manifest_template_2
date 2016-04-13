@@ -1,2 +1,6 @@
-build_version=010101
 title=Test
+major_version=1
+minor_version=0
+build_version=010101
+mm_icon_focus_hd=pkg:/images/focus.png
+mm_icon_focus_sd=pkg:/images/focus.png

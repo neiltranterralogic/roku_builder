@@ -59,20 +59,32 @@ module RokuBuilder
       build_version
     end
 
-    # Update the title in the app manifest
-    # @param title [String] The new app title
-    def self.update_title(root_dir:, title:)
+    # Update attributes in the app manifest
+    # It will add missing attributes but not remove them
+    # @param root_dir [String] The app root directory
+    # @param attributes [Hash] The new attributes for the app manifest
+    def self.update_manifest(root_dir:, attributes:)
       temp_file = Tempfile.new('manifest')
       path = File.join(root_dir, 'manifest')
+      new_params = attributes.dup
       begin
-        File.open(path, 'r') do |file|
-          file.each_line do |line|
-            if line.include?("title=")
-              temp_file.puts "title=#{title}"
-            else
-              temp_file.puts line
+        if File.exist?(path)
+          File.open(path, 'r') do |file|
+            file.each_line do |line|
+              key = line.split("=")[0]
+              if new_params.include?(key.to_sym)
+                temp_file.puts("#{key}=#{new_params[key.to_sym]}")
+                new_params.delete(key)
+              else
+                temp_file.puts(line)
+              end
             end
           end
+        else
+          new_params = self.default_params().merge(new_params)
+        end
+        new_params.each_pair do |key, value|
+          temp_file.puts("#{key}=#{value}")
         end
         temp_file.rewind
         FileUtils.cp(temp_file.path, path)
@@ -80,6 +92,19 @@ module RokuBuilder
         temp_file.close
         temp_file.unlink
       end
+    end
+
+    # Returns the default manafest values
+    # @return [Hash] default manifest values
+    def self.default_params
+      {
+        title: "Default Title",
+        major_version: 1,
+        minor_version: 0,
+        build_version: "010101.0001",
+        mm_icon_focus_hd: "<insert hd focus icon url>",
+        mm_icon_focus_sd: "<insert sd focus icon url>"
+      }
     end
   end
 end
