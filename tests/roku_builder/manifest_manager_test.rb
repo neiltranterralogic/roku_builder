@@ -47,7 +47,7 @@ class ManifestManagerTest < Minitest::Test
     assert FileUtils.compare_file(File.join(root_dir, "manifest"), File.join(root_dir, "updated_title_manifest"))
     FileUtils.rm(File.join(root_dir, "manifest"))
   end
-  def test_manifest_manager_update_manifest
+  def test_manifest_manager_update_manifest_overwrite
     root_dir = File.join(File.dirname(__FILE__), "test_files", "manifest_manager_test")
     attrs = {
       title: "New Title",
@@ -57,6 +57,7 @@ class ManifestManagerTest < Minitest::Test
       mm_icon_focus_hd: "pkg:/images/focus1.png",
       mm_icon_focus_sd: "pkg:/images/focus2.png"
     }
+    RokuBuilder::ManifestManager.update_manifest(root_dir: root_dir, attributes: attrs)
     RokuBuilder::ManifestManager.update_manifest(root_dir: root_dir, attributes: attrs)
     assert FileUtils.compare_file(File.join(root_dir, "manifest"), File.join(root_dir, "updated_title_manifest"))
     FileUtils.rm(File.join(root_dir, "manifest"))

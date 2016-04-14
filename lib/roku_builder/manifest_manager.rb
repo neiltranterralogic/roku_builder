@@ -74,7 +74,7 @@ module RokuBuilder
               key = line.split("=")[0]
               if new_params.include?(key.to_sym)
                 temp_file.puts("#{key}=#{new_params[key.to_sym]}")
-                new_params.delete(key)
+                new_params.delete(key.to_sym)
               else
                 temp_file.puts(line)
               end
