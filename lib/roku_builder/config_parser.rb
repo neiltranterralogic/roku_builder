@@ -25,7 +25,7 @@ module RokuBuilder
       return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
       configs[:device_config][:logger] = logger
       project_config = setup_project_config(config: config, options: options)
-      return [UNKNOWN_PROJECT, nil, nil] unless project_config
+      return [project_config, nil, nil] unless project_config.class == Hash
       configs[:project_config] = project_config
       stage_config, stage = setup_stage_config(configs: configs, options: options, logger: logger)
       return [UNKNOWN_STAGE, nil, nil] unless stage
@@ -88,7 +88,7 @@ module RokuBuilder
       project_config = {}
       if options[:current]
         pwd =  Controller.system(command: "pwd")
-        return [MISSING_MANIFEST, nil, nil] unless File.exist?(File.join(pwd, "manifest"))
+        return MISSING_MANIFEST unless File.exist?(File.join(pwd, "manifest"))
         project_config = {
           directory: pwd,
           folders: nil,
@@ -97,6 +97,7 @@ module RokuBuilder
         }
       else
         project_config = config[:projects][options[:project].to_sym]
+        return UNKNOWN_PROJECT unless project_config
         project_config[:stage_method] = :working if options[:working]
       end
       project_config

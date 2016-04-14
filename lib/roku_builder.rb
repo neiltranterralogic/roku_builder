@@ -1,6 +1,7 @@
 require "logger"
 require "faraday"
 require "faraday/digestauth"
+require "pathname"
 #controller
 require "net/ping"
 #loader
