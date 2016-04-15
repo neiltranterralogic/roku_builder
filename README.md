@@ -67,11 +67,15 @@ configuration options:
 
  * directory: full path of the git repository the houses the roku app
  * app_name: Name used when packaging the app
+ * stage_method: Which method to use for switching app stages (git or script)
  * stages: a hash of stage objects
 
  Each stage has the following options:
 
- * branch: name of the branch for the given stage
+ * branch: name of the branch for the given stage (if stage_method = git)
+ * script: scripts to use to stage the app (if stage_method = script)
+ * script -> stage: script run form the app root directory to stage app
+ * script -> unstage: script run form the app root directory to unstage app
  * key: has of key options for signing a package
  * key -> keyed_pkg: path to a pkg file that has been signed
  * key -> password: password for the signed pkg
@@ -240,15 +244,29 @@ This path will be expanded so you do not have to use the full path
 ## Projects
 
 The project used in the above examples is a smart default. If you are in a
-project directory then it will use that project. If you not then it will use
-the defualt that you have defined in your config. You can define what project
-you want the command to be run on using the --project option:
+project directory then it will use that project. If you are not then it will
+use the defualt that you have defined in your config. You can define what
+project you want the command to be run on using the --project option:
 
     $ roku -lw --project project1
 
 or:
 
     $ roku -lw -P project1
+
+## Stages
+
+Each project can have any number of stages. stages can be defined in a number
+of ways. The default is to use git branches to define stages. You can setup a
+branch for each stage and the gem will automatically switch between them as
+needed. If using git stages then the gem will ensure to stash any change you
+currently have before checking out the required branch. When done it will
+switch back and unstash the changes. You can use the -w or --working options
+to avoid this.
+
+The other method of staging is script staging. This will run a script you
+define before and after performing any actions. This will let you stage your
+app anyway you like as long as it can be done via script.
 
 ## Devices
 
@@ -273,7 +291,6 @@ directory:
 
 ## Improvements
 
- * Pull build number from correct stage
  * Don't require a device for non device tasks
  * Account for missing folders or files
  * Increase testing

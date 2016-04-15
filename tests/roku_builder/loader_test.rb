@@ -17,7 +17,6 @@ class LoaderTest < Minitest::Test
       init_params: {root_dir: root_dir}
     }
     loader_config = {
-      stage: {method: :working, root_dir: root_dir, logger: logger},
       folders: ["source"],
       files: ["manifest"]
     }
@@ -77,7 +76,6 @@ class LoaderTest < Minitest::Test
       init_params: {root_dir: root_dir}
     }
     loader_config = {
-      stage: {method: :working, root_dir: root_dir, logger: logger},
       update_manifest: true,
       folders: ["source"],
       files: ["manifest"]
@@ -134,7 +132,6 @@ class LoaderTest < Minitest::Test
       init_params: {root_dir: root_dir}
     }
     build_config = {
-      stage: {method: :working, root_dir: root_dir, logger: logger},
       folders: ["source"],
       files: ["manifest"]
     }
@@ -160,7 +157,7 @@ class LoaderTest < Minitest::Test
       logger: logger,
       init_params: {root_dir: root_dir}
     }
-    build_config = {stage: {method: :working, root_dir: root_dir, logger: logger}}
+    build_config = {}
     loader = RokuBuilder::Loader.new(**device_config)
     outfile = nil
     RokuBuilder::ManifestManager.stub(:build_version, "build_version") do

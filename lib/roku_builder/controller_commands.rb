@@ -8,8 +8,6 @@ module RokuBuilder
     # @return [Hash] options to run simple commands
     def self.simple_commands
       {
-        sideload: { klass: Loader, method: :sideload, config_key: :sideload_config,
-          failure: FAILED_SIDELOAD },
         deeplink: { klass: Linker, method: :link, config_key: :deeplink_config,
           failure: FAILED_DEEPLINKING },
         delete: { klass: Loader, method: :unload },
@@ -31,37 +29,61 @@ module RokuBuilder
     def self.validate()
       SUCCESS
     end
+    # Run Sideload
+    # @param options [Hash] user options
+    # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.sideload(options:, configs:, logger:)
+      config = configs[:device_config].dup
+      config[:init_params] = configs[:init_params][:loader]
+      stager = Stager.new(**configs[:stage_config])
+      success = false
+      if stager.stage
+        loader = Loader.new(**config)
+        success = loader.sideload(**configs[:sideload_config])
+      end
+      stager.unstage
+      return FAILED_SIDELOAD unless success
+      SUCCESS
+    end
     # Run Package
     # @param options [Hash] user options
     # @param configs [Hash] parsed configs
     # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
     def self.package(options:, configs:, logger:)
+      loader_config = configs[:device_config].dup
+      loader_config[:init_params] = configs[:init_params][:loader]
       keyer = Keyer.new(**configs[:device_config])
-      loader = Loader.new(**configs[:device_config])
+      stager = Stager.new(**configs[:stage_config])
+      loader = Loader.new(**loader_config)
       packager = Packager.new(**configs[:device_config])
       inspector = Inspector.new(**configs[:device_config])
       logger.warn "Packaging working directory" if options[:working]
-      # Sideload #
-      build_version = loader.sideload(**configs[:sideload_config])
-      return FAILED_SIGNING unless build_version
-      # Key #
-      success = keyer.rekey(**configs[:key])
-      logger.info "Key did not change" unless success
-      # Package #
-      options[:build_version] = build_version
-      configs = ConfigManager.update_configs(configs: configs, options: options)
-      success = packager.package(**configs[:package_config])
-      logger.info "Signing Successful: #{configs[:package_config][:out_file]}" if success
-      return FAILED_SIGNING unless success
-      # Inspect #
-      if options[:inspect]
-        info = inspector.inspect(configs[:inspect_config])
-        logger.unknown "App Name: #{info[:app_name]}"
-        logger.unknown "Dev ID: #{info[:dev_id]}"
-        logger.unknown "Creation Date: #{info[:creation_date]}"
-        logger.unknown "dev.zip: #{info[:dev_zip]}"
+      if stager.stage
+        # Sideload #
+        build_version = loader.sideload(**configs[:sideload_config])
+        return FAILED_SIGNING unless build_version
+        # Key #
+        success = keyer.rekey(**configs[:key])
+        logger.info "Key did not change" unless success
+        # Package #
+        options[:build_version] = build_version
+        configs = ConfigManager.update_configs(configs: configs, options: options)
+        success = packager.package(**configs[:package_config])
+        logger.info "Signing Successful: #{configs[:package_config][:out_file]}" if success
+        return FAILED_SIGNING unless success
+        # Inspect #
+        if options[:inspect]
+          info = inspector.inspect(configs[:inspect_config])
+          logger.unknown "App Name: #{info[:app_name]}"
+          logger.unknown "Dev ID: #{info[:dev_id]}"
+          logger.unknown "Creation Date: #{info[:creation_date]}"
+          logger.unknown "dev.zip: #{info[:dev_zip]}"
+        end
       end
+      stager.unstage
       SUCCESS
     end
     # Run Build
@@ -71,12 +93,18 @@ module RokuBuilder
     # @return [Integer] Success or Failure Code
     def self.build(options:, configs:, logger:)
       ### Build ###
-      loader = Loader.new(**configs[:device_config])
-      build_version = ManifestManager.build_version(**configs[:manifest_config])
-      options[:build_version] = build_version
-      configs = ConfigManager.update_configs(configs: configs, options: options)
-      outfile = loader.build(**configs[:build_config])
-      logger.info "Build: #{outfile}"
+      loader_config = configs[:device_config].dup
+      loader_config[:init_params] = configs[:init_params][:loader]
+      stager = Stager.new(**configs[:stage_config])
+      loader = Loader.new(**loader_config)
+      if stager.stage
+        build_version = ManifestManager.build_version(**configs[:manifest_config])
+        options[:build_version] = build_version
+        configs = ConfigManager.update_configs(configs: configs, options: options)
+        outfile = loader.build(**configs[:build_config])
+        logger.info "Build: #{outfile}"
+      end
+      stager.unstage
       SUCCESS
     end
     # Run update
@@ -85,9 +113,13 @@ module RokuBuilder
     # @return [Integer] Success or Failure Code
     def self.update(configs:, logger:)
       ### Update ###
-      old_version = ManifestManager.build_version(**configs[:manifest_config])
-      new_version = ManifestManager.update_build(**configs[:manifest_config])
-      logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
+      stager = Stager.new(**configs[:stage_config])
+      if stager.stage
+        old_version = ManifestManager.build_version(**configs[:manifest_config])
+        new_version = ManifestManager.update_build(**configs[:manifest_config])
+        logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
+      end
+      stager.unstage
       SUCCESS
     end
 

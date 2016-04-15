@@ -29,7 +29,6 @@ module RokuBuilder
       configs[:project_config] = project_config
       stage_config, stage = setup_stage_config(configs: configs, options: options, logger: logger)
       return [UNKNOWN_STAGE, nil, nil] unless stage
-      configs[:stage_config] = stage_config
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(configs: configs, options: options, stage: stage)
       setup_simple_configs(configs: configs, options: options, logger: logger)
@@ -127,7 +126,8 @@ module RokuBuilder
         return nil unless project_config[:stages][stage]
         stage_config[:key] = project_config[:stages][stage][:script]
       end
-      configs[:stage] = stage_config
+      configs[:stage_config] = stage_config
+      configs[:stage] = stage
       [stage_config, stage]
     end
 
@@ -139,14 +139,12 @@ module RokuBuilder
       root_dir = configs[:project_config][:directory]
       # Create Sideload Config
       configs[:sideload_config] = {
-        stage: configs[:stage_config],
         update_manifest: options[:update_manifest],
         folders: configs[:project_config][:folders],
         files: configs[:project_config][:files]
       }
       # Create Build Config
       configs[:build_config] = {
-        stage: configs[:stage_config],
         folders: configs[:project_config][:folders],
         files: configs[:project_config][:files]
       }
