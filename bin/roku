@@ -59,6 +59,10 @@ OptionParser.new do |opts|
     options[:build] = true
   end
 
+  opts.on("-k", "--key", "Command: change device key") do
+    options[:key] = true
+  end
+
   opts.on("--screen SCREEN", "Command: show a screen") do |s|
     options[:screen] = s
   end

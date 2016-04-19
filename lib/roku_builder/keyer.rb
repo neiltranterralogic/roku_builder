@@ -22,6 +22,7 @@ module RokuBuilder
 
       # check key
       newId = dev_id
+      @logger.info("Key did not change") unless newId != oldId
       newId != oldId
     end
 

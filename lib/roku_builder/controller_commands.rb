@@ -17,6 +17,7 @@ module RokuBuilder
           failure: FAILED_NAVIGATING },
         screen: { klass: Navigator, method: :screen, config_key: :screen_config,
           failure: FAILED_NAVIGATING },
+        key: { klass: Keyer, method: :rekey, config_key: :key },
         screens: { klass: Navigator, method: :screens },
         text: { klass: Navigator, method: :type, config_key: :text_config },
         test: { klass: Tester, method: :run_tests, config_key: :test_config },

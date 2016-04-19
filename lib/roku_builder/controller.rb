@@ -150,7 +150,7 @@ module RokuBuilder
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
-        :navigate, :text, :build, :monitor, :update, :screencapture, :screen,
+        :navigate, :text, :build, :monitor, :update, :screencapture, :key, :screen,
         :screens]
     end
     private_class_method :commands
@@ -165,7 +165,7 @@ module RokuBuilder
     # List of commands requiring a source option
     # @return [Array<Symbol>] List of command symbols that require a source in the options hash
     def self.source_commands
-      [:sideload, :package, :test, :build]
+      [:sideload, :package, :test, :build, :key]
     end
     private_class_method :source_commands
 

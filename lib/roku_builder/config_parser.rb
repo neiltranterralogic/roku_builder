@@ -159,9 +159,11 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @param stage [Symbol] The stage to package
     def self.setup_package_config(configs:, options:, stage:)
-      if options[:package]
+      if options[:package] or options[:key]
         # Create Key Config
         configs[:key] = configs[:project_config][:stages][stage][:key]
+      end
+      if options[:package]
         # Create Package Config
         configs[:package_config] = {
           password: configs[:key][:password],
