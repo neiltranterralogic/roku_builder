@@ -39,16 +39,19 @@ module RokuBuilder
     # @param config [Hash] The loaded config hash
     # @param options [Hash] The options hash
     def self.setup_project(config:, options:)
-      if options[:current] or not options[:project]
-        path = Controller.system(command: "pwd")
+      unless options[:project]
+        path = Pathname.pwd
         project = nil
         config[:projects].each_pair {|key,value|
           if value.is_a?(Hash)
-            repo_path = Pathname.new(value[:directory]).realdirpath.to_s
-            if path.start_with?(repo_path)
-              project = key
-              break
+            repo_path = Pathname.new(value[:directory]).realdirpath
+            path.descend do |path_parent|
+              if path_parent == repo_path
+                project = key
+                break
+              end
             end
+            break if project
           end
         }
         if project
@@ -86,7 +89,7 @@ module RokuBuilder
       #Create Project Config
       project_config = {}
       if options[:current]
-        pwd =  Controller.system(command: "pwd")
+        pwd =  Pathname.pwd.to_s
         return MISSING_MANIFEST unless File.exist?(File.join(pwd, "manifest"))
         project_config = {
           directory: pwd,

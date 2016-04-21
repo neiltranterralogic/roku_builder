@@ -39,6 +39,22 @@ def good_config
             }
           }
         }
+      },
+      project2: {
+        directory: "/dev/nuller",
+        folders: ["resources","source"],
+        files: ["manifest"],
+        app_name: "<app name>",
+        stage_method: :git,
+        stages:{
+          production: {
+            branch: "production",
+            key: {
+              keyed_pkg: "/dev/null",
+              password: "<password for pkg>"
+            }
+          }
+        }
       }
     }
   }
