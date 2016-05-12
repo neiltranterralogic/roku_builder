@@ -6,12 +6,13 @@ PATH
       faraday-digestauth (~> 0.2)
       git (~> 1.3)
       net-ping (~> 1.7)
+      net-telnet (~> 0.1)
       rubyzip (~> 1.2)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    byebug (8.2.4)
+    byebug (8.2.5)
     coderay (1.1.1)
     coveralls (0.8.13)
       json (~> 1.8)
@@ -49,21 +50,23 @@ GEM
       multi_json (~> 1.8)
     http_parser.rb (0.6.0)
     json (1.8.3)
-    listen (3.0.6)
-      rb-fsevent (>= 0.9.3)
-      rb-inotify (>= 0.9.7)
+    listen (3.1.4)
+      rb-fsevent (~> 0.9, >= 0.9.4)
+      rb-inotify (~> 0.9, >= 0.9.7)
+      ruby_dep (~> 1.2)
     lumberjack (1.0.10)
     method_source (0.8.2)
     minitest (5.8.4)
-    minitest-autotest (1.0.2)
+    minitest-autotest (1.0.3)
       minitest-server (~> 1.0)
-    minitest-server (1.0.3)
+    minitest-server (1.0.4)
       minitest (~> 5.0)
-    multi_json (1.11.2)
+    multi_json (1.12.0)
     multipart-post (2.0.0)
     nenv (0.3.0)
     net-http-digest_auth (1.4)
     net-ping (1.7.8)
+    net-telnet (0.1.1)
     notiffany (0.0.8)
       nenv (~> 0.1)
       shellany (~> 0.0)
@@ -75,6 +78,7 @@ GEM
     rb-fsevent (0.9.7)
     rb-inotify (0.9.7)
       ffi (>= 0.5.0)
+    ruby_dep (1.3.1)
     rubyzip (1.2.0)
     shellany (0.0.1)
     simplecov (0.11.2)
@@ -104,3 +108,6 @@ DEPENDENCIES
   roku_builder!
   simplecov (~> 0.11)
   yard (~> 0.8.7)
+
+BUNDLED WITH
+   1.12.3

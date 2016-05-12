@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faraday-digestauth",  "~> 0.2"
   spec.add_dependency "git",                 "~> 1.3"
   spec.add_dependency "net-ping",            "~> 1.7"
+  spec.add_dependency "net-telnet",          "~> 0.1"
 
   spec.add_development_dependency "bundler",           "~> 1.7"
   spec.add_development_dependency "rake",              "~> 11.1"

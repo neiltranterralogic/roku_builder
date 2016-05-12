@@ -113,6 +113,7 @@ module RokuBuilder
       if ControllerCommands.simple_commands.keys.include?(command)
         params = ControllerCommands.simple_commands[command]
         params[:configs] = configs
+        params[:logger] = logger
         ControllerCommands.simple_command(**params)
       else
         params = ControllerCommands.method(command.to_s).parameters.collect{|a|a[1]}

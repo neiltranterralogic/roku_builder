@@ -18,7 +18,6 @@ class ErrorHandlerTest < Minitest::Test
           RokuBuilder::EXTRA_SOURCES,
           RokuBuilder::NO_SOURCE,
           RokuBuilder::BAD_CURRENT,
-          RokuBuilder::BAD_DEEPLINK,
           RokuBuilder::BAD_IN_FILE
         ],
         configure_code:[
@@ -55,6 +54,9 @@ class ErrorHandlerTest < Minitest::Test
       warn: {
         load_code: [
           RokuBuilder::DEPRICATED_CONFIG
+        ],
+        options_code: [
+          RokuBuilder::DEPRICATED
         ]
       }
     }
@@ -63,7 +65,7 @@ class ErrorHandlerTest < Minitest::Test
         value.each do |code|
           logger = Minitest::Mock.new
           options = {logger: logger}
-          options[:options] = {} if key == :load_code
+          options[:options] = {deeplink_depricated: true} if key == :load_code or key == :options_code
           options[key] = code
           logger.expect(type, nil)  {|string| string.class == String}
           method = "handle_#{key}s"

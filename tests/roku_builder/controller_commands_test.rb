@@ -14,6 +14,7 @@ class ControllerCommandsTest < Minitest::Test
     loader.expect(:sideload, true, [configs[:sideload_config]])
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
+    stager.expect(:method, :git)
 
     RokuBuilder::Loader.stub(:new, loader) do
       RokuBuilder::Stager.stub(:new, stager) do
@@ -57,6 +58,7 @@ class ControllerCommandsTest < Minitest::Test
     inspector.expect(:inspect, info, [configs[:inspect_config]])
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
+    stager.expect(:method, :git)
 
     code = nil
     RokuBuilder::Keyer.stub(:new, keyer) do
@@ -98,6 +100,7 @@ class ControllerCommandsTest < Minitest::Test
     inspector.expect(:inspect, info, [configs[:inspect_config]])
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
+    stager.expect(:method, :git)
 
     code = nil
     RokuBuilder::Keyer.stub(:new, keyer) do
@@ -132,6 +135,7 @@ class ControllerCommandsTest < Minitest::Test
     loader.expect(:build, "/tmp/build", [configs[:build_config]])
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
+    stager.expect(:method, :git)
 
     RokuBuilder::Loader.stub(:new, loader) do
       RokuBuilder::ManifestManager.stub(:build_version, "1") do
