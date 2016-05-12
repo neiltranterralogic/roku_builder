@@ -176,7 +176,6 @@ module RokuBuilder
     def self.sources
       [:ref, :set_stage, :working, :current]
     end
-    private_class_method :sources
 
     # List of commands requiring a source option
     # @return [Array<Symbol>] List of command symbols that require a source in the options hash

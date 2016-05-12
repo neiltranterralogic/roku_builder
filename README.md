@@ -220,16 +220,21 @@ used as follows:
 
 #### Other Tools
 
+You can deeplink into your app using the following command:
+
+    $ roku --deeplink-options "a:b c:d"
+
+or
+
+    $ roku -o "a:b c:d"
+
+This will deeplink into the app sending the keypair values as defined in the
+string. You can also have the app sideloaded first by adding one of the
+source options (--working/-w, --current/-c, --ref/-r, or --stage/-s).
+
 You can restart the roku device using the following command:
 
     $ roku --restart
-
-You can deeplink into your app using the following command:
-
-    $ roku --deeplink --mgid <mgid> --content-type <content type>
-
-This is currently setup to work with one specific app. It will be generalized
-in the future.
 
 You can delete the currently sideloaded app using the following command:
 

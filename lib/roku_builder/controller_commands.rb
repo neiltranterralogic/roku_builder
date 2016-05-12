@@ -8,8 +8,6 @@ module RokuBuilder
     # @return [Hash] options to run simple commands
     def self.simple_commands
       {
-        deeplink: { klass: Linker, method: :link, config_key: :deeplink_config,
-          failure: FAILED_DEEPLINKING },
         delete: { klass: Loader, method: :unload },
         monitor: { klass: Monitor, method: :monitor,
           config_key: :monitor_config },
@@ -33,9 +31,8 @@ module RokuBuilder
     # Run Sideload
     # @param options [Hash] user options
     # @param configs [Hash] parsed configs
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.sideload(options:, configs:, logger:)
+    def self.sideload(options:, configs:)
       config = configs[:device_config].dup
       config[:init_params] = configs[:init_params][:loader]
       stager = Stager.new(**configs[:stage_config])
@@ -122,6 +119,23 @@ module RokuBuilder
       end
       stager.unstage
       SUCCESS
+    end
+
+    # Run Deeplink
+    # @param options [Hash] user options
+    # @param configs [Hash] parsed configs
+    def self.deeplink(options:, configs:)
+      sources = options.keys & Controller.sources
+      if sources.count > 0
+        sideload(options: options, configs: configs)
+      end
+
+      linker = Linker.new(configs[:device_config])
+      if linker.link(configs[:deeplink_config])
+        return SUCCESS
+      else
+        return FAILED_DEEPLINKING
+      end
     end
 
     # Run a simple command
