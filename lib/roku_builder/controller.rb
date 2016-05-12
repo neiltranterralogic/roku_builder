@@ -20,7 +20,7 @@ module RokuBuilder
 
       # Validate Options
       options_code = validate_options(options: options)
-      ErrorHandler.handle_options_codes(options_code: options_code, logger: logger)
+      ErrorHandler.handle_options_codes(options_code: options_code, options: options, logger: logger)
 
       # Configure Gem
       configure_code = configure(options: options, logger: logger)
@@ -48,7 +48,8 @@ module RokuBuilder
       source_result = validate_source_options(options: options)
       return source_result unless source_result == VALID
       combination_result = validate_option_combinations(options: options)
-      return combination_result
+      return combination_result unless combination_result == VALID
+      return validate_depricated_commands(options: options)
     end
     private_class_method :validate_options
 
@@ -87,12 +88,21 @@ module RokuBuilder
       if options[:in]
         return BAD_IN_FILE unless options[:sideload]
       end
-      if options[:deeplink]
-        return BAD_DEEPLINK if options[:deeplink_options].to_s.empty?
-      end
       VALID
     end
     private_class_method :validate_option_combinations
+
+    # Validate depricated options adn commands
+    # @param options [Hash] The Options hash
+    # @return [Integer] Status code for command validation
+    def self.validate_depricated_commands(options:)
+      depricated = options.keys & depricated_options.keys
+      if depricated.count > 0
+        return DEPRICATED
+      end
+      VALID
+    end
+    private_class_method :validate_depricated_commands
 
     # Run commands
     # @param options [Hash] The options hash
@@ -154,6 +164,12 @@ module RokuBuilder
         :screens]
     end
     private_class_method :commands
+
+    # List of depricated options
+    # @return [Hash] Hash of depricated options and the warning message for each
+    def self.depricated_options
+      {deeplink_depricated: "-L and --deeplink are depricated. Use -o -r --deeplink-options." }
+    end
 
     # List of source options
     # @return [Array<Symbol>] List of source symbols that can be used in the options hash

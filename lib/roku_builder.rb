@@ -61,10 +61,13 @@ module RokuBuilder
   BAD_CURRENT     = 5
 
   # No deeplink options supplied for deeplink
-  BAD_DEEPLINK    = 6
+  # BAD_DEEPLINK    = 6
 
   # Incorrect use of the in option
   BAD_IN_FILE     = 7
+
+  # An Option is Depricated
+  DEPRICATED      = 8
 
 
 

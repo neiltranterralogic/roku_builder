@@ -298,6 +298,7 @@ directory:
    * Intergration Tests
  * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
+ * Fix fgile naming when building from a referance
 
 ## Contributing
 

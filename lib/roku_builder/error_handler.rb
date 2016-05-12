@@ -5,7 +5,7 @@ module RokuBuilder
     # Handle codes returned from validating options
     # @param options_code [Integer] the error code returned by validate_options
     # @param logger [Logger] system logger
-    def self.handle_options_codes(options_code:, logger:)
+    def self.handle_options_codes(options_code:, options:, logger:)
       case options_code
       when EXTRA_COMMANDS
         logger.fatal "Only one command is allowed"
@@ -22,12 +22,11 @@ module RokuBuilder
       when BAD_CURRENT
         logger.fatal "Can only sideload or build 'current' directory"
         abort
-      when BAD_DEEPLINK
-        logger.fatal "Must supply deeplinking options when deeplinking"
-        abort
       when BAD_IN_FILE
         logger.fatal "Can only supply in file for building"
         abort
+      when DEPRICATED
+        print_options_depricateions(options: options, logger: logger)
       end
     end
 
@@ -112,5 +111,16 @@ module RokuBuilder
         abort
       end
     end
+
+    # Print Options Deprications
+    # @param options [Hash] The options hash.
+    # @param logger [Logger] system logger
+    def self.print_options_depricateions(options:, logger:)
+      depricated = Controller.depricated_options.keys & options.keys
+      depricated.each do |key|
+        logger.warn Controller.depricated_options[key]
+      end
+    end
+    private_class_method :print_options_depricateions
   end
 end

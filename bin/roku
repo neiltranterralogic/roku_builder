@@ -27,8 +27,12 @@ OptionParser.new do |opts|
     options[:test] = true
   end
 
-  opts.on("-L", "--deeplink", "Command: Deeplink into app. Requires mgid and type options.") do
-    options[:deeplink] = true
+  opts.on("-L", "--deeplink", "Depricated: Deeplink now just requires -o or --deeplink-options") do
+    options[:deeplink_depricated] = true
+  end
+
+  opts.on("-o", "--deeplink-options OPTIONS", "Command: Deeplink into app. Define options as keypairs. (eg. a:b, c:d,e:f)") do |o|
+    options[:deeplink] = o
   end
 
   opts.on("--configure", "Command: Copy base configuration file to the --config location. Default: '~/.roku_config.json'") do
@@ -102,10 +106,6 @@ OptionParser.new do |opts|
 
   opts.on("-i", "--inspect", "Print inspection information while packaging") do
     options[:inspect] = true
-  end
-
-  opts.on("-o", "--deeplink-options TYPE", "Additional deeplink options. (eg. a:b, c:d,e:f)") do |o|
-    options[:deeplink_options] = o
   end
 
   opts.on("-e", "--edit PARAMS", "Edit config params when configuring. (eg. a:b, c:d,e:f)") do |p|
