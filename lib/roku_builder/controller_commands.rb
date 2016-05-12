@@ -24,15 +24,18 @@ module RokuBuilder
       }
     end
     # Validate Config
+    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.validate()
+    def self.validate(logger:)
+      logger.info "Config validated"
       SUCCESS
     end
     # Run Sideload
     # @param options [Hash] user options
     # @param configs [Hash] parsed configs
+    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.sideload(options:, configs:)
+    def self.sideload(options:, configs:, logger:)
       config = configs[:device_config].dup
       config[:init_params] = configs[:init_params][:loader]
       stager = Stager.new(**configs[:stage_config])
@@ -43,6 +46,7 @@ module RokuBuilder
       end
       stager.unstage
       return FAILED_SIDELOAD unless success
+      logger.info "App Sideloaded; staged using #{stager.method}"
       SUCCESS
     end
     # Run Package
@@ -82,6 +86,7 @@ module RokuBuilder
         end
       end
       stager.unstage
+      logger.info "App Packaged; staged using #{stager.method}"
       SUCCESS
     end
     # Run Build
@@ -103,6 +108,7 @@ module RokuBuilder
         logger.info "Build: #{outfile}"
       end
       stager.unstage
+      logger.info "App build; staged using #{stager.method}"
       SUCCESS
     end
     # Run update
@@ -124,14 +130,16 @@ module RokuBuilder
     # Run Deeplink
     # @param options [Hash] user options
     # @param configs [Hash] parsed configs
-    def self.deeplink(options:, configs:)
+    # @param logger [Logger] system logger
+    def self.deeplink(options:, configs:, logger:)
       sources = options.keys & Controller.sources
       if sources.count > 0
-        sideload(options: options, configs: configs)
+        sideload(options: options, configs: configs, logger:logger)
       end
 
       linker = Linker.new(configs[:device_config])
       if linker.link(configs[:deeplink_config])
+        logger.info "Deeplinked into app"
         return SUCCESS
       else
         return FAILED_DEEPLINKING
@@ -144,8 +152,9 @@ module RokuBuilder
     # @param config_key [Symbol] config to send from configs if not nil
     # @param configs [Hash] parsed roku config
     # @param failure [Integer] failure code to return on failure if not nil
+    # @param logger [Logger] system logger
     # @return [Integer] Success of failure code
-    def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil)
+    def self.simple_command(klass:, method:, config_key: nil, configs:, failure: nil, logger:)
       config = configs[:device_config].dup
       key = klass.to_s.split("::")[-1].underscore.to_sym
       if configs[:init_params][key]
@@ -158,6 +167,7 @@ module RokuBuilder
         success = instance.send(method)
       end
       return failure unless failure.nil? or success
+      logger.info ()
       SUCCESS
     end
   end

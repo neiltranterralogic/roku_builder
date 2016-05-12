@@ -12,6 +12,15 @@ module RokuBuilder
       @orginal_directory = Dir.pwd
     end
 
+    # Helper method to get the staging method being used
+    # @return [Symbol] staging method being used
+    def method
+      @method
+    end
+
+
+    # Change the stage of the app depending on the method
+    # @return [Boolean] whether the staging was successful or not
     def stage
       Dir.chdir(@root_dir) unless @root_dir == @orginal_directory
       case @method
@@ -32,6 +41,8 @@ module RokuBuilder
       @stage_success
     end
 
+    # Revert the change that the stage method made
+    # @return [Boolean] whether the revert was successful or not
     def unstage
       unstage_success = true
       case @method
@@ -56,6 +67,7 @@ module RokuBuilder
     private
 
     # Switch to the correct branch
+    # @param branch [String] the branch to switch to
     def git_switch_to(branch:)
       if branch
         @git ||= Git.open(@root_dir)
@@ -68,6 +80,8 @@ module RokuBuilder
     end
 
     # Switch back to the previous branch
+    # @param branch [String] teh branch to switch from
+    # @param checkout [Boolean] whether to actually run the checkout command
     def git_switch_from(branch:, checkout: true)
       if branch
         @git ||= Git.open(@root_dir)
