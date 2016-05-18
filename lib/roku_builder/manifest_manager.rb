@@ -47,13 +47,22 @@ module RokuBuilder
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
     def self.build_version(root_dir:)
-      path = File.join(root_dir, 'manifest')
       build_version = ""
-      File.open(path, 'r') do |file|
+      get_version = lambda  { |file|
         file.each_line do |line|
           if line.include?("build_version")
             build_version = line.split("=")[1].chomp
           end
+        end
+      }
+      if File.directory?(root_dir)
+        path = File.join(root_dir, 'manifest')
+        build_version = ""
+        File.open(path, 'r', &get_version)
+      elsif File.extname(root_dir) == ".zip"
+        Zip::File.open(root_dir) do |zip_file|
+          entry = zip_file.glob("manifest").first
+          entry.get_input_stream(&get_version)
         end
       end
       build_version

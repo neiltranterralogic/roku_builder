@@ -14,16 +14,22 @@ module RokuBuilder
     # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Build version on success, nil otherwise
-    def sideload(update_manifest: false, folders: nil, files: nil)
+    def sideload(update_manifest: false, folders: nil, files: nil, infile: nil)
       result = nil
-      # Update manifest
-      build_version = ""
-      if update_manifest
-        build_version = ManifestManager.update_build(root_dir: @root_dir)
+      outfile = nil
+      build_version = nil
+      if infile
+        build_version = ManifestManager.build_version(root_dir: infile)
+        outfile = infile
       else
-        build_version = ManifestManager.build_version(root_dir: @root_dir)
+        # Update manifest
+        if update_manifest
+          build_version = ManifestManager.update_build(root_dir: @root_dir)
+        else
+          build_version = ManifestManager.build_version(root_dir: @root_dir)
+        end
+        outfile = build(build_version: build_version, folders: folders, files: files)
       end
-      outfile = build(build_version: build_version, folders: folders, files: files)
       path = "/plugin_install"
       # Connect to roku and upload file
       conn = multipart_connection
@@ -33,7 +39,7 @@ module RokuBuilder
       }
       response = conn.post path, payload
       # Cleanup
-      File.delete(outfile)
+      File.delete(outfile) unless infile
       result = build_version if response.status==200 and response.body=~/Install Success/
         result
     end

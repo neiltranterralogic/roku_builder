@@ -175,7 +175,7 @@ module RokuBuilder
     # List of source options
     # @return [Array<Symbol>] List of source symbols that can be used in the options hash
     def self.sources
-      [:ref, :set_stage, :working, :current]
+      [:ref, :set_stage, :working, :current, :in]
     end
 
     # List of commands requiring a source option

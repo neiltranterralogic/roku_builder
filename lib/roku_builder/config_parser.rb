@@ -144,7 +144,8 @@ module RokuBuilder
       configs[:sideload_config] = {
         update_manifest: options[:update_manifest],
         folders: configs[:project_config][:folders],
-        files: configs[:project_config][:files]
+        files: configs[:project_config][:files],
+        infile: options[:in]
       }
       # Create Build Config
       configs[:build_config] = {
