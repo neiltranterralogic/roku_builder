@@ -164,7 +164,6 @@ module RokuBuilder
         :navigate, :text, :build, :monitor, :update, :screencapture, :key, :screen,
         :screens]
     end
-    private_class_method :commands
 
     # List of depricated options
     # @return [Hash] Hash of depricated options and the warning message for each
@@ -183,7 +182,12 @@ module RokuBuilder
     def self.source_commands
       [:sideload, :package, :test, :build, :key]
     end
-    private_class_method :source_commands
+
+    # List of commands the activate the exclude files
+    # @return [Array<Symbol] List of commands the will activate the exclude files lists
+    def self.exclude_commands
+      [:build, :package]
+    end
 
 
     # Configure the gem

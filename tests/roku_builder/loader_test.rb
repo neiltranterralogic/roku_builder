@@ -17,8 +17,10 @@ class LoaderTest < Minitest::Test
       init_params: {root_dir: root_dir}
     }
     loader_config = {
-      folders: ["source"],
-      files: ["manifest"]
+      content: {
+        folders: ["source"],
+        files: ["manifest"]
+      }
     }
     payload = {
       mysubmit: "Replace",
@@ -81,8 +83,10 @@ class LoaderTest < Minitest::Test
     }
     loader_config = {
       update_manifest: true,
-      folders: ["source"],
-      files: ["manifest"]
+      content: {
+        folders: ["source"],
+        files: ["manifest"]
+      }
     }
     payload = {
       mysubmit: "Replace",
@@ -140,8 +144,10 @@ class LoaderTest < Minitest::Test
       init_params: {root_dir: root_dir}
     }
     build_config = {
-      folders: ["source"],
-      files: ["manifest"]
+      content: {
+        folders: ["source"],
+        files: ["manifest"]
+      }
     }
     loader = RokuBuilder::Loader.new(**device_config)
     outfile = nil

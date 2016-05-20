@@ -11,10 +11,9 @@ module RokuBuilder
 
     # Sideload an app onto a roku device
     # @param root_dir [String] Path to the root directory of the roku app
-    # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
-    # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
+    # @param content [Hash] Hash containing arrays for folder, files, and excludes. Default: nil
     # @return [String] Build version on success, nil otherwise
-    def sideload(update_manifest: false, folders: nil, files: nil, infile: nil)
+    def sideload(update_manifest: false, content: nil, infile: nil)
       result = FAILED_SIDELOAD
       outfile = nil
       build_version = nil
@@ -28,7 +27,7 @@ module RokuBuilder
         else
           build_version = ManifestManager.build_version(root_dir: @root_dir)
         end
-        outfile = build(build_version: build_version, folders: folders, files: files)
+        outfile = build(build_version: build_version, content: content)
       end
       path = "/plugin_install"
       # Connect to roku and upload file
@@ -50,30 +49,31 @@ module RokuBuilder
     # @param root_dir [String] Path to the root directory of the roku app
     # @param build_version [String] Version to assigne to the build. If nil will pull the build version form the manifest. Default: nil
     # @param outfile [String] Path for the output file. If nil will create a file in /tmp. Default: nil
-    # @param folders [Array<String>] Array of folders to be sideloaded. Pass nil to send all folders. Default: nil
-    # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
+    # @param content [Hash] Hash containing arrays for folder, files, and excludes. Default: nil
     # @return [String] Path of the build
-    def build(build_version: nil, outfile: nil, folders: nil, files: nil)
+    def build(build_version: nil, outfile: nil, content: nil)
       build_version = ManifestManager.build_version(root_dir: @root_dir) unless build_version
-      unless folders
-        folders = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
+      content ||= {}
+      unless content and content[:folders]
+        content[:folders] = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
       end
-      unless files
-        files = Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
+      unless content and content[:files]
+        content[:files] = Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
       end
+      content[:excludes] = [] unless content and content[:excludes]
       outfile = "/tmp/build_#{build_version}.zip" unless outfile
       File.delete(outfile) if File.exist?(outfile)
       io = Zip::File.open(outfile, Zip::File::CREATE)
       # Add folders to zip
-      folders.each do |folder|
+      content[:folders].each do |folder|
         base_folder = File.join(@root_dir, folder)
         entries = Dir.entries(base_folder)
         entries.delete(".")
         entries.delete("..")
-        writeEntries(@root_dir, entries, folder, io)
+        writeEntries(@root_dir, entries, folder, content[:excludes], io)
       end
       # Add file to zip
-      writeEntries(@root_dir, files, "", io)
+      writeEntries(@root_dir, content[:files], "", content[:excludes], io)
       io.close()
       outfile
     end
@@ -102,16 +102,18 @@ module RokuBuilder
     # @param entries [Array<String>] Array of file paths of files/directories to store in the zip archive
     # @param path [String] The path of the current directory starting at the root directory
     # @param io [IO] zip IO object
-    def writeEntries(root_dir, entries, path, io)
+    def writeEntries(root_dir, entries, path, excludes, io)
       entries.each { |e|
         zipFilePath = path == "" ? e : File.join(path, e)
         diskFilePath = File.join(root_dir, zipFilePath)
         if File.directory?(diskFilePath)
           io.mkdir(zipFilePath)
           subdir =Dir.entries(diskFilePath); subdir.delete("."); subdir.delete("..")
-          writeEntries(root_dir, subdir, zipFilePath, io)
+          writeEntries(root_dir, subdir, zipFilePath, excludes, io)
         else
-          io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
+          unless excludes.include?(zipFilePath)
+            io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
+          end
         end
       }
     end

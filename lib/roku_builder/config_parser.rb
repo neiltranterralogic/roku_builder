@@ -140,17 +140,24 @@ module RokuBuilder
     # @param branch [String] the branch to sideload
     def self.setup_sideload_config(configs:, options:)
       root_dir = configs[:project_config][:directory]
+      content = {
+        folders: configs[:project_config][:folders],
+        files: configs[:project_config][:files],
+      }
+      all_commands = options.keys & Controller.commands
+      if Controller.exclude_commands.include?(all_commands.first)
+        content[:excludes] = configs[:project_config][:excludes]
+      end
+
       # Create Sideload Config
       configs[:sideload_config] = {
         update_manifest: options[:update_manifest],
-        folders: configs[:project_config][:folders],
-        files: configs[:project_config][:files],
-        infile: options[:in]
+        infile: options[:in],
+        content: content
       }
       # Create Build Config
       configs[:build_config] = {
-        folders: configs[:project_config][:folders],
-        files: configs[:project_config][:files]
+        content: content
       }
       configs[:init_params][:loader] = {
         root_dir: root_dir

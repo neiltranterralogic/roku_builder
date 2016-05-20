@@ -27,7 +27,7 @@ class ControllerCommandsTest < Minitest::Test
     stager.expect(:unstage, true)
 
     # Test Failure
-    loader.expect(:sideload, false, [configs[:sideload_config]])
+    loader.expect(:sideload, [RokuBuilder::FAILED_SIDELOAD, "build_version"], [configs[:sideload_config]])
     RokuBuilder::Loader.stub(:new, loader) do
       RokuBuilder::Stager.stub(:new, stager) do
         code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})

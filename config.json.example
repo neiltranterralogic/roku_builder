@@ -13,6 +13,7 @@
       "directory": "<path/to/repo>",
       "folders": ["resources","source"],
       "files": ["manifest"],
+      "excludes": [],
       "app_name": "<app name>",
       "stage_method": "<git|script>",
       "stages":{
