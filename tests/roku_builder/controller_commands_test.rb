@@ -11,7 +11,7 @@ class ControllerCommandsTest < Minitest::Test
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     # Test Success
-    loader.expect(:sideload, true, [configs[:sideload_config]])
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, "build_version"], [configs[:sideload_config]])
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
     stager.expect(:method, :git)
@@ -52,7 +52,7 @@ class ControllerCommandsTest < Minitest::Test
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
 
-    loader.expect(:sideload, "build_version", [configs[:sideload_config]])
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, "build_version"], [configs[:sideload_config]])
     keyer.expect(:rekey, true, [configs[:key]])
     packager.expect(:package, true, [configs[:package_config]])
     inspector.expect(:inspect, info, [configs[:inspect_config]])
@@ -94,7 +94,7 @@ class ControllerCommandsTest < Minitest::Test
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
 
-    loader.expect(:sideload, "build_version", [configs[:sideload_config]])
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, "build_version"], [configs[:sideload_config]])
     keyer.expect(:rekey, true, [configs[:key]])
     packager.expect(:package, true, [configs[:package_config]])
     inspector.expect(:inspect, info, [configs[:inspect_config]])

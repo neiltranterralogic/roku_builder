@@ -36,7 +36,6 @@ class ControllerTest < Minitest::Test
     assert_equal RokuBuilder::DEPRICATED, RokuBuilder::Controller.send(:validate_options, {options: options})
     options = {
       sideload: true,
-      in: "",
       current: true
     }
     assert_equal RokuBuilder::VALID, RokuBuilder::Controller.send(:validate_options, {options: options})
@@ -45,7 +44,7 @@ class ControllerTest < Minitest::Test
       in: "",
       set_stage: true
     }
-    assert_equal RokuBuilder::BAD_IN_FILE, RokuBuilder::Controller.send(:validate_options, {options: options})
+    assert_equal RokuBuilder::EXTRA_SOURCES, RokuBuilder::Controller.send(:validate_options, {options: options})
   end
   def test_controller_configure
     logger = Logger.new("/dev/null")

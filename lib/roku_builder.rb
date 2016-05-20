@@ -129,6 +129,9 @@ module RokuBuilder
 
   # Failed to capture screen
   FAILED_SCREENCAPTURE = 12
+
+  # Did not sideload as content is identical
+  IDENTICAL_SIDELOAD = 13
 end
 
 class String

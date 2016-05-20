@@ -38,22 +38,26 @@ class LoaderTest < Minitest::Test
     end
     response.expect(:status, 200)
     response.expect(:body, "Install Success")
+    response.expect(:status, 200)
+    response.expect(:body, "Install Success")
 
     loader = RokuBuilder::Loader.new(**device_config)
     result = nil
+    build_version = nil
     RokuBuilder::ManifestManager.stub(:build_version, "build_version") do
       loader.stub(:build, "zip_file") do
         Faraday.stub(:new, connection, faraday) do
           Faraday::UploadIO.stub(:new, io) do
             File.stub(:delete, nil) do
-              result = loader.sideload(**loader_config)
+              result, build_version = loader.sideload(**loader_config)
             end
           end
         end
       end
     end
 
-    assert_equal "build_version", result
+    assert_equal "build_version", build_version
+    assert_equal RokuBuilder::SUCCESS, result
 
     connection.verify
     faraday.verify
@@ -98,22 +102,26 @@ class LoaderTest < Minitest::Test
     end
     response.expect(:status, 200)
     response.expect(:body, "Install Success")
+    response.expect(:status, 200)
+    response.expect(:body, "Install Success")
 
     loader = RokuBuilder::Loader.new(**device_config)
     result = nil
+    build_version = nil
     RokuBuilder::ManifestManager.stub(:update_build, "build_version") do
       loader.stub(:build, "zip_file") do
         Faraday.stub(:new, connection, faraday) do
           Faraday::UploadIO.stub(:new, io) do
             File.stub(:delete, nil) do
-              result = loader.sideload(**loader_config)
+              result, build_version = loader.sideload(**loader_config)
             end
           end
         end
       end
     end
 
-    assert_equal "build_version", result
+    assert_equal "build_version", build_version
+    assert_equal RokuBuilder::SUCCESS, result
 
     connection.verify
     faraday.verify

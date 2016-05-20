@@ -15,7 +15,7 @@ module RokuBuilder
     # @param files [Array<String>] Array of files to be sideloaded. Pass nil to send all files. Default: nil
     # @return [String] Build version on success, nil otherwise
     def sideload(update_manifest: false, folders: nil, files: nil, infile: nil)
-      result = nil
+      result = FAILED_SIDELOAD
       outfile = nil
       build_version = nil
       if infile
@@ -40,8 +40,9 @@ module RokuBuilder
       response = conn.post path, payload
       # Cleanup
       File.delete(outfile) unless infile
-      result = build_version if response.status==200 and response.body=~/Install Success/
-        result
+      result = SUCCESS if response.status==200 and response.body=~/Install Success/
+      result = IDENTICAL_SIDELOAD if response.status==200 and response.body=~/Identical to previous version/
+      [result, build_version]
     end
 
 

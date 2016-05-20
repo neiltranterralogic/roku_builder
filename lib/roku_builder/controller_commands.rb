@@ -39,15 +39,16 @@ module RokuBuilder
       config = configs[:device_config].dup
       config[:init_params] = configs[:init_params][:loader]
       stager = Stager.new(**configs[:stage_config])
-      success = false
+      success = nil
       if stager.stage
         loader = Loader.new(**config)
-        success = loader.sideload(**configs[:sideload_config])
+        success, version = loader.sideload(**configs[:sideload_config])
       end
       stager.unstage
-      return FAILED_SIDELOAD unless success
-      logger.info "App Sideloaded; staged using #{stager.method}"
-      SUCCESS
+      unless success == FAILED_SIDELOAD
+        logger.info "App Sideloaded; staged using #{stager.method}"
+      end
+      success
     end
     # Run Package
     # @param options [Hash] user options
@@ -65,8 +66,8 @@ module RokuBuilder
       logger.warn "Packaging working directory" if options[:working]
       if stager.stage
         # Sideload #
-        build_version = loader.sideload(**configs[:sideload_config])
-        return FAILED_SIGNING unless build_version
+        code, build_version = loader.sideload(**configs[:sideload_config])
+        return code unless code = SUCCESS
         # Key #
         success = keyer.rekey(**configs[:key])
         logger.info "Key did not change" unless success

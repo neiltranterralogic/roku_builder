@@ -21,13 +21,15 @@ module RokuBuilder
 
       loader = Loader.new(**@device_config)
       connection = Net::Telnet.new(telnet_config)
-      loader.sideload(**sideload_config)
+      code, _build_version = loader.sideload(**sideload_config)
 
-      in_tests = false
-      connection.waitfor(@end_reg) do |txt|
-        in_tests = handle_text(txt: txt, in_tests: in_tests)
+      if code = SUCCESS
+        in_tests = false
+        connection.waitfor(@end_reg) do |txt|
+          in_tests = handle_text(txt: txt, in_tests: in_tests)
+        end
+        connection.puts("cont\n")
       end
-      connection.puts("cont\n")
     end
 
     private
