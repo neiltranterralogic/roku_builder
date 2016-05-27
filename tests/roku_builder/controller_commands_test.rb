@@ -2,6 +2,13 @@ require_relative "test_helper.rb"
 
 class ControllerCommandsTest < Minitest::Test
 
+  def test_controller_commands_validate
+    logger = Minitest::Mock.new
+    logger.expect(:info, nil, ["Config validated"])
+    code = RokuBuilder::ControllerCommands.validate(logger: logger)
+    assert_equal RokuBuilder::SUCCESS, code
+    logger.verify
+  end
   def test_controller_commands_sideload
     logger = Logger.new("/dev/null")
     loader = Minitest::Mock.new
@@ -188,6 +195,43 @@ class ControllerCommandsTest < Minitest::Test
     end
     mock.verify
     assert_equal RokuBuilder::SUCCESS, code
+  end
+  def test_controller_commands_deeplink_sideload
+    logger = Logger.new("/dev/null")
+    mock = Minitest::Mock.new
+
+    ran_sideload = false
+
+    sideload =  Proc.new {|a, b, c| ran_sideload = true}
+
+    code = nil
+    options = {deeplink: true, set_stage: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
+    config = good_config
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+    mock.expect(:link, "true", [configs[:deeplink_config]])
+    RokuBuilder::Linker.stub(:new, mock) do
+      RokuBuilder::ControllerCommands.stub(:sideload, sideload) do
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+      end
+    end
+    mock.verify
+    assert_equal RokuBuilder::SUCCESS, code
+    assert ran_sideload
+  end
+  def test_controller_commands_deeplink_fail
+    logger = Logger.new("/dev/null")
+    mock = Minitest::Mock.new
+
+    code = nil
+    options = {deeplink: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
+    config = good_config
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+    mock.expect(:link, false, [configs[:deeplink_config]])
+    RokuBuilder::Linker.stub(:new, mock) do
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+    end
+    mock.verify
+    assert_equal RokuBuilder::FAILED_DEEPLINKING, code
   end
   def test_controller_commands_delete
     logger = Logger.new("/dev/null")

@@ -31,6 +31,43 @@ class TesterTest < Minitest::Test
     connection.verify
   end
 
+  def test_tester_runtests_and_handle
+    waitfor = Proc.new do |end_reg, &blk|
+      assert_equal /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/, end_reg
+      txt = "Fake Text"
+      blk.call(txt) == false
+    end
+    connection = Minitest::Mock.new
+    loader = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    loader_config = {
+      root_dir: "root/dir/path",
+      branch: "branch",
+      folders: ["source"],
+      files: ["manifest"]
+    }
+    tester = RokuBuilder::Tester.new(**device_config)
+
+    loader.expect(:sideload, nil, [loader_config])
+    connection.expect(:waitfor, nil, &waitfor)
+    connection.expect(:puts, nil, ["cont\n"])
+
+    RokuBuilder::Loader.stub(:new, loader) do
+      Net::Telnet.stub(:new, connection) do
+        tester.stub(:handle_text, false) do
+          tester.run_tests(sideload_config: loader_config)
+        end
+      end
+    end
+
+    connection.verify
+  end
+
   def test_tester_handle_text_no_text
     logger = Minitest::Mock.new
     device_config = {

@@ -1,6 +1,18 @@
 require_relative "test_helper.rb"
 
 class StagerTest < Minitest::Test
+
+  def test_stager_method
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
+    stager_config = {
+      method: :working,
+      root_dir: root_dir,
+      logger: nil
+    }
+    stager = RokuBuilder::Stager.new(**stager_config)
+    assert_equal stager_config[:method], stager.method
+  end
+
   def test_stager_stage_working
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     stager_config = {

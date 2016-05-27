@@ -30,6 +30,11 @@ class ControllerTest < Minitest::Test
     }
     assert_equal RokuBuilder::BAD_CURRENT, RokuBuilder::Controller.send(:validate_options, {options: options})
     options = {
+      package: true,
+      in: true
+    }
+    assert_equal RokuBuilder::BAD_IN_FILE, RokuBuilder::Controller.send(:validate_options, {options: options})
+    options = {
       deeplink: "a:b c:d",
       deeplink_depricated: true
     }

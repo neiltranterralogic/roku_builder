@@ -122,8 +122,6 @@ module RokuBuilder
           case key
           when :options
             args[:options] = options
-          when :config
-            args[:config] = config
           when :configs
             args[:configs] = configs
           when :logger

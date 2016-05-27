@@ -28,6 +28,37 @@ class MonitorTest < Minitest::Test
     connection.verify
   end
 
+  def test_monitor_monit_and_manage
+    connection = Minitest::Mock.new
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    monitor = RokuBuilder::Monitor.new(**device_config)
+
+    connection.expect(:waitfor, nil) do |config, &blk|
+      assert_equal(/./, config['Match'])
+      assert_equal(false, config['Timeout'])
+      txt = "Fake Text"
+      blk.call(txt) == ""
+    end
+
+    def monitor.gets
+      sleep(0.1)
+      "q"
+    end
+
+    Net::Telnet.stub(:new, connection) do
+      monitor.stub(:manage_text, "") do
+        monitor.monitor(type: :main)
+      end
+    end
+
+    connection.verify
+  end
+
   def test_monitor_monit_input
     connection = Minitest::Mock.new
     device_config = {
