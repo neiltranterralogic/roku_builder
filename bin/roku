@@ -133,6 +133,10 @@ OptionParser.new do |opts|
     options[:in] = i
   end
 
+  opts.on("-x", "--exclude", "Apply exclude config to sideload") do
+    options[:exclude] = true
+  end
+
   opts.on("-V", "--verbose", "Print Info message") do
     options[:verbose] = true
   end

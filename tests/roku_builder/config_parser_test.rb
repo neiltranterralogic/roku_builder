@@ -73,4 +73,52 @@ class ConfigParserTest < Minitest::Test
     assert_equal Hash, config.class
     assert_equal "/dev/nuller", configs[:project_config][:directory]
   end
+
+  def test_setup_sideload_config
+    args = {
+      configs: {project_config: {directory: "/tmp", folders: ["a", "b"], files: ["c", "d"], excludes: []}, init_params: {}},
+      options: {sideload: true}
+    }
+    RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
+
+    refute_nil args[:configs][:sideload_config]
+    refute_nil args[:configs][:sideload_config][:content]
+    refute_nil args[:configs][:build_config]
+    refute_nil args[:configs][:build_config][:content]
+    refute_nil args[:configs][:init_params][:loader]
+    refute_nil args[:configs][:init_params][:loader][:root_dir]
+
+    assert_nil args[:configs][:sideload_config][:content][:excludes]
+    assert_nil args[:configs][:sideload_config][:update_manifest]
+    assert_nil args[:configs][:sideload_config][:infile]
+  end
+  def test_setup_sideload_config_exclude
+    args = {
+      configs: {project_config: {directory: "/tmp", folders: ["a", "b"], files: ["c", "d"], excludes: []}, init_params: {}},
+      options: {sideload: true}
+    }
+    RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
+    assert_nil args[:configs][:sideload_config][:content][:excludes]
+
+    args = {
+      configs: {project_config: {directory: "/tmp", folders: ["a", "b"], files: ["c", "d"], excludes: []}, init_params: {}},
+      options: {build: true}
+    }
+    RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
+    refute_nil args[:configs][:sideload_config][:content][:excludes]
+
+    args = {
+      configs: {project_config: {directory: "/tmp", folders: ["a", "b"], files: ["c", "d"], excludes: []}, init_params: {}},
+      options: {package: true}
+    }
+    RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
+    refute_nil args[:configs][:sideload_config][:content][:excludes]
+
+    args = {
+      configs: {project_config: {directory: "/tmp", folders: ["a", "b"], files: ["c", "d"], excludes: []}, init_params: {}},
+      options: {sideload: true, exclude: true}
+    }
+    RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
+    refute_nil args[:configs][:sideload_config][:content][:excludes]
+  end
 end

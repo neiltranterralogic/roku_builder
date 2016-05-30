@@ -145,7 +145,7 @@ module RokuBuilder
         files: configs[:project_config][:files],
       }
       all_commands = options.keys & Controller.commands
-      if Controller.exclude_commands.include?(all_commands.first)
+      if options[:exclude] or Controller.exclude_commands.include?(all_commands.first)
         content[:excludes] = configs[:project_config][:excludes]
       end
 
