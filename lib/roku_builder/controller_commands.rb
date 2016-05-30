@@ -139,7 +139,7 @@ module RokuBuilder
       end
 
       linker = Linker.new(configs[:device_config])
-      if linker.link(configs[:deeplink_config])
+      if linker.launch(configs[:deeplink_config])
         logger.info "Deeplinked into app"
         return SUCCESS
       else

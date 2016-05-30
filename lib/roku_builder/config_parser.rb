@@ -202,7 +202,10 @@ module RokuBuilder
         root_dir: configs[:project_config][:directory]
       }
       # Create Deeplink Config
-      configs[:deeplink_config] ={options: options[:deeplink]}
+      configs[:deeplink_config] = {options: options[:deeplink]}
+      if options[:app_id]
+        configs[:deeplink_config][:app_id] = options[:app_id]
+      end
       # Create Monitor Config
       if options[:monitor]
         configs[:monitor_config] = {type: options[:monitor].to_sym}

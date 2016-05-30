@@ -125,6 +125,10 @@ OptionParser.new do |opts|
     options[:project] = p
   end
 
+  opts.on("-a", "--app ID", "Send App id for deeplinking") do |a|
+    options[:app_id] = a
+  end
+
   opts.on("-O", "--out PATH", "Output file/folder. If PATH ends in .pkg/.zip/.jpg, file is assumed, otherwise folder is assumed") do |o|
     options[:out] = o
   end

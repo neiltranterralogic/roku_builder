@@ -189,7 +189,7 @@ class ControllerCommandsTest < Minitest::Test
     options = {deeplink: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
-    mock.expect(:link, "true", [configs[:deeplink_config]])
+    mock.expect(:launch, "true", [configs[:deeplink_config]])
     RokuBuilder::Linker.stub(:new, mock) do
       code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
@@ -208,7 +208,7 @@ class ControllerCommandsTest < Minitest::Test
     options = {deeplink: true, set_stage: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
-    mock.expect(:link, "true", [configs[:deeplink_config]])
+    mock.expect(:launch, "true", [configs[:deeplink_config]])
     RokuBuilder::Linker.stub(:new, mock) do
       RokuBuilder::ControllerCommands.stub(:sideload, sideload) do
         code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
@@ -226,7 +226,7 @@ class ControllerCommandsTest < Minitest::Test
     options = {deeplink: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
-    mock.expect(:link, false, [configs[:deeplink_config]])
+    mock.expect(:launch, false, [configs[:deeplink_config]])
     RokuBuilder::Linker.stub(:new, mock) do
       code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
     end
