@@ -20,7 +20,8 @@ module RokuBuilder
         text: { klass: Navigator, method: :type, config_key: :text_config },
         test: { klass: Tester, method: :run_tests, config_key: :test_config },
         screencapture: { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
-          failure: FAILED_SCREENCAPTURE }
+          failure: FAILED_SCREENCAPTURE },
+        applist: {klass: Linker, method: :list}
       }
     end
     # Validate Config

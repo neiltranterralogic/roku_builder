@@ -24,6 +24,24 @@ module RokuBuilder
       return response.success?
     end
 
+    # List currently installed apps
+    # @param logger [Logger] System Logger
+    def list()
+      path = "/query/apps"
+      conn = multipart_connection(port: 8060)
+      response = conn.get path
+
+      if response.success?
+        regexp = /id="([^"]*)"\stype="([^"]*)"\sversion="([^"]*)">([^<]*)</
+        apps = response.body.scan(regexp)
+        printf("%30s | %10s | %10s | %10s\n", "title", "id", "type", "version")
+        printf("---------------------------------------------------------------------\n")
+        apps.each do |app|
+          printf("%30s | %10s | %10s | %10s\n", app[3], app[0], app[1], app[2])
+        end
+      end
+    end
+
     private
 
     # Parameterize options to be sent to the app

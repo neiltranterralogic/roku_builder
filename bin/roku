@@ -83,6 +83,10 @@ OptionParser.new do |opts|
     options[:update] = true
   end
 
+  opts.on("-A", "--app-list", "Command: List currently installed apps") do
+    options[:applist] = true
+  end
+
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|
     options[:ref] = r
   end
