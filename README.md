@@ -312,3 +312,7 @@ directory:
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin feature/my-new-feature`)
 5. Create a new Pull Request
+
+## License
+
+On June 1st, 2016, we switched this project from the MIT License to Apache 2.0
