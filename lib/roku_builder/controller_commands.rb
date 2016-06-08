@@ -45,7 +45,7 @@ module RokuBuilder
       success = nil
       if stager.stage
         loader = Loader.new(**config)
-        success, version = loader.sideload(**configs[:sideload_config])
+        success = loader.sideload(**configs[:sideload_config])[0]
       end
       stager.unstage
       unless success == FAILED_SIDELOAD
@@ -171,7 +171,7 @@ module RokuBuilder
         success = instance.send(method)
       end
       return failure unless failure.nil? or success
-      logger.info ()
+      logger.info "#{klass} call #{method} successfully"
       SUCCESS
     end
   end

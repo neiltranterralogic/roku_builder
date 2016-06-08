@@ -32,18 +32,20 @@ module RokuBuilder
     # @return [Array] error codes for valid config (see self.error_codes)
     def self.validate_config(config:)
       codes = []
-      validate_device_structure(codes: codes, config: config)
-      validate_project_structure(codes: codes, config: config)
+      validate_structure(codes: codes, config: config)
       if config[:devices]
-        config[:devices].each {|k,v|
-          next if k == :default
-          validate_device(codes: codes, device: v)
+        config[:devices].each {|device, device_config|
+          next if device == :default
+          validate_device(codes: codes, device: device_config)
         }
       end
       if config[:projects]
-        config[:projects].each {|project,v|
+        config[:projects].each {|project,project_config|
           next if project == :default
-          validate_project(codes: codes, project: v)
+          validate_project(codes: codes, project: project_config)
+          project_config[:stages].each {|stage, stage_config|
+            validate_stage(codes: codes, stage: stage_config, project: project_config)
+          }
         }
       end
       codes.uniq!
@@ -80,40 +82,39 @@ module RokuBuilder
       ]
     end
 
-    # Validates the roku config config structure
+    # Validates the roku config structure
     # @param codes [Array] array of error codes
     # @param config [Hash] roku config object
-    def self.validate_device_structure(codes:, config:)
-      codes.push(MISSING_DEVICES) if not config[:devices]
-      codes.push(MISSING_DEVICES_DEFAULT) if config[:devices] and not config[:devices][:default]
-      codes.push(DEVICE_DEFAULT_BAD) if config[:devices] and config[:devices][:default] and not config[:devices][:default].is_a?(Symbol)
+    def self.validate_structure(codes:, config:)
+      errors = [
+        [MISSING_DEVICES, !config[:devices]],
+        [MISSING_DEVICES_DEFAULT, (config[:devices] and !config[:devices][:default])],
+        [DEVICE_DEFAULT_BAD, (config[:devices] and config[:devices][:default] and !config[:devices][:default].is_a?(Symbol))],
+        [MISSING_PROJECTS, (!config[:projects])],
+        [MISSING_PROJECTS_DEFAULT, (config[:projects] and !config[:projects][:default])],
+        [MISSING_PROJECTS_DEFAULT, (config[:projects] and config[:projects][:default] == "<project id>".to_sym)],
+        [PROJECTS_DEFAULT_BAD, (config[:projects] and config[:projects][:default] and !config[:projects][:default].is_a?(Symbol))]
+      ]
+      process_errors(codes: codes, errors: errors)
     end
-    private_class_method :validate_device_structure
-
-    # Validates the roku config project structure
-    # @param codes [Array] array of error codes
-    # @param config [Hash] roku config object
-    def self.validate_project_structure(codes:, config:)
-      codes.push(MISSING_PROJECTS) if not config[:projects]
-      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and not config[:projects][:default]
-      codes.push(MISSING_PROJECTS_DEFAULT) if config[:projects] and config[:projects][:default] == "<project id>".to_sym
-      codes.push(PROJECTS_DEFAULT_BAD) if config[:projects] and config[:projects][:default] and not config[:projects][:default].is_a?(Symbol)
-    end
-    private_class_method :validate_project_structure
+    private_class_method :validate_structure
 
     # Validates a roku config device
     # @param codes [Array] array of error codes
     # @param device [Hash] device config object
     def self.validate_device(codes:, device:)
-      codes.push(DEVICE_MISSING_IP) if not device[:ip]
-      codes.push(DEVICE_MISSING_IP) if device[:ip] == "xxx.xxx.xxx.xxx"
-      codes.push(DEVICE_MISSING_IP) if device[:ip] == ""
-      codes.push(DEVICE_MISSING_USER) if not device[:user]
-      codes.push(DEVICE_MISSING_USER) if device[:user] == "<username>"
-      codes.push(DEVICE_MISSING_USER) if device[:user] == ""
-      codes.push(DEVICE_MISSING_PASSWORD) if not device[:password]
-      codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == "<password>"
-      codes.push(DEVICE_MISSING_PASSWORD) if device[:password] == ""
+      errors = [
+        [DEVICE_MISSING_IP, (!device[:ip])],
+        [DEVICE_MISSING_IP, (device[:ip] == "xxx.xxx.xxx.xxx")],
+        [DEVICE_MISSING_IP, (device[:ip] == "")],
+        [DEVICE_MISSING_USER, (!device[:user])],
+        [DEVICE_MISSING_USER, (device[:user] == "<username>")],
+        [DEVICE_MISSING_USER, (device[:user] == "")],
+        [DEVICE_MISSING_PASSWORD, (!device[:password])],
+        [DEVICE_MISSING_PASSWORD, (device[:password] == "<password>")],
+        [DEVICE_MISSING_PASSWORD, (device[:password] == "")]
+      ]
+      process_errors(codes: codes, errors: errors)
     end
     private_class_method :validate_device
 
@@ -121,19 +122,36 @@ module RokuBuilder
     # @param codes [Array] array of error codes
     # @param project [Hash] project config object
     def self.validate_project(codes:, project:)
-      codes.push(PROJECT_MISSING_APP_NAME) if not project[:app_name]
-      codes.push(PROJECT_MISSING_DIRECTORY) if not project[:directory]
-      codes.push(PROJECT_MISSING_FOLDERS) if not project[:folders]
-      codes.push(PROJECT_FOLDERS_BAD) if project[:folders] and not project[:folders].is_a?(Array)
-      codes.push(PROJECT_MISSING_FILES) if not project[:files]
-      codes.push(PROJECT_FILES_BAD) if project[:files] and not project[:files].is_a?(Array)
-      codes.push(MISSING_STAGE_METHOD) unless project[:stage_method]
-      codes.push(PROJECT_STAGE_METHOD_BAD) unless [:git, :script, nil].include?(project[:stage_method])
-      project[:stages].each {|_stage,value|
-        codes.push(STAGE_MISSING_BRANCH) if not value[:branch] and project[:stage_method] == :git
-        codes.push(STAGE_MISSING_SCRIPT) if not value[:script] and project[:stage_method] == :script
-      }
+      errors= [
+        [PROJECT_MISSING_APP_NAME, (!project[:app_name])],
+        [PROJECT_MISSING_DIRECTORY, (!project[:directory])],
+        [PROJECT_MISSING_FOLDERS, (!project[:folders])],
+        [PROJECT_FOLDERS_BAD, (project[:folders] and !project[:folders].is_a?(Array))],
+        [PROJECT_MISSING_FILES, (!project[:files])],
+        [PROJECT_FILES_BAD, (project[:files] and !project[:files].is_a?(Array))],
+        [MISSING_STAGE_METHOD, ( !project[:stage_method])],
+        [PROJECT_STAGE_METHOD_BAD, (![:git, :script, nil].include?(project[:stage_method]))]
+      ]
+      process_errors(codes: codes, errors: errors)
     end
     private_class_method :validate_project
+
+    # Validates a roku config project
+    # @param codes [Array] array of error codes
+    # @param project [Hash] project config object
+    def self.validate_stage(codes:, stage:, project:)
+      errors= [
+        [STAGE_MISSING_BRANCH, (!stage[:branch] and project[:stage_method] == :git)],
+        [STAGE_MISSING_SCRIPT, (!stage[:script] and project[:stage_method] == :script)],
+      ]
+      process_errors(codes: codes, errors: errors)
+    end
+    private_class_method :validate_stage
+
+    def self.process_errors(codes:, errors:)
+      errors.each do |error|
+        codes.push(error[0]) if error[1]
+      end
+    end
   end
 end

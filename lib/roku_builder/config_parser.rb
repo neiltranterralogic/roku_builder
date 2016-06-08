@@ -29,7 +29,7 @@ module RokuBuilder
       project_config = setup_project_config(config: config, options: options)
       return [project_config, nil, nil] unless project_config.class == Hash
       configs[:project_config] = project_config
-      stage_config, stage = setup_stage_config(configs: configs, options: options, logger: logger)
+      stage = setup_stage_config(configs: configs, options: options, logger: logger)[1]
       return [UNKNOWN_STAGE, nil, nil] unless stage
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(configs: configs, options: options, stage: stage)

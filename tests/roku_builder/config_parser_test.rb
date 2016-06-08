@@ -40,7 +40,7 @@ class ConfigParserTest < Minitest::Test
       options: {stage: "production"},
       logger: Logger.new("/dev/null")
     }
-    config, stage = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)
+    config = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)[0]
     assert_equal args[:configs][:project_config][:stages][:production][:script], config[:key]
   end
 
@@ -50,7 +50,7 @@ class ConfigParserTest < Minitest::Test
       options: {stage: "production", ref: "git-ref"},
       logger: Logger.new("/dev/null")
     }
-    config, stage = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)
+    config = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)[0]
     assert_equal args[:options][:ref], config[:key]
   end
 

@@ -150,8 +150,6 @@ class StagerTest < Minitest::Test
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     branch_name = 'branch'
     git = Minitest::Mock.new
-    branch = Minitest::Mock.new
-    stashes = Minitest::Mock.new
     logger = Minitest::Mock.new
 
     stager_config = {
@@ -172,6 +170,7 @@ class StagerTest < Minitest::Test
       stager.instance_variable_set(:@current_branch, "branch")
       assert !stager.unstage
     end
+    git.verify
     logger.verify
   end
 

@@ -35,7 +35,7 @@ class TesterTest < Minitest::Test
 
   def test_tester_runtests_and_handle
     waitfor = Proc.new do |end_reg, &blk|
-      assert_equal /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/, end_reg
+      assert_equal(/\*\*\*\*\* ENDING TESTS \*\*\*\*\*/, end_reg)
       txt = "Fake Text"
       blk.call(txt) == false
     end
