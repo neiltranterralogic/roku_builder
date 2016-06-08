@@ -43,7 +43,7 @@ module RokuBuilder
         config[:projects].each {|project,project_config|
           next if project == :default
           validate_project(codes: codes, project: project_config)
-          project_config[:stages].each {|stage, stage_config|
+          project_config[:stages].each {|_stage, stage_config|
             validate_stage(codes: codes, stage: stage_config, project: project_config)
           }
         }
