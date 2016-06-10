@@ -267,4 +267,19 @@ class ConfigManagerTest < Minitest::Test
     io.verify
   end
 
+  def test_config_manager_parent_config
+    logger = Logger.new("/dev/null")
+    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
+    File.delete(target_config) if File.exist?(target_config)
+    FileUtils.cp(File.join(File.dirname(target_config), "parent_config.json"), target_config)
+
+    options = {validate: true, config: target_config, stage: :production}
+    code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    assert_equal RokuBuilder::SUCCESS, code
+    assert_equal "app2", config[:projects][:p2][:app_name]
+    assert_equal "/dev/null", config[:projects][:p2][:directory]
+    assert_equal 2, config[:projects][:p2][:files].count
+    assert_equal 2, config[:projects][:p2][:folders].count
+  end
+
 end

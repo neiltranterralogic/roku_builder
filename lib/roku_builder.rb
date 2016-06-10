@@ -136,7 +136,7 @@ module RokuBuilder
   IDENTICAL_SIDELOAD = 13
 end
 
-class String
+class ::String
   def underscore
     word = self.dup
     word.gsub!(/::/, '/')
@@ -145,5 +145,12 @@ class String
     word.tr!("-", "_")
     word.downcase!
     word
+  end
+end
+
+class ::Hash
+  def deep_merge(second)
+    merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2  }
+    self.merge(second, &merger)
   end
 end
