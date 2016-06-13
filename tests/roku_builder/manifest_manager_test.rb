@@ -21,7 +21,7 @@ class ManifestManagerTest < Minitest::Test
     Time.stub(:now, Time.new(2001, 02, 01)) do
       build_version = RokuBuilder::ManifestManager.update_build(root_dir: root_dir)
     end
-    assert_equal "020101.1", build_version
+    assert_equal "020101.0001", build_version
     FileUtils.rm(File.join(root_dir, "manifest"))
   end
 

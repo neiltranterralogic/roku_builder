@@ -10,64 +10,45 @@ module RokuBuilder
     # @return [String] Build version on success, empty string otherwise
     def self.update_build(root_dir:)
 
-      build_version = ""
-
-      temp_file = Tempfile.new('manifest')
-      path = File.join(root_dir, 'manifest')
-      begin
-        File.open(path, 'r') do |file|
-          file.each_line do |line|
-            if line.include?("build_version")
-
-              #Update build version.
-              build_version = line.split(".")
-              if 2 == build_version.length
-                iteration = build_version[1].to_i + 1
-                build_version[0] = Time.now.strftime("%m%d%y")
-                build_version[1] = iteration
-                build_version = build_version.join(".")
-              else
-                #Use current date.
-                build_version = Time.now.strftime("%m%d%y")+".1"
-              end
-              temp_file.puts "build_version=#{build_version}"
-            else
-              temp_file.puts line
-            end
-          end
-        end
-        temp_file.rewind
-        FileUtils.cp(temp_file.path, path)
-      ensure
-        temp_file.close
-        temp_file.unlink
+      build_version = self.build_version(root_dir: root_dir).split(".")
+      if 2 == build_version.length
+        iteration = build_version[1].to_i + 1
+        build_version[0] = Time.now.strftime("%m%d%y")
+        build_version[1] = iteration
+        build_version = build_version.join(".")
+      else
+        #Use current date.
+        build_version = Time.now.strftime("%m%d%y")+".0001"
       end
-      build_version
+      self.update_manifest(root_dir: root_dir, attributes: {build_version: build_version})
+      self.build_version(root_dir: root_dir)
     end
 
     # Retrive the build version from the manifest file
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
     def self.build_version(root_dir:)
-      build_version = ""
-      get_version = lambda  { |file|
+      read_manifest(root_dir: root_dir)[:build_version]
+    end
+
+    def self.read_manifest(root_dir:)
+      attrs = {}
+      get_attrs = lambda  { |file|
         file.each_line do |line|
-          if line.include?("build_version")
-            build_version = line.split("=")[1].chomp
-          end
+          key, value = line.split("=")
+          attrs[key.chomp.to_sym]= value.chomp
         end
       }
       if File.directory?(root_dir)
         path = File.join(root_dir, 'manifest')
-        build_version = ""
-        File.open(path, 'r', &get_version)
+        File.open(path, 'r', &get_attrs)
       elsif File.extname(root_dir) == ".zip"
         Zip::File.open(root_dir) do |zip_file|
           entry = zip_file.glob("manifest").first
-          entry.get_input_stream(&get_version)
+          entry.get_input_stream(&get_attrs)
         end
       end
-      build_version
+      attrs
     end
 
     # Update attributes in the app manifest
