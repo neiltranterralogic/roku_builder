@@ -150,6 +150,19 @@ module RokuBuilder
       end
     end
 
+    # Run Print
+    # @param options [Hash] user options
+    # @param configs [Hash] parsed configs
+    def self.print(options:, configs:)
+      stager = Stager.new(**configs[:stage_config])
+      code = nil
+      if stager.stage
+        code = Scripter.print(attribute: options[:print].to_sym, configs: configs)
+      end
+      stager.unstage
+      code
+    end
+
     # Run a simple command
     # @param klass [Class] class of object to create
     # @param method [Symbol] methog to run on klass

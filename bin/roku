@@ -68,6 +68,10 @@ OptionParser.new do |opts|
     options[:key] = true
   end
 
+  opts.on("--print ATTRIBUTE", "Command: Print attribute for scripting") do |a|
+    options[:print] = a
+  end
+
   opts.on("--screen SCREEN", "Command: show a screen") do |s|
     options[:screen] = s
   end

@@ -111,6 +111,8 @@ module RokuBuilder
       when FAILED_SCREENCAPTURE
         logger.fatal "Failed to Capture Screen"
         abort
+      when BAD_PRINT_ATTRIBUTE
+        logger.fatal "Unknown print attribute"
       end
     end
 

@@ -25,6 +25,7 @@ require "roku_builder/loader"
 require "roku_builder/packager"
 require "roku_builder/linker"
 require "roku_builder/tester"
+require "roku_builder/scripter"
 require "roku_builder/manifest_manager"
 require "roku_builder/config_manager"
 require "roku_builder/config_validator"
@@ -134,6 +135,9 @@ module RokuBuilder
 
   # Did not sideload as content is identical
   IDENTICAL_SIDELOAD = 13
+
+  # Bad print attribute
+  BAD_PRINT_ATTRIBUTE = 14
 end
 
 class ::String
