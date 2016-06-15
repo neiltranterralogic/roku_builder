@@ -188,5 +188,91 @@ class StagerTest < Minitest::Test
       assert stager.unstage
     end
   end
+
+  def test_stager_save_state
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
+    branch_name = 'branch'
+    git = Minitest::Mock.new
+    branch = Minitest::Mock.new
+    stashes = Minitest::Mock.new
+    pstore = Minitest::Mock.new
+
+    stager_config = {
+      method: :git,
+      root_dir: root_dir,
+      key: branch_name,
+      logger: nil
+    }
+
+    git.expect(:current_branch, 'other_branch')
+    git.expect(:current_branch, 'other_branch')
+    git.expect(:branch, branch)
+    branch.expect(:stashes, stashes)
+    stashes.expect(:save, 'stash', ["roku-builder-temp-stash"])
+    git.expect(:checkout, nil, [branch_name])
+
+    pstore.expect(:transaction, nil) do |&block|
+     block.call
+    end
+    pstore.expect(:[]=, nil, [:current_branch, 'other_branch'])
+    pstore.expect(:[]=, nil, [:stash, 'stash'])
+
+
+    Git.stub(:open, git) do
+      PStore.stub(:new, pstore) do
+        stager = RokuBuilder::Stager.new(**stager_config)
+        assert stager.stage
+      end
+    end
+    git.verify
+    branch.verify
+    stashes.verify
+    pstore.verify
+  end
+
+  def test_stager_load_state
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
+    branch_name = 'branch'
+    git = Minitest::Mock.new
+    branch = Minitest::Mock.new
+    stashes = Minitest::Mock.new
+    pstore = Minitest::Mock.new
+
+    stager_config = {
+      method: :git,
+      root_dir: root_dir,
+      key: branch_name,
+      logger: nil
+    }
+
+    pstore.expect(:transaction, nil) do |&block|
+     block.call
+    end
+    git.expect(:branches, ['other_branch'])
+    pstore.expect(:[], 'other_branch', [:current_branch])
+    pstore.expect(:[]=, nil, [:current_branch, nil])
+
+    git.expect(:branch, branch)
+    branch.expect(:stashes, ['stash'])
+    pstore.expect(:[], 'stash', [:stash])
+    pstore.expect(:[], 'stash', [:stash])
+    pstore.expect(:[]=, nil, [:stash, nil])
+
+    git.expect(:checkout, nil, ['other_branch'])
+    git.expect(:branch, branch)
+    branch.expect(:stashes, stashes)
+    stashes.expect(:apply, nil)
+
+    Git.stub(:open, git) do
+      PStore.stub(:new, pstore) do
+        stager = RokuBuilder::Stager.new(**stager_config)
+        assert stager.unstage
+      end
+    end
+    git.verify
+    branch.verify
+    stashes.verify
+    pstore.verify
+  end
 end
 

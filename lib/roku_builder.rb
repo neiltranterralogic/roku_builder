@@ -14,6 +14,8 @@ require "zip"
 require "git"
 #config_manager
 require 'json'
+#stager
+require 'pstore'
 
 require "roku_builder/controller"
 require "roku_builder/controller_commands"

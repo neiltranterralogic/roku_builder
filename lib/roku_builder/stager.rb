@@ -11,7 +11,6 @@ module RokuBuilder
       @root_dir = root_dir
       @logger = logger
       @stage_success = true
-      @orginal_directory = Dir.pwd
     end
 
     # Helper method to get the staging method being used
@@ -24,6 +23,7 @@ module RokuBuilder
     # Change the stage of the app depending on the method
     # @return [Boolean] whether the staging was successful or not
     def stage
+      @orginal_directory = Dir.pwd
       Dir.chdir(@root_dir) unless @root_dir == @orginal_directory
       case @method
       when :current
@@ -46,6 +46,8 @@ module RokuBuilder
     # Revert the change that the stage method made
     # @return [Boolean] whether the revert was successful or not
     def unstage
+      @orginal_directory ||= Dir.pwd
+      Dir.chdir(@root_dir) unless @root_dir == @orginal_directory
       unstage_success = true
       case @method
       when :current
@@ -73,10 +75,11 @@ module RokuBuilder
     def git_switch_to(branch:)
       if branch
         @git ||= Git.open(@root_dir)
-        if branch != @git.current_branch
+        if @git and branch != @git.current_branch
           @current_branch = @git.current_branch
           @stash = @git.branch.stashes.save("roku-builder-temp-stash")
           @git.checkout(branch)
+          save_state
         end
       end
     end
@@ -85,13 +88,46 @@ module RokuBuilder
     # @param branch [String] teh branch to switch from
     # @param checkout [Boolean] whether to actually run the checkout command
     def git_switch_from(branch:, checkout: true)
+      @current_branch ||= nil
       if branch
         @git ||= Git.open(@root_dir)
-        if @git and @current_branch
+        if @git and (@current_branch or load_state)
           @git.checkout(@current_branch) if checkout
           @git.branch.stashes.apply if @stash
         end
       end
+    end
+
+    # Save staging state to file
+    def save_state
+      store = PStore.new(File.expand_path("~/.roku_pstore"))
+      store.transaction do
+        store[:current_branch] = @current_branch.to_s
+        store[:stash] = @stash.to_s if @stash
+      end
+    end
+
+    # Load staging state from file
+    def load_state
+      store = PStore.new(File.expand_path("~/.roku_pstore"))
+      store.transaction do
+        @git.branches.each do |branch|
+          if branch.to_s == store[:current_branch]
+            @current_branch = branch
+            store[:current_branch] = nil
+            break
+          end
+        end
+        @git.branch.stashes.each do |stash|
+          if store[:stash] and stash.to_s == store[:stash]
+            @stash = stash
+            store[:stash] = nil
+            break
+          end
+        end
+        !!@current_branch
+      end
+      !!@current_branch
     end
 
     # Called if resuce from git exception
