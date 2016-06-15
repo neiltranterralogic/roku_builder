@@ -389,4 +389,25 @@ class ControllerCommandsTest < Minitest::Test
     assert_equal RokuBuilder::FAILED_SCREENCAPTURE, code
     inspector.verify
   end
+  def test_controller_commands_print
+    logger = Logger.new("/dev/null")
+    stager = Minitest::Mock.new
+
+    options = {print: 'title', stage: 'production', config: "~/.roku_config.json"}
+    config = good_config
+    configs = {stage_config: {}}
+    code = nil
+    scripter_config = {attribute: :title, configs: configs}
+    print_check = lambda {|config| RokuBuilder::SUCCESS if config == scripter_config }
+    stager.expect(:stage, true)
+    stager.expect(:unstage, true)
+
+    RokuBuilder::Stager.stub(:new, stager) do
+      RokuBuilder::Scripter.stub(:print, print_check) do
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+      end
+    end
+    assert_equal RokuBuilder::SUCCESS, code
+    stager.verify
+  end
 end

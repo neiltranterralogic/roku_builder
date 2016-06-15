@@ -123,4 +123,13 @@ class ConfigParserTest < Minitest::Test
     RokuBuilder::ConfigParser.send(:setup_sideload_config, **args)
     refute_nil args[:configs][:sideload_config][:content][:excludes]
   end
+
+  def test_deeplink_app_config
+    args = {
+      configs: {project_config: {directory: "dir"}},
+      options: {deeplink: "a:b", app_id: "xxxxxx"},
+      logger: Logger.new("/dev/null")
+    }
+    RokuBuilder::ConfigParser.send(:setup_simple_configs, **args)
+  end
 end

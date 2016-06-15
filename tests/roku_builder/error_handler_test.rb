@@ -42,7 +42,8 @@ class ErrorHandlerTest < Minitest::Test
           RokuBuilder::FAILED_SIGNING,
           RokuBuilder::FAILED_DEEPLINKING,
           RokuBuilder::FAILED_NAVIGATING,
-          RokuBuilder::FAILED_SCREENCAPTURE
+          RokuBuilder::FAILED_SCREENCAPTURE,
+          RokuBuilder::BAD_PRINT_ATTRIBUTE
         ]
       },
       info: {
