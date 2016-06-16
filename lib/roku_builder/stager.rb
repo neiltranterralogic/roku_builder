@@ -11,6 +11,7 @@ module RokuBuilder
       @root_dir = root_dir
       @logger = logger
       @stage_success = true
+      @stash_key = "roku-builder-temp-stash"
     end
 
     # Helper method to get the staging method being used
@@ -77,7 +78,7 @@ module RokuBuilder
         @git ||= Git.open(@root_dir)
         if @git and branch != @git.current_branch
           @current_branch = @git.current_branch
-          @stash = @git.branch.stashes.save("roku-builder-temp-stash")
+          @git.branch.stashes.save(@stash_key)
           @git.checkout(branch)
           save_state
         end
@@ -91,9 +92,16 @@ module RokuBuilder
       @current_branch ||= nil
       if branch
         @git ||= Git.open(@root_dir)
+        byebug
         if @git and (@current_branch or load_state)
           @git.checkout(@current_branch) if checkout
-          @git.branch.stashes.apply if @stash
+          index = 0
+          @git.branch.stashes.each do |stash|
+            if stash.message == @stash_key
+              @git.branch.stashes.apply(index)
+            end
+            index += 1
+          end
         end
       end
     end
@@ -103,7 +111,6 @@ module RokuBuilder
       store = PStore.new(File.expand_path("~/.roku_pstore"))
       store.transaction do
         store[:current_branch] = @current_branch.to_s
-        store[:stash] = @stash.to_s if @stash
       end
     end
 
@@ -115,13 +122,6 @@ module RokuBuilder
           if branch.to_s == store[:current_branch]
             @current_branch = branch
             store[:current_branch] = nil
-            break
-          end
-        end
-        @git.branch.stashes.each do |stash|
-          if store[:stash] and stash.to_s == store[:stash]
-            @stash = stash
-            store[:stash] = nil
             break
           end
         end

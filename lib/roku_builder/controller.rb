@@ -162,7 +162,7 @@ module RokuBuilder
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
         :navigate, :text, :build, :monitor, :update, :screencapture, :key, :screen,
-        :screens, :applist, :print]
+        :screens, :applist, :print, :dostage, :dounstage]
     end
 
     # List of depricated options

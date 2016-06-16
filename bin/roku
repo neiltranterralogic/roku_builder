@@ -3,7 +3,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-#require "byebug"
+require "byebug"
 require "roku_builder"
 require "optparse"
 require "pathname"
@@ -70,6 +70,14 @@ OptionParser.new do |opts|
 
   opts.on("--print ATTRIBUTE", "Command: Print attribute for scripting") do |a|
     options[:print] = a
+  end
+
+  opts.on("--do-stage", "Command: Run the stager. Used for scripting. Alwasy run --do-unscript after") do
+    options[:dostage] = true
+  end
+
+  opts.on("--do-unstage", "Command: Run the unstager. Used for scripting. Alwasy run --do-script first") do
+    options[:dounstage] = true
   end
 
   opts.on("--screen SCREEN", "Command: show a screen") do |s|

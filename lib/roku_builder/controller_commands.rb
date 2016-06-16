@@ -163,6 +163,16 @@ module RokuBuilder
       code
     end
 
+    def self.dostage(configs:)
+      stager = Stager.new(**configs[:stage_config])
+      stager.stage
+    end
+
+    def self.dounstage(configs:)
+      stager = Stager.new(**configs[:stage_config])
+      stager.unstage
+    end
+
     # Run a simple command
     # @param klass [Class] class of object to create
     # @param method [Symbol] methog to run on klass
