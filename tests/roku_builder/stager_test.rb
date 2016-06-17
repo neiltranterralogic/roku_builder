@@ -45,6 +45,7 @@ class StagerTest < Minitest::Test
     git = Minitest::Mock.new
     branch = Minitest::Mock.new
     stashes = Minitest::Mock.new
+    stash = Minitest::Mock.new
 
     stager_config = {
       method: :git,
@@ -59,10 +60,13 @@ class StagerTest < Minitest::Test
     branch.expect(:stashes, stashes)
     stashes.expect(:save, true, ["roku-builder-temp-stash"])
     git.expect(:checkout, nil, [branch_name])
+    git.expect(:branch, branch)
+    branch.expect(:stashes, [stash])
     git.expect(:checkout, nil, ['other_branch'])
     git.expect(:branch, branch)
+    stash.expect(:message, "roku-builder-temp-stash")
     branch.expect(:stashes, stashes)
-    stashes.expect(:apply, nil)
+    stashes.expect(:pop, nil, ["stash@{0}"])
 
     Git.stub(:open, git) do
       stager = RokuBuilder::Stager.new(**stager_config)
@@ -72,6 +76,7 @@ class StagerTest < Minitest::Test
     git.verify
     branch.verify
     stashes.verify
+    stash.verify
   end
 
   def test_stager_stage_git_no_stash
@@ -94,7 +99,10 @@ class StagerTest < Minitest::Test
     branch.expect(:stashes, stashes)
     stashes.expect(:save, nil, ["roku-builder-temp-stash"])
     git.expect(:checkout, nil, [branch_name])
+
     git.expect(:checkout, nil, ['other_branch'])
+    git.expect(:branch, branch)
+    branch.expect(:stashes, [])
 
     Git.stub(:open, git) do
       stager = RokuBuilder::Stager.new(**stager_config)
@@ -112,6 +120,7 @@ class StagerTest < Minitest::Test
     git = Minitest::Mock.new
     branch = Minitest::Mock.new
     stashes = Minitest::Mock.new
+    stash = Minitest::Mock.new
     logger = Minitest::Mock.new
 
     stager_config = {
@@ -132,8 +141,11 @@ class StagerTest < Minitest::Test
     stashes.expect(:save, true, ["roku-builder-temp-stash"])
     logger.expect(:error, nil, ["Branch or ref does not exist"])
     git.expect(:branch, branch)
+    branch.expect(:stashes, [stash])
+    git.expect(:branch, branch)
+    stash.expect(:message, "roku-builder-temp-stash")
     branch.expect(:stashes, stashes)
-    stashes.expect(:apply, nil)
+    stashes.expect(:pop, nil, ["stash@{0}"])
 
     Git.stub(:open, git) do
       stager = RokuBuilder::Stager.new(**stager_config)
@@ -143,6 +155,7 @@ class StagerTest < Minitest::Test
     git.verify
     branch.verify
     stashes.verify
+    stash.verify
     logger.verify
   end
 
@@ -215,7 +228,6 @@ class StagerTest < Minitest::Test
      block.call
     end
     pstore.expect(:[]=, nil, [:current_branch, 'other_branch'])
-    pstore.expect(:[]=, nil, [:stash, 'stash'])
 
 
     Git.stub(:open, git) do
@@ -236,6 +248,7 @@ class StagerTest < Minitest::Test
     git = Minitest::Mock.new
     branch = Minitest::Mock.new
     stashes = Minitest::Mock.new
+    stash = Minitest::Mock.new
     pstore = Minitest::Mock.new
 
     stager_config = {
@@ -253,15 +266,12 @@ class StagerTest < Minitest::Test
     pstore.expect(:[]=, nil, [:current_branch, nil])
 
     git.expect(:branch, branch)
-    branch.expect(:stashes, ['stash'])
-    pstore.expect(:[], 'stash', [:stash])
-    pstore.expect(:[], 'stash', [:stash])
-    pstore.expect(:[]=, nil, [:stash, nil])
-
+    branch.expect(:stashes, [stash])
     git.expect(:checkout, nil, ['other_branch'])
     git.expect(:branch, branch)
+    stash.expect(:message, "roku-builder-temp-stash")
     branch.expect(:stashes, stashes)
-    stashes.expect(:apply, nil)
+    stashes.expect(:pop, nil, ["stash@{0}"])
 
     Git.stub(:open, git) do
       PStore.stub(:new, pstore) do
@@ -272,6 +282,7 @@ class StagerTest < Minitest::Test
     git.verify
     branch.verify
     stashes.verify
+    stash.verify
     pstore.verify
   end
 end
