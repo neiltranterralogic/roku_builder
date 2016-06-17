@@ -92,13 +92,13 @@ module RokuBuilder
       @current_branch ||= nil
       if branch
         @git ||= Git.open(@root_dir)
-        byebug
         if @git and (@current_branch or load_state)
           @git.checkout(@current_branch) if checkout
           index = 0
           @git.branch.stashes.each do |stash|
             if stash.message == @stash_key
-              @git.branch.stashes.apply(index)
+              @git.branch.stashes.pop("stash@{#{index}}")
+              break
             end
             index += 1
           end
