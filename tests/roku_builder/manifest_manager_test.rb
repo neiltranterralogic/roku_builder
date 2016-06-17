@@ -89,4 +89,17 @@ class ManifestManagerTest < Minitest::Test
     assert FileUtils.compare_file(File.join(root_dir, "manifest"), File.join(root_dir, "updated_title_manifest"))
     FileUtils.rm(File.join(root_dir, "manifest"))
   end
+  def test_manifest_manager_comment_empty
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "manifest_manager_test")
+    FileUtils.cp(File.join(root_dir, "manifest_comments"), File.join(root_dir, "manifest"))
+    result = {}
+    result["#comment".to_sym] = nil
+    result[:title] = "title"
+    result[:other] = ""
+    result[:other2] = "val#comment"
+    result[:other3] = "#comment"
+    manifest = RokuBuilder::ManifestManager.read_manifest(root_dir: root_dir)
+    assert_equal result, manifest
+    FileUtils.rm(File.join(root_dir, "manifest"))
+  end
 end

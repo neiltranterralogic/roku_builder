@@ -36,7 +36,11 @@ module RokuBuilder
       get_attrs = lambda  { |file|
         file.each_line do |line|
           key, value = line.split("=")
-          attrs[key.chomp.to_sym]= value.chomp
+          if value
+            attrs[key.chomp.to_sym]= value.chomp
+          elsif key and !key.chomp.empty?
+            attrs[key.chomp.to_sym]= nil
+          end
         end
       }
       if File.directory?(root_dir)
