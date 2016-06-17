@@ -94,8 +94,6 @@ class ConfigManagerTest < Minitest::Test
     assert_equal Hash, config.class
     assert_equal Hash, configs.class
 
-
-
     File.delete(target_config) if File.exist?(target_config)
   end
 
@@ -280,6 +278,6 @@ class ConfigManagerTest < Minitest::Test
     assert_equal "/dev/null", config[:projects][:p2][:directory]
     assert_equal 2, config[:projects][:p2][:files].count
     assert_equal 2, config[:projects][:p2][:folders].count
+    File.delete(target_config) if File.exist?(target_config)
   end
-
 end
