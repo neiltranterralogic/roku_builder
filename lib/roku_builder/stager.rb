@@ -76,9 +76,9 @@ module RokuBuilder
     def git_switch_to(branch:)
       if branch
         @git ||= Git.open(@root_dir)
+        @git.branch.stashes.save(@stash_key)
         if @git and branch != @git.current_branch
           @current_branch = @git.current_branch
-          @git.branch.stashes.save(@stash_key)
           @git.checkout(branch)
           save_state
         end
@@ -94,6 +94,8 @@ module RokuBuilder
         @git ||= Git.open(@root_dir)
         if @git and (@current_branch or load_state)
           @git.checkout(@current_branch) if checkout
+        end
+        if @git
           index = 0
           @git.branch.stashes.each do |stash|
             if stash.message == @stash_key
