@@ -95,7 +95,7 @@ class ControllerTest < Minitest::Test
   def test_controller_check_devices
     logger = Logger.new("/dev/null")
     ping = Minitest::Mock.new
-    options = {device_given: false}
+    options = {sideload: true, device_given: false}
     config = {}
     config[:devices] = {
       a: {ip: "2.2.2.2"},
@@ -127,6 +127,10 @@ class ControllerTest < Minitest::Test
       ping.expect(:ping?, false, [configs[:device_config][:ip], 1, 0.2, 1])
       code, ret = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, configs: configs, logger: logger})
       assert_equal RokuBuilder::BAD_DEVICE, code
+
+      options = {build: true, device_given: false}
+      code, ret = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, configs: configs, logger: logger})
+      assert_equal RokuBuilder::GOOD_DEVICE, code
     end
   end
 
