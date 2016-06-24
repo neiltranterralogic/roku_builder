@@ -139,21 +139,25 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @param logger [Logger] system logger
     def self.check_devices(options:, config:, configs:, logger:)
-      ping = Net::Ping::External.new
-      host = configs[:device_config][:ip]
-      return [GOOD_DEVICE, configs] if ping.ping? host, 1, 0.2, 1
-      return [BAD_DEVICE, nil] if options[:device_given]
-      config[:devices].each_pair {|key, value|
-        unless key == :default
-          host = value[:ip]
-          if ping.ping? host, 1, 0.2, 1
-            configs[:device_config] = value
-            configs[:device_config][:logger] = logger
-            return [CHANGED_DEVICE, configs]
+      command = (options.keys & commands).first
+      if device_commands.include?(command)
+        ping = Net::Ping::External.new
+        host = configs[:device_config][:ip]
+        return [GOOD_DEVICE, configs] if ping.ping? host, 1, 0.2, 1
+        return [BAD_DEVICE, nil] if options[:device_given]
+        config[:devices].each_pair {|key, value|
+          unless key == :default
+            host = value[:ip]
+            if ping.ping? host, 1, 0.2, 1
+              configs[:device_config] = value
+              configs[:device_config][:logger] = logger
+              return [CHANGED_DEVICE, configs]
+            end
           end
-        end
-      }
-      return [NO_DEVICES, nil]
+        }
+        return [NO_DEVICES, nil]
+      end
+      return [GOOD_DEVICE, configs]
     end
     private_class_method :check_devices
 
@@ -187,6 +191,13 @@ module RokuBuilder
     # @return [Array<Symbol] List of commands the will activate the exclude files lists
     def self.exclude_commands
       [:build, :package]
+    end
+
+    # List of commands that require a device
+    # @return [Array<Symbol>] List of commands that require a device
+    def self.device_commands
+      [:sideload, :package, :test, :deeplink, :delete, :navigate, :text,
+        :monitor, :screencapture, :applist, :print ]
     end
 
 
