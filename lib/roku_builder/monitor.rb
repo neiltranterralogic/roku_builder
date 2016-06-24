@@ -43,11 +43,14 @@ module RokuBuilder
       running = true
       while running
         begin
-          @logger.info "Q to exit"
+          @logger.unknown "Q to exit"
           command = gets.chomp
-          if command == "q"
+          case command
+          when "q"
             thread.exit
             running = false
+          when "stop"
+            thread[:connection].puts("\C-c")
           else
             thread[:connection].puts(command)
           end
