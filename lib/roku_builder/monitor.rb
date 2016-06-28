@@ -14,6 +14,7 @@ module RokuBuilder
         task2: 8091,
         task3: 8092,
         taskX: 8093,
+        profiler: 8080,
       }
     end
 
