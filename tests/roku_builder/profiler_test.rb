@@ -12,7 +12,6 @@ class ProfilerTest < Minitest::Test
       true
     end
     connection = Minitest::Mock.new
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",

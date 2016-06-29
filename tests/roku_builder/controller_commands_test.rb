@@ -402,7 +402,7 @@ class ControllerCommandsTest < Minitest::Test
     configs = {stage_config: {}}
     code = nil
     scripter_config = {attribute: :title, configs: configs}
-    print_check = lambda {|config| RokuBuilder::SUCCESS if config == scripter_config }
+    print_check = lambda {|print_config| RokuBuilder::SUCCESS if print_config == scripter_config }
     stager.expect(:stage, true)
     stager.expect(:unstage, true)
 

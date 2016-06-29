@@ -272,7 +272,7 @@ class ConfigManagerTest < Minitest::Test
     FileUtils.cp(File.join(File.dirname(target_config), "parent_config.json"), target_config)
 
     options = {validate: true, config: target_config, stage: :production}
-    code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
+    code, config, _configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal "app2", config[:projects][:p2][:app_name]
     assert_equal "/dev/null", config[:projects][:p2][:directory]
