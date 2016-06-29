@@ -19,12 +19,14 @@ development tasks:
  * App Deleteing
  * Package Inspection
  * Monitoring logs
+ * Profile Scene Graph applications
 
-The tool allows scripting of the following interactions with the roku:
+The tool allows scripting of the following:
 
  * Conroller inputs
  * Text Input
  * Screencaptures
+ * Printing project information
 
 Other tasks the tool can complete:
 
@@ -174,10 +176,24 @@ The following are the options to be passed in as type:
  * task2
  * task3
  * taskX
+ * profile
 
 The tool connects to the roku via telnet and prints everything that it
 recieves. It will continue indefinatly unless it is stopped via Ctrl-c or
 entering "q".
+
+#### Profiling Scene Graph
+
+The tool will help a little with profiling scenegraph applications. Running the
+following command will print a list of all of the currently created nodes
+types and how many of each are being created.
+
+    $ roku --profile stats
+
+If you want to see more information about each node you can monitor the
+profile log (See Monitoring Logs above) and enter teh following command:
+
+    $ sgnodes all
 
 #### Testing
 
@@ -302,7 +318,8 @@ directory:
    * Intergration Tests
  * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
- * Fix fgile naming when building from a referance
+ * Fix file naming when building from a referance
+ * Extend profiling
 
 ## Contributing
 
