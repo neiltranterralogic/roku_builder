@@ -72,6 +72,10 @@ OptionParser.new do |opts|
     options[:print] = a
   end
 
+  opts.on("--profile COMMAND", "Command: Run various profiler options") do |c|
+    options[:profile] = c
+  end
+
   opts.on("--do-stage", "Command: Run the stager. Used for scripting. Alwasy run --do-unscript after") do
     options[:dostage] = true
   end

@@ -15,7 +15,8 @@ module RokuBuilder
       @device_config = {
         ip: ip,
         user: user,
-        password: password
+        password: password,
+        logger: logger
       }
       @roku_ip_address = ip
       @dev_username = user

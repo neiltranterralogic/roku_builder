@@ -228,6 +228,10 @@ module RokuBuilder
       if options[:screen]
         configs[:screen_config] = {type: options[:screen].to_sym}
       end
+      #Create Profiler Config
+      if options[:profile]
+        configs[:profiler_config] = {command: options[:profile].to_sym}
+      end
     end
     private_class_method :setup_simple_configs
   end

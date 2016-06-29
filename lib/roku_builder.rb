@@ -16,6 +16,8 @@ require "git"
 require 'json'
 #stager
 require 'pstore'
+#profiler
+require 'nokogiri'
 
 require "roku_builder/controller"
 require "roku_builder/controller_commands"
@@ -28,6 +30,7 @@ require "roku_builder/packager"
 require "roku_builder/linker"
 require "roku_builder/tester"
 require "roku_builder/scripter"
+require "roku_builder/profiler"
 require "roku_builder/manifest_manager"
 require "roku_builder/config_manager"
 require "roku_builder/config_validator"
