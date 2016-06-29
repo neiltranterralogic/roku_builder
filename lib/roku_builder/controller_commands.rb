@@ -83,10 +83,16 @@ module RokuBuilder
         # Inspect #
         if options[:inspect]
           info = inspector.inspect(configs[:inspect_config])
-          logger.unknown "App Name: #{info[:app_name]}"
-          logger.unknown "Dev ID: #{info[:dev_id]}"
-          logger.unknown "Creation Date: #{info[:creation_date]}"
-          logger.unknown "dev.zip: #{info[:dev_zip]}"
+          inspect_logger = Logger.new(STDOUT)
+          inspect_logger.formatter = proc {|_severity, _datetime, _progname, msg|
+            "%s\n\r" % [msg]
+          }
+          inspect_logger.unknown "=============================================================="
+          inspect_logger.unknown "App Name: #{info[:app_name]}"
+          inspect_logger.unknown "Dev ID: #{info[:dev_id]}"
+          inspect_logger.unknown "Creation Date: #{info[:creation_date]}"
+          inspect_logger.unknown "dev.zip: #{info[:dev_zip]}"
+          inspect_logger.unknown "=============================================================="
         end
       end
       stager.unstage

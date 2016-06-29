@@ -75,7 +75,9 @@ class ControllerCommandsTest < Minitest::Test
         RokuBuilder::Packager.stub(:new, packager) do
           RokuBuilder::Inspector.stub(:new, inspector) do
             RokuBuilder::Stager.stub(:new, stager) do
-              code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+              Logger.stub(:new, logger) do
+                code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+              end
             end
           end
         end
@@ -117,7 +119,9 @@ class ControllerCommandsTest < Minitest::Test
         RokuBuilder::Packager.stub(:new, packager) do
           RokuBuilder::Inspector.stub(:new, inspector) do
             RokuBuilder::Stager.stub(:new, stager) do
-              code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+              Logger.stub(:new, logger) do
+                code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+              end
             end
           end
         end
