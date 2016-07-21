@@ -10,7 +10,7 @@ module RokuBuilder
     # @param configs [Hash] Parsed config hash
     def self.print(attribute:, configs:)
       attributes = [
-        :title, :build_version, :app_version, :root_dir
+        :title, :build_version, :app_version, :root_dir, :app_name
       ]
 
       unless attributes.include? attribute
@@ -22,6 +22,8 @@ module RokuBuilder
       case attribute
       when :root_dir
         printf "%s", configs[:project_config][:directory]
+      when :app_name
+        printf "%s", configs[:project_config][:app_name]
       when :title
         printf "%s", ManifestManager.read_manifest(**read_config)[:title]
       when :build_version

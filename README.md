@@ -191,7 +191,7 @@ types and how many of each are being created.
     $ roku --profile stats
 
 If you want to see more information about each node you can monitor the
-profile log (See Monitoring Logs above) and enter teh following command:
+profile log (See Monitoring Logs above) and enter the following command:
 
     $ sgnodes all
 

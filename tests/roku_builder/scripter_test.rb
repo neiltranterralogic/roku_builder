@@ -9,7 +9,7 @@ class Scriptertest < Minitest::Test
     assert_equal RokuBuilder::BAD_PRINT_ATTRIBUTE, code
   end
 
-  def test_scripter_print_config_values
+  def test_scripter_print_config_root_dir
     call_count = 0
     code = nil
     fake_print = lambda { |message, path|
@@ -20,6 +20,21 @@ class Scriptertest < Minitest::Test
     configs = {project_config: {directory: "/dev/null"}}
     RokuBuilder::Scripter.stub(:printf, fake_print) do
       code = RokuBuilder::Scripter.print(attribute: :root_dir, configs: configs)
+    end
+    assert_equal 1, call_count
+    assert_equal RokuBuilder::SUCCESS, code
+  end
+  def test_scripter_print_config_app_name
+    call_count = 0
+    code = nil
+    fake_print = lambda { |message, path|
+      assert_equal "%s", message
+      assert_equal "TestApp", path
+      call_count+=1
+    }
+    configs = {project_config: {app_name: "TestApp"}}
+    RokuBuilder::Scripter.stub(:printf, fake_print) do
+      code = RokuBuilder::Scripter.print(attribute: :app_name, configs: configs)
     end
     assert_equal 1, call_count
     assert_equal RokuBuilder::SUCCESS, code
