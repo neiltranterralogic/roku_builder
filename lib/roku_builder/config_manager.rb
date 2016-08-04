@@ -75,8 +75,6 @@ module RokuBuilder
     # Edit the roku config
     # @param config [String] path for the roku config
     # @param options [String] options to set in the config
-    # @param device [String] which device to use
-    # @param project [String] which project to use
     # @param stage[String] which stage to use
     # @return [Boolean] success
     def self.edit_config(config:, options:, logger:)
@@ -87,7 +85,7 @@ module RokuBuilder
       device = options[:device].to_sym if options[:device]
       device = config_object[:devices][:default] unless options[:device]
       stage = options[:stage].to_sym if options[:stage]
-      stage = :production unless options[:stage]
+      stage ||= config_object[:projects][project][:stages].keys[0].to_sym
       state = {
         project: project,
         device: device,

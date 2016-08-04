@@ -16,7 +16,7 @@ class ControllerCommandsTest < Minitest::Test
     loader = Minitest::Mock.new
     stager = Minitest::Mock.new
 
-    options = {sideload: true, stage: 'production', config: "~/.roku_config.rb"}
+    options = {sideload: true, config: "~/.roku_config.rb"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     # Test Success
@@ -56,7 +56,7 @@ class ControllerCommandsTest < Minitest::Test
     packager = Minitest::Mock.new
     inspector = Minitest::Mock.new
 
-    options = {package: true, inspect: true, stage: 'production', out_folder: "/tmp", config: "~/.roku_config.json"}
+    options = {package: true, inspect: true, out_folder: "/tmp", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
@@ -100,7 +100,7 @@ class ControllerCommandsTest < Minitest::Test
     packager = Minitest::Mock.new
     inspector = Minitest::Mock.new
 
-    options = {package: true, inspect: true, stage: 'production', out: "/tmp/out.pkg", config: "~/.roku_config.json"}
+    options = {package: true, inspect: true, out: "/tmp/out.pkg", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     info = {app_name: "app", dev_id: "id", creation_date: "date", dev_zip: ""}
@@ -142,7 +142,7 @@ class ControllerCommandsTest < Minitest::Test
     stager = Minitest::Mock.new
 
     code = nil
-    options = {build: true, stage: 'production', out_folder: "/tmp", config: "~/.roku_config.json"}
+    options = {build: true, out_folder: "/tmp", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     loader.expect(:build, "/tmp/build", [configs[:build_config]])
@@ -167,7 +167,7 @@ class ControllerCommandsTest < Minitest::Test
     stager = Minitest::Mock.new
 
     code = nil
-    options = {update: true, stage: 'production', out_folder: "/tmp", config: "~/.roku_config.json"}
+    options = {update: true, out_folder: "/tmp", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     mock.expect(:call, "1", [configs[:manifest_config]])
@@ -192,7 +192,7 @@ class ControllerCommandsTest < Minitest::Test
     mock = Minitest::Mock.new
 
     code = nil
-    options = {deeplink: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
+    options = {deeplink: true, deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     mock.expect(:launch, "true", [configs[:deeplink_config]])
@@ -211,7 +211,7 @@ class ControllerCommandsTest < Minitest::Test
     sideload =  Proc.new {|a, b, c| ran_sideload = true}
 
     code = nil
-    options = {deeplink: true, set_stage: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
+    options = {deeplink: true, set_stage: true, deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     mock.expect(:launch, "true", [configs[:deeplink_config]])
@@ -227,14 +227,19 @@ class ControllerCommandsTest < Minitest::Test
   def test_controller_commands_deeplink_fail
     logger = Logger.new("/dev/null")
     mock = Minitest::Mock.new
+    stager = Minitest::Mock.new
 
     code = nil
-    options = {deeplink: true, stage: 'production', deeplink_options: "a:b", config: "~/.roku_config.json"}
+    options = {deeplink: true, deeplink_options: "a:b", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     mock.expect(:launch, false, [configs[:deeplink_config]])
+    stager.expect(:stage, true)
+    stager.expect(:unstage, true)
     RokuBuilder::Linker.stub(:new, mock) do
-      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+      RokuBuilder::Stager.stub(:new, stager) do
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, configs: configs, logger: logger})
+      end
     end
     mock.verify
     assert_equal RokuBuilder::FAILED_DEEPLINKING, code
@@ -243,7 +248,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     loader = Minitest::Mock.new
 
-    options = {delete: true, stage: 'production', config: "~/.roku_config.json"}
+    options = {delete: true, config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     loader.expect(:unload, nil)
@@ -260,7 +265,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     monitor = Minitest::Mock.new
 
-    options = {monitor: "main", stage: 'production', config: "~/.roku_config.json"}
+    options = {monitor: "main", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     monitor.expect(:monitor, nil, [configs[:monitor_config]])
@@ -277,7 +282,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {navigate: "up", stage: 'production', config: ":execute_commands,/.roku_config.json"}
+    options = {navigate: "up", config: ":execute_commands,/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:nav, true, [configs[:navigate_config]])
@@ -292,7 +297,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {navigate: "up", stage: 'production', config: ":execute_commands,/.roku_config.json"}
+    options = {navigate: "up", config: ":execute_commands,/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:nav, nil, [configs[:navigate_config]])
@@ -307,7 +312,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {screen: "secret", stage: 'production', config: ":execute_commands,/.roku_config.json"}
+    options = {screen: "secret", config: ":execute_commands,/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:screen, true, [configs[:screen_config]])
@@ -322,7 +327,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {screens: true, stage: 'production', config: ":execute_commands,/.roku_config.json"}
+    options = {screens: true, config: ":execute_commands,/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:screens, true)
@@ -337,7 +342,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {text: "text string", stage: 'production', config: ":execute_commands,/.roku_config.json"}
+    options = {text: "text string", config: ":execute_commands,/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:type, true, [configs[:text_config]])
@@ -352,7 +357,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     tester = Minitest::Mock.new
 
-    options = {test: true, stage: 'production', config: "~/.roku_config.json"}
+    options = {test: true, config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     tester.expect(:run_tests, true, [configs[:test_config]])
@@ -367,7 +372,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     inspector = Minitest::Mock.new
 
-    options = {screencapture: true, stage: 'production', out: "/tmp/capture.jpg", config: "~/.roku_config.json"}
+    options = {screencapture: true, out: "/tmp/capture.jpg", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     inspector.expect(:screencapture, true, [configs[:screencapture_config]])
@@ -382,7 +387,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     inspector = Minitest::Mock.new
 
-    options = {screencapture: true, stage: 'production', out: "/tmp", config: "~/.roku_config.json"}
+    options = {screencapture: true, out: "/tmp", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     inspector.expect(:screencapture, false, [configs[:screencapture_config]])
@@ -397,7 +402,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     stager = Minitest::Mock.new
 
-    options = {print: 'title', stage: 'production', config: "~/.roku_config.json"}
+    options = {print: 'title', config: "~/.roku_config.json"}
     config = good_config
     configs = {stage_config: {}}
     code = nil

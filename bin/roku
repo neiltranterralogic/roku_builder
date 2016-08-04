@@ -10,7 +10,6 @@ require "pathname"
 
 options = {}
 options[:config] = '~/.roku_config.json'
-options[:stage] = 'production'
 options[:update_manifest] = false
 
 OptionParser.new do |opts|

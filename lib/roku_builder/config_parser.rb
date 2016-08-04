@@ -114,8 +114,10 @@ module RokuBuilder
     # @return [Hash] The stage config hash
     def self.setup_stage_config(configs:, options:, logger:)
       stage_config = {logger: logger}
-      stage = options[:stage].to_sym
+      stage = options[:stage].to_sym if options[:stage]
       project_config = configs[:project_config]
+      stage ||= project_config[:stages].keys[0].to_sym
+      options[:stage] = stage
       stage_config[:root_dir] = project_config[:directory]
       stage_config[:method] = project_config[:stage_method]
       stage_config[:method] ||= :git
