@@ -116,7 +116,11 @@ module RokuBuilder
       stage_config = {logger: logger}
       stage = options[:stage].to_sym if options[:stage]
       project_config = configs[:project_config]
-      stage ||= project_config[:stages].keys[0].to_sym
+      unless project_config[:stage_method] == :current
+        stage ||= project_config[:stages].keys[0].to_sym
+      else
+        stage = :current
+      end
       options[:stage] = stage
       stage_config[:root_dir] = project_config[:directory]
       stage_config[:method] = project_config[:stage_method]
