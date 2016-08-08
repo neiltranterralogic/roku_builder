@@ -248,10 +248,6 @@ This will deeplink into the app sending the keypair values as defined in the
 string. You can also have the app sideloaded first by adding one of the
 source options (--working/-w, --current/-c, --ref/-r, or --stage/-s).
 
-You can restart the roku device using the following command:
-
-    $ roku --restart
-
 You can delete the currently sideloaded app using the following command:
 
     $ roku --delete
