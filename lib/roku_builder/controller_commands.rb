@@ -74,7 +74,6 @@ module RokuBuilder
         return code unless code = SUCCESS
         # Key #
         success = keyer.rekey(**configs[:key])
-        logger.info "Key did not change" unless success
         # Package #
         options[:build_version] = build_version
         configs = ConfigManager.update_configs(configs: configs, options: options)

@@ -105,7 +105,7 @@ class KeyerTest < Minitest::Test
     # generator spitting out the same number twice
     # SEED=21894
     # SEED=31813
-    dev_id = Proc.new { Random.rand(100) }
+    dev_id = Proc.new {"#{Random.rand(100)}"}
     keyer = RokuBuilder::Keyer.new(**device_config)
     key_changed = nil
     Faraday.stub(:new, connection, faraday) do
