@@ -197,7 +197,7 @@ module RokuBuilder
     # @return [Array<Symbol>] List of commands that require a device
     def self.device_commands
       [:sideload, :package, :test, :deeplink, :delete, :navigate, :text,
-        :monitor, :screencapture, :applist, :print, :profile ]
+        :monitor, :screencapture, :applist, :profile ]
     end
 
 
