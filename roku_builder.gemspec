@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faraday",             "~> 0.9"
   spec.add_dependency "faraday-digestauth",  "~> 0.2"
   spec.add_dependency "git",                 "~> 1.3"
-  spec.add_dependency "net-ping",            "~> 1.7"
+  spec.add_dependency "net-ping",            "~> 2.0"
   spec.add_dependency "net-telnet",          "~> 0.1"
   spec.add_dependency "nokogiri",            "~> 1.6"
 
