@@ -126,8 +126,13 @@ module RokuBuilder
         configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
         unless options[:outfile]
           pathname = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}")
-          configs[:package_config][:out_file] =  pathname+".pkg" if configs[:package_config]
-          configs[:build_config][:outfile]    = pathname+".zip" if configs[:build_config]
+          if options[:out]
+            configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file]) if configs[:package_config]
+            configs[:build_config][:outfile]    = File.join(options[:out_folder], options[:out_file]) if configs[:build_config]
+          else
+            configs[:package_config][:out_file] = pathname+".pkg" if configs[:package_config]
+            configs[:build_config][:outfile]    = pathname+".zip" if configs[:build_config]
+          end
           configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
         end
       end

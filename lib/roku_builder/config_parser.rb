@@ -73,6 +73,11 @@ module RokuBuilder
       if options[:out]
         if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
           options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
+          if options[:out_folder] = "." and not options[:out].start_with?(".")
+            options[:out_folder] = nil
+          else
+            options[:out_folder] = File.expand_path(options[:out_folder])
+          end
         else
           options[:out_folder] = options[:out]
         end
