@@ -17,7 +17,10 @@ module RokuBuilder
       unless payload.keys.count > 0
         @logger.warn "No options sent to launched app"
       else
-        path = "#{path}?#{parameterize(payload)}"
+        payload = parameterize(payload)
+        path = "#{path}?#{payload}"
+        @logger.info "Deeplink:"
+        @logger.info payload
       end
 
       conn = multipart_connection(port: 8060)
