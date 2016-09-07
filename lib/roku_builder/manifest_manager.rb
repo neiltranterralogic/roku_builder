@@ -9,7 +9,7 @@ module RokuBuilder
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
     def self.update_build(root_dir:)
-
+      return MISSING_MANIFEST unless self.check_manifest(root_dir: root_dir)
       build_version = self.build_version(root_dir: root_dir).split(".")
       if 2 == build_version.length
         iteration = build_version[1].to_i + 1
@@ -24,14 +24,17 @@ module RokuBuilder
       self.build_version(root_dir: root_dir)
     end
 
+
     # Retrive the build version from the manifest file
     # @param root_dir [String] Path to the root directory for the app
     # @return [String] Build version on success, empty string otherwise
     def self.build_version(root_dir:)
+      return MISSING_MANIFEST unless self.check_manifest(root_dir: root_dir)
       read_manifest(root_dir: root_dir)[:build_version]
     end
 
     def self.read_manifest(root_dir:)
+      return MISSING_MANIFEST unless self.check_manifest(root_dir: root_dir)
       attrs = {}
       get_attrs = lambda  { |file|
         file.each_line do |line|
@@ -88,6 +91,23 @@ module RokuBuilder
         temp_file.close
         temp_file.unlink
       end
+    end
+
+    # Check to make sure that the manifest file exists
+    # @param root_dir [String] Path to the root directory for the app
+    # @return [Boolean] True if manifest exists, false otherwise
+    def self.check_manifest(root_dir:)
+      return false unless File.exist?(root_dir)
+      if File.directory?(root_dir)
+        path = File.join(root_dir, 'manifest')
+        return false unless File.exist?(path)
+      elsif File.extname(root_dir) == ".zip"
+        Zip::File.open(root_dir) do |zip_file|
+          entry = zip_file.glob("manifest").first
+          return false unless entry
+        end
+      end
+      true
     end
 
     # Returns the default manafest values

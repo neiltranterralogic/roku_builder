@@ -113,6 +113,10 @@ module RokuBuilder
         abort
       when BAD_PRINT_ATTRIBUTE
         logger.fatal "Unknown print attribute"
+        abort
+      when MISSING_MANIFEST
+        logger.fatal 'Manifest file missing'
+        abort
       end
     end
 

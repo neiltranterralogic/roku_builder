@@ -49,7 +49,7 @@ module RokuBuilder
         success = loader.sideload(**configs[:sideload_config])[0]
       end
       stager.unstage
-      unless success == FAILED_SIDELOAD
+      if success == SUCCESS
         logger.info "App Sideloaded; staged using #{stager.method}"
       end
       success

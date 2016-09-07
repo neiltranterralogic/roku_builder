@@ -21,15 +21,19 @@ module RokuBuilder
       build_version = nil
       if infile
         build_version = ManifestManager.build_version(root_dir: infile)
+        return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         outfile = infile
       else
         # Update manifest
         if update_manifest
           build_version = ManifestManager.update_build(root_dir: @root_dir)
+          return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         else
           build_version = ManifestManager.build_version(root_dir: @root_dir)
+          return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         end
         outfile = build(build_version: build_version, content: content)
+        return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
       end
       path = "/plugin_install"
       # Connect to roku and upload file
@@ -55,6 +59,7 @@ module RokuBuilder
     # @return [String] Path of the build
     def build(build_version: nil, outfile: nil, content: nil)
       build_version = ManifestManager.build_version(root_dir: @root_dir) unless build_version
+      return MISSING_MANIFEST if build_version == MISSING_MANIFEST
       content ||= {}
       unless content and content[:folders]
         content[:folders] = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
@@ -69,10 +74,14 @@ module RokuBuilder
       # Add folders to zip
       content[:folders].each do |folder|
         base_folder = File.join(@root_dir, folder)
-        entries = Dir.entries(base_folder)
-        entries.delete(".")
-        entries.delete("..")
-        writeEntries(@root_dir, entries, folder, content[:excludes], io)
+        if File.exist?(base_folder)
+          entries = Dir.entries(base_folder)
+          entries.delete(".")
+          entries.delete("..")
+          writeEntries(@root_dir, entries, folder, content[:excludes], io)
+        else
+          @logger.warn "Missing Folder: #{base_folder}"
+        end
       end
       # Add file to zip
       writeEntries(@root_dir, content[:files], "", content[:excludes], io)
@@ -114,7 +123,11 @@ module RokuBuilder
           writeEntries(root_dir, subdir, zipFilePath, excludes, io)
         else
           unless excludes.include?(zipFilePath)
-            io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
+            if File.exist?(diskFilePath)
+              io.get_output_stream(zipFilePath) { |f| f.puts(File.open(diskFilePath, "rb").read()) }
+            else
+              @logger.warn "Missing File: #{diskFilePath}"
+            end
           end
         end
       }
