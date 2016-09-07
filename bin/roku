@@ -12,7 +12,12 @@ options = {}
 options[:config] = '~/.roku_config.json'
 options[:update_manifest] = false
 
-OptionParser.new do |opts|
+logger = Logger.new(STDOUT)
+logger.formatter = proc {|severity, datetime, _progname, msg|
+  "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
+}
+
+parser = OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
 
   opts.on("-l", "--sideload", "Command: Sideload an app") do
@@ -75,11 +80,11 @@ OptionParser.new do |opts|
     options[:profile] = c
   end
 
-  opts.on("--do-stage", "Command: Run the stager. Used for scripting. Alwasy run --do-unscript after") do
+  opts.on("--do-stage", "Command: Run the stager. Used for scripting. Always run --do-unscript after") do
     options[:dostage] = true
   end
 
-  opts.on("--do-unstage", "Command: Run the unstager. Used for scripting. Alwasy run --do-script first") do
+  opts.on("--do-unstage", "Command: Run the unstager. Used for scripting. Always run --do-script first") do
     options[:dounstage] = true
   end
 
@@ -178,6 +183,12 @@ OptionParser.new do |opts|
     puts RokuBuilder::VERSION
     exit
   end
-end.parse!
+end
 
-RokuBuilder::Controller.run(options: options)
+begin
+  parser.parse!
+  RokuBuilder::Controller.run(options: options, logger: logger)
+rescue OptionParser::ParseError => e
+  logger.fatal e.message
+end
+

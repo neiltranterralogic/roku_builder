@@ -7,11 +7,7 @@ module RokuBuilder
 
     # Run the builder
     # @param options [Hash] The options hash
-    def self.run(options:)
-      logger = Logger.new(STDOUT)
-      logger.formatter = proc {|severity, datetime, _progname, msg|
-        "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
-      }
+    def self.run(options:, logger:)
       if options[:debug]
         logger.level = Logger::DEBUG
       elsif options[:verbose]

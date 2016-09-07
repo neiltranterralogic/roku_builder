@@ -309,6 +309,7 @@ directory:
 ## Improvements
 
  * Account for missing folders or files
+ * Allow key block in config
  * Increase testing
    * Config Unit Tests
    * Intergration Tests
