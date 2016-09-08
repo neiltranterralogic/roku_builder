@@ -308,7 +308,6 @@ directory:
 
 ## Improvements
 
- * Allow key block in config
  * Increase testing
    * Config Unit Tests
    * Intergration Tests
