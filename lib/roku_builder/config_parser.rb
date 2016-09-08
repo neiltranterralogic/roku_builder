@@ -32,7 +32,7 @@ module RokuBuilder
       stage = setup_stage_config(configs: configs, options: options, logger: logger)[1]
       return [UNKNOWN_STAGE, nil, nil] unless stage
       setup_sideload_config(configs: configs, options: options)
-      setup_package_config(configs: configs, options: options, stage: stage)
+      setup_package_config(config: config, configs: configs, options: options, stage: stage)
       setup_simple_configs(configs: configs, options: options, logger: logger)
       return [SUCCESS, configs]
     end
@@ -182,10 +182,13 @@ module RokuBuilder
     # @param configs [Hash] The parsed configs hash
     # @param options [Hash] The options hash
     # @param stage [Symbol] The stage to package
-    def self.setup_package_config(configs:, options:, stage:)
+    def self.setup_package_config(config:, configs:, options:, stage:)
       if options[:package] or options[:key]
         # Create Key Config
         configs[:key] = configs[:project_config][:stages][stage][:key]
+        if configs[:key].class == String
+          configs[:key] = config[:keys][configs[:key].to_sym]
+        end
       end
       if options[:package]
         # Create Package Config

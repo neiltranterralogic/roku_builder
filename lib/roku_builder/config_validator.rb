@@ -20,7 +20,8 @@ module RokuBuilder
   STAGE_MISSING_BRANCH      = 16
   STAGE_MISSING_SCRIPT      = 17
   PROJECT_STAGE_METHOD_BAD  = 18
-
+  KEY_MISSING_PATH          = 19
+  KEY_MISSING_PASSWORD      = 20
 
   MISSING_STAGE_METHOD      = -1
 
@@ -48,6 +49,11 @@ module RokuBuilder
               validate_stage(codes: codes, stage: stage_config, project: project_config)
             }
           end
+        }
+      end
+      if config[:keys]
+        config[:keys].each {|key,key_config|
+          validate_key(codes: codes, key: key_config)
         }
       end
       codes.uniq!
@@ -79,6 +85,8 @@ module RokuBuilder
         "A project stage is missing its branch.",
         "A project stage is missing its script.",
         "A project as an invalid stage method.",
+        "A key is missing its keyed package path.",
+        "A key is missing its password.", #20
         #===============WARNINGS===============#
         "A project is missing its stage method."
       ]
@@ -149,6 +157,20 @@ module RokuBuilder
       process_errors(codes: codes, errors: errors)
     end
     private_class_method :validate_stage
+
+    # Validates a roku config project
+    # @param codes [Array] array of error codes
+    # @param project [Hash] project config object
+    def self.validate_key(codes:, key:)
+      errors= [
+        [KEY_MISSING_PATH, (!key[:keyed_pkg])],
+        [KEY_MISSING_PATH, (key[:keyed_pkg] == "<path/to/signed/package>")],
+        [KEY_MISSING_PASSWORD, (!key[:password])],
+        [KEY_MISSING_PASSWORD, (key[:password] == "<password>")],
+      ]
+      process_errors(codes: codes, errors: errors)
+    end
+    private_class_method :validate_key
 
     def self.process_errors(codes:, errors:)
       errors.each do |error|

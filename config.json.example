@@ -19,12 +19,15 @@
       "stages":{
         "production": {
           "branch": "production",
-          "key": {
-            "keyed_pkg": "<path/to/signed/pkg>",
-            "password": "<password for pkg>"
-          }
+          "key": "key1"
         }
       }
+    }
+  },
+  "keys": {
+    "key1": {
+      "keyed_pkg": "<path/to/signed/package>",
+      "password": "<password>"
     }
   }
 }
