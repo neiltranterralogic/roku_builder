@@ -135,11 +135,11 @@ module RokuBuilder
         if options[:ref]
           stage_config[:key] = options[:ref]
         else
-          return nil unless project_config[:stages][stage]
+          return [nil, nil] unless project_config[:stages][stage]
           stage_config[:key] = project_config[:stages][stage][:branch]
         end
       when :script
-        return nil unless project_config[:stages][stage]
+        return [nil, nil] unless project_config[:stages][stage]
         stage_config[:key] = project_config[:stages][stage][:script]
       end
       configs[:stage_config] = stage_config
