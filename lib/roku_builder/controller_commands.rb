@@ -200,7 +200,7 @@ module RokuBuilder
         success = instance.send(method)
       end
       return failure unless failure.nil? or success
-      logger.info "#{klass} call #{method} successfully"
+      logger.debug "#{klass} call #{method} successfully"
       SUCCESS
     end
   end

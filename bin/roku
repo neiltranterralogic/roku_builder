@@ -52,7 +52,7 @@ parser = OptionParser.new do |opts|
     options[:delete] = true
   end
 
-  opts.on("-N", "--navigate CMD", "Command: send the given command to the roku") do |n|
+  opts.on("-N", "--nav CMD", "Command: send the given command to the roku") do |n|
     options[:navigate] = n
   end
 

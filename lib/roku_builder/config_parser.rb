@@ -228,7 +228,8 @@ module RokuBuilder
       end
       # Create Navigate Config
       if options[:navigate]
-        configs[:navigate_config] = {command: options[:navigate].to_sym}
+        commands = options[:navigate].split(/, */).map{|c| c.to_sym}
+        configs[:navigate_config] = {commands: commands}
       end
       # Create Text Config
       configs[:text_config] = {text: options[:text]}

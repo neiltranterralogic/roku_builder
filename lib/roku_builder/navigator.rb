@@ -8,17 +8,32 @@ module RokuBuilder
     # Setup navigation commands
     def init
       @commands = {
-        up: "Up",
-        down: "Down",
-        right: "Right",
-        left: "Left",
-        select: "Select",
-        back: "Back",
         home: "Home",
         rew: "Rev",
         ff: "Fwd",
         play: "Play",
-        replay: "InstantReplay"
+        select: "Select",
+        left: "Left",
+        right: "Right",
+        down: "Down",
+        up: "Up",
+        back: "Back",
+        replay: "InstantReplay",
+        info: "Info",
+        backspace: "Backspace",
+        search: "Search",
+        enter: "Enter",
+        volumedown: "VolumeDown",
+        volumeup: "VolumeUp",
+        mute: "VolumeMute",
+        channelup: "ChannelUp",
+        channeldown: "ChannelDown",
+        tuner: "InputTuner",
+        hdmi1: "InputHDMI1",
+        hdmi2: "InputHDMI2",
+        hdmi3: "InputHDMI3",
+        hdmi4: "InputHDMI4",
+        avi: "InputAVI"
       }
 
       @screens = {
@@ -33,21 +48,29 @@ module RokuBuilder
         network: [:home, :home, :home, :home, :home, :right, :left, :right, :left, :right],
         reboot: [:home, :home, :home, :home, :home, :up, :rew, :rew, :ff, :ff]
       }
+
+      @runable = [
+        :secret, :channels
+      ]
     end
 
     # Send a navigation command to the roku device
     # @param command [Symbol] The smbol of the command to send
     # @return [Boolean] Success
-    def nav(command:)
-      if @commands.has_key?(command)
-        conn = multipart_connection(port: 8060)
+    def nav(commands:)
+      commands.each do |command|
+        if @commands.has_key?(command)
+          conn = multipart_connection(port: 8060)
 
-        path = "/keypress/#{@commands[command]}"
-        response = conn.post path
-        return response.success?
-      else
-        return false
+          path = "/keypress/#{@commands[command]}"
+          @logger.debug("Send Command: "+path)
+          response = conn.post path
+          return false unless response.success?
+        else
+          return false
+        end
       end
+      return true
     end
 
     # Type text on the roku device
@@ -57,6 +80,7 @@ module RokuBuilder
       conn = multipart_connection(port: 8060)
       text.split(//).each do |c|
         path = "/keypress/LIT_#{CGI::escape(c)}"
+        @logger.debug("Send Letter: "+path)
         response = conn.post path
         return false unless response.success?
       end
@@ -68,6 +92,11 @@ module RokuBuilder
     # @return [Boolean] Screen found
     def screen(type:)
       if @screens.has_key?(type)
+        if @runable.include?(type)
+          nav(commands: @screens[type])
+        else
+          @logger.unknown("Cannot run command automatically")
+        end
         display = []
         count = []
         @screens[type].each do |command|
@@ -86,7 +115,12 @@ module RokuBuilder
             string = string + @commands[display[i]]+", "
           end
         end
-        @logger.unknown(string.strip)
+
+        if @runable.include?(type)
+          @logger.info(string.strip)
+        else
+          @logger.unknown(string.strip)
+        end
       else
         return false
       end
