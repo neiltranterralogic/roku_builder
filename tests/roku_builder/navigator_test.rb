@@ -67,7 +67,7 @@ class NavigatorTest < Minitest::Test
     result = nil
     Faraday.stub(:new, connection, faraday) do
       if type == :nav
-        result = navigator.nav(command: input)
+        result = navigator.nav(commands: [input])
       elsif type == :text
          result = navigator.type(text: input)
       end
@@ -91,11 +91,14 @@ class NavigatorTest < Minitest::Test
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
 
-    logger.expect(:unknown, nil, ["Home x 5, Fwd x 3, Rev x 2,"])
+    logger.expect(:info, nil, ["Home x 5, Fwd x 3, Rev x 2,"])
+    logger.expect(:unknown, nil, ["Cannot run command automatically"])
     logger.expect(:unknown, nil, ["Home x 5, Up, Rev x 2, Fwd x 2,"])
 
-    navigator.screen(type: :secret)
-    navigator.screen(type: :reboot)
+    navigator.stub(:nav, nil) do
+      navigator.screen(type: :secret)
+      navigator.screen(type: :reboot)
+    end
 
     logger.verify
   end
