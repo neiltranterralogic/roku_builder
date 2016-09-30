@@ -56,6 +56,10 @@ parser = OptionParser.new do |opts|
     options[:navigate] = n
   end
 
+  opts.on("--navigate", "Command: Run interactive navigator") do
+    options[:navigator] = true
+  end
+
   opts.on("-S", "--screencapture", "Command: save a screencapture to the output file/folder") do
     options[:screencapture] = true
   end

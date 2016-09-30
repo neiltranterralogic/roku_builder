@@ -161,8 +161,9 @@ module RokuBuilder
     # @return [Array<Symbol>] List of command symbols that can be used in the options hash
     def self.commands
       [:sideload, :package, :test, :deeplink,:configure, :validate, :delete,
-        :navigate, :text, :build, :monitor, :update, :screencapture, :key, :screen,
-        :screens, :applist, :print, :profile, :dostage, :dounstage]
+        :navigate, :navigator, :text, :build, :monitor, :update, :screencapture,
+        :key, :screen, :screens, :applist, :print, :profile, :dostage,
+        :dounstage]
     end
 
     # List of depricated options
@@ -192,8 +193,8 @@ module RokuBuilder
     # List of commands that require a device
     # @return [Array<Symbol>] List of commands that require a device
     def self.device_commands
-      [:sideload, :package, :test, :deeplink, :delete, :navigate, :text,
-        :monitor, :screencapture, :applist, :profile ]
+      [:sideload, :package, :test, :deeplink, :delete, :navigate, :navigator,
+        :text, :monitor, :screencapture, :applist, :profile ]
     end
 
 

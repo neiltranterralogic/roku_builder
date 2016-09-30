@@ -15,6 +15,7 @@ module RokuBuilder
           config_key: :monitor_config },
         navigate: { klass: Navigator, method: :nav, config_key: :navigate_config,
           failure: FAILED_NAVIGATING },
+        navigator: { klass: Navigator, method: :interactive },
         screen: { klass: Navigator, method: :screen, config_key: :screen_config,
           failure: FAILED_NAVIGATING },
         key: { klass: Keyer, method: :rekey, config_key: :key },

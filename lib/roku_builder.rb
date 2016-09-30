@@ -18,6 +18,8 @@ require 'json'
 require 'pstore'
 #profiler
 require 'nokogiri'
+#navigator
+require 'io/console'
 
 require "roku_builder/controller"
 require "roku_builder/controller_commands"
