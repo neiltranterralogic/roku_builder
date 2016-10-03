@@ -16,6 +16,7 @@ module RokuBuilder
     # @param content [Hash] Hash containing arrays for folder, files, and excludes. Default: nil
     # @return [String] Build version on success, nil otherwise
     def sideload(update_manifest: false, content: nil, infile: nil)
+      Navigator.new(**@device_config).nav(commands: [:home])
       result = FAILED_SIDELOAD
       outfile = nil
       build_version = nil

@@ -8,6 +8,7 @@ class LoaderTest < Minitest::Test
     faraday = Minitest::Mock.new
     io = Minitest::Mock.new
     response = Minitest::Mock.new
+    navigator = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
     logger = Logger.new("/dev/null")
@@ -30,6 +31,7 @@ class LoaderTest < Minitest::Test
     }
     path = "/plugin_install"
 
+    navigator.expect(:nav, nil, [commands: [:home]])
     faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
@@ -53,7 +55,9 @@ class LoaderTest < Minitest::Test
         Faraday.stub(:new, connection, faraday) do
           Faraday::UploadIO.stub(:new, io) do
             File.stub(:delete, nil) do
-              result, build_version = loader.sideload(**loader_config)
+              RokuBuilder::Navigator.stub(:new, navigator) do
+                result, build_version = loader.sideload(**loader_config)
+              end
             end
           end
         end
@@ -73,6 +77,7 @@ class LoaderTest < Minitest::Test
     faraday = Minitest::Mock.new
     io = Minitest::Mock.new
     response = Minitest::Mock.new
+    navigator = Minitest::Mock.new
 
     infile = File.join(File.dirname(__FILE__), "test_files", "loader_test", "infile_test.zip")
     logger = Logger.new("/dev/null")
@@ -91,6 +96,7 @@ class LoaderTest < Minitest::Test
     }
     path = "/plugin_install"
 
+    navigator.expect(:nav, nil, [commands: [:home]])
     faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
@@ -113,7 +119,9 @@ class LoaderTest < Minitest::Test
       Faraday.stub(:new, connection, faraday) do
         Faraday::UploadIO.stub(:new, io) do
           File.stub(:delete, nil) do
-            result, build_version = loader.sideload(**loader_config)
+            RokuBuilder::Navigator.stub(:new, navigator) do
+              result, build_version = loader.sideload(**loader_config)
+            end
           end
         end
       end
@@ -132,6 +140,7 @@ class LoaderTest < Minitest::Test
     faraday = Minitest::Mock.new
     io = Minitest::Mock.new
     response = Minitest::Mock.new
+    navigator = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
     logger = Logger.new("/dev/null")
@@ -155,6 +164,7 @@ class LoaderTest < Minitest::Test
     }
     path = "/plugin_install"
 
+    navigator.expect(:nav, nil, [commands: [:home]])
     faraday.expect(:headers, {})
     faraday.expect(:request, nil, [:digest, device_config[:user], device_config[:password]])
     faraday.expect(:request, nil, [:multipart])
@@ -178,7 +188,9 @@ class LoaderTest < Minitest::Test
         Faraday.stub(:new, connection, faraday) do
           Faraday::UploadIO.stub(:new, io) do
             File.stub(:delete, nil) do
-              result, build_version = loader.sideload(**loader_config)
+              RokuBuilder::Navigator.stub(:new, navigator) do
+                result, build_version = loader.sideload(**loader_config)
+              end
             end
           end
         end
