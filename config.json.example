@@ -29,5 +29,33 @@
       "keyed_pkg": "<path/to/signed/package>",
       "password": "<password>"
     }
+  },
+  "input_mapping": {
+    "\\e[1~": [ "home", "Home" ],
+    "<": [ "rew", "<" ],
+    ">": [ "ff", ">" ],
+    "=": [ "play", "=" ],
+    "\r": [ "select", "Enter" ],
+    "\\e[D": [ "left", "Left Arrow" ],
+    "\\e[C": [ "right", "Right Arrow" ],
+    "\\e[B": [ "down", "Down Arrow" ],
+    "\\e[A": [ "up", "Up Arrow" ],
+    "\t": [ "back", "Tab" ],
+    "": [ "replay", "" ],
+    "*": [ "info", "*" ],
+    "\u007f": [ "backspace", "Backspace" ],
+    "?": [ "search", "?" ],
+    "\\e\r": [ "enter", "Alt + Enter" ],
+    "\\e[5~": [ "volumeup", "Page Up" ],
+    "\\e[6~": [ "volumedown", "Page Down" ],
+    "\\e[4~": [ "mute", "End" ],
+    "": [ "channeldown", "" ],
+    "": [ "channelup", "" ],
+    "": [ "tuner", "" ],
+    "": [ "hdmi1", "" ],
+    "": [ "hdmi2", "" ],
+    "": [ "hdmi3", "" ],
+    "": [ "hdmi4", "" ],
+    "": [ "avi", "" ],
   }
 }

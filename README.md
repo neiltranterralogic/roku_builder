@@ -30,6 +30,7 @@ The tool allows scripting of the following:
 
 Other tasks the tool can complete:
 
+ * Device navigation
  * Configuration Generation
  * Configuration Validation
  * Configuration Updating
@@ -81,6 +82,12 @@ configuration options:
  * key: has of key options for signing a package
  * key -> keyed_pkg: path to a pkg file that has been signed
  * key -> password: password for the signed pkg
+
+There is an optional "input_mappings" section that will allow you to override
+the default input mappings. In the section each key is a key press code. The
+value is a array with the desired command to run and a human readable key name.
+To see the key press code for a specific key the --navigate command can be run
+with the --debug option on to see a print out of all the keys pressed.
 
 
 #### Sideloading
@@ -254,9 +261,17 @@ You can delete the currently sideloaded app using the following command:
 
 You can use a differnt configuration file useing the following option:
 
-    & roku --delete --config <path>
+    $ roku --delete --config <path>
 
 This path will be expanded so you do not have to use the full path
+
+You can use your keyboard to control the roku by running the following command:
+
+    $ roku --navigate
+
+To see the key mapings you can run the following command:
+
+    $ roku --navigate -V
 
 ## Projects
 

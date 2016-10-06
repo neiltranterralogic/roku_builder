@@ -33,7 +33,7 @@ module RokuBuilder
       return [UNKNOWN_STAGE, nil, nil] unless stage
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(config: config, configs: configs, options: options, stage: stage)
-      setup_simple_configs(configs: configs, options: options, logger: logger)
+      setup_simple_configs(config: config, configs: configs, options: options, logger: logger)
       return [SUCCESS, configs]
     end
 
@@ -212,7 +212,7 @@ module RokuBuilder
     # @param configs [Hash] The parsed configs hash
     # @param options [Hash] The options hash
     # @param logger [Logger] System logger
-    def self.setup_simple_configs(configs:, options:, logger:)
+    def self.setup_simple_configs(config:, configs:, options:, logger:)
       # Create Manifest Config
       configs[:manifest_config] = {
         root_dir: configs[:project_config][:directory]
@@ -227,6 +227,16 @@ module RokuBuilder
         configs[:monitor_config] = {type: options[:monitor].to_sym}
       end
       # Create Navigate Config
+      mappings = {}
+      if config[:input_mapping]
+        config[:input_mapping].each_pair {|key, value|
+          unless "".to_sym == key
+            key = key.to_s.sub(/\\e/, "\e").to_sym
+            mappings[key] = value
+          end
+        }
+      end
+      configs[:init_params][:navigator] = {mappings: mappings}
       if options[:navigate]
         commands = options[:navigate].split(/, */).map{|c| c.to_sym}
         configs[:navigate_config] = {commands: commands}

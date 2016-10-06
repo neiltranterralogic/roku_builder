@@ -22,6 +22,7 @@ module RokuBuilder
   PROJECT_STAGE_METHOD_BAD  = 18
   KEY_MISSING_PATH          = 19
   KEY_MISSING_PASSWORD      = 20
+  INVALID_MAPPING_INFO      = 21
 
   MISSING_STAGE_METHOD      = -1
 
@@ -56,6 +57,11 @@ module RokuBuilder
           validate_key(codes: codes, key: key_config)
         }
       end
+      if config[:input_mapping]
+        config[:input_mapping].each_value {|info|
+          validate_mapping(codes: codes, mapping: info)
+        }
+      end
       codes.uniq!
       codes.push(0) if codes.empty?
       codes
@@ -87,6 +93,7 @@ module RokuBuilder
         "A project as an invalid stage method.",
         "A key is missing its keyed package path.",
         "A key is missing its password.", #20
+        "A input mapping is invalid",
         #===============WARNINGS===============#
         "A project is missing its stage method."
       ]
@@ -171,6 +178,15 @@ module RokuBuilder
       process_errors(codes: codes, errors: errors)
     end
     private_class_method :validate_key
+
+    def self.validate_mapping(codes:, mapping:)
+      errors=[
+        [INVALID_MAPPING_INFO, mapping.nil?],
+        [INVALID_MAPPING_INFO, (mapping.count != 2)]
+      ]
+      process_errors(codes: codes, errors: errors)
+    end
+    private_class_method :validate_mapping
 
     def self.process_errors(codes:, errors:)
       errors.each do |error|

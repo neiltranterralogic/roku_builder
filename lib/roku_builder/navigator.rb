@@ -6,7 +6,7 @@ module RokuBuilder
   class Navigator < Util
 
     # Setup navigation commands
-    def init
+    def init(mappings:)
       @commands = {
         home: "Home",
         rew: "Rev",
@@ -36,64 +36,36 @@ module RokuBuilder
         avi: "InputAVI"
       }
 
-      @keys = {
-        "\e[1~": :home,
-        "<": :rew,
-        ">": :ff,
-        "=": :play,
-        "\r": :select,
-        "\e[D": :left,
-        "\e[C": :right,
-        "\e[B": :down,
-        "\e[A": :up,
-        "\t": :back,
-        #"": :replay,
-        "*": :info,
-        "\u007f": :backspace,
-        "?": :search,
-        "\e\r": :enter,
-        "\e[5~": :volumeup,
-        "\e[6~": :volumedown,
-        "\e[4~": :mute
-        #"": :channeldown,
-        #"": :channelup,
-        #"": :tuner,
-        #"": :hdmi1,
-        #"": :hdmi2,
-        #"": :hdmi3,
-        #"": :hdmi4,
-        #"": :avi,
+      @mappings = {
+        "\e[1~": [ "home", "Home" ],
+        "<": [ "rew", "<" ],
+        ">": [ "ff", ">" ],
+        "=": [ "play", "=" ],
+        "\r": [ "select", "Enter" ],
+        "\e[D": [ "left", "Left Arrow" ],
+        "\e[C": [ "right", "Right Arrow" ],
+        "\e[B": [ "down", "Down Arrow" ],
+        "\e[A": [ "up", "Up Arrow" ],
+        "\t": [ "back", "Tab" ],
+        #"": [ "replay", "" ],
+        "*": [ "info", "*" ],
+        "\u007f": [ "backspace", "Backspace" ],
+        "?": [ "search", "?" ],
+        "\e\r": [ "enter", "Alt + Enter" ],
+        "\e[5~": [ "volumeup", "Page Up" ],
+        "\e[6~": [ "volumedown", "Page Down" ],
+        "\e[4~": [ "mute", "End" ],
+        #"": [ "channeldown", "" ],
+        #"": [ "channelup", "" ],
+        #"": [ "tuner", "" ],
+        #"": [ "hdmi1", "" ],
+        #"": [ "hdmi2", "" ],
+        #"": [ "hdmi3", "" ],
+        #"": [ "hdmi4", "" ],
+        #"": [ "avi", "" ]
       }
 
-
-      @key_mappings = {
-        "Home": :home,
-        "<": :rew,
-        ">": :ff,
-        "=": :play,
-        "Enter": :select,
-        "Left Arrow": :left,
-        "Right Arrow": :right,
-        "Down Arrow": :down,
-        "Up Arrow": :up,
-        "Tab": :back,
-        #"": :replay,
-        "*": :info,
-        "Backspace": :backspace,
-        "?": :search,
-        "Alt + Enter": :enter,
-        "Page Up": :volumeup,
-        "Page Down": :volumedown,
-        "End": :mute
-        #"": :channeldown,
-        #"": :channelup,
-        #"": :tuner,
-        #"": :hdmi1,
-        #"": :hdmi2,
-        #"": :hdmi3,
-        #"": :hdmi4,
-        #"": :avi,
-      }
+      @mappings.merge!(mappings)
 
       @screens = {
         platform: [:home, :home, :home, :home, :home, :ff, :play, :rew, :play, :ff],
@@ -149,8 +121,8 @@ module RokuBuilder
     def interactive
       running = true
       @logger.info("Key Mappings:")
-      @key_mappings.each_pair {|key, command|
-        @logger.info("#{key} -> #{@commands[command]}")
+      @mappings.each_value {|key|
+        @logger.info("#{key[1]} -> #{@commands[key[0].to_sym]}")
       }
       @logger.info("Control-C -> Exit")
       while running
@@ -160,8 +132,8 @@ module RokuBuilder
           running = false
         else
           Thread.new(char) {|char|
-            if @keys[char.to_sym] != nil
-              nav(commands:[@keys[char.to_sym]])
+            if @mappings[char.to_sym] != nil
+              nav(commands:[@mappings[char.to_sym][0].to_sym])
             elsif char.inspect.force_encoding("UTF-8").ascii_only?
               type(text: char)
             end
