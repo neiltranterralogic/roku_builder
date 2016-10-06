@@ -6,7 +6,7 @@ module RokuBuilder
   class Navigator < Util
 
     # Setup navigation commands
-    def init(mappings:)
+    def init(mappings: nil)
       @commands = {
         home: "Home",
         rew: "Rev",
@@ -65,7 +65,7 @@ module RokuBuilder
         #"": [ "avi", "" ]
       }
 
-      @mappings.merge!(mappings)
+      @mappings.merge!(mappings) if mappings
 
       @screens = {
         platform: [:home, :home, :home, :home, :home, :ff, :play, :rew, :play, :ff],
