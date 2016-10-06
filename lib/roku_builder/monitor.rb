@@ -42,9 +42,9 @@ module RokuBuilder
         end
       }
       running = true
+      @logger.unknown "Q to exit"
       while running
         begin
-          @logger.unknown "Q to exit"
           command = gets.chomp
           case command
           when "q"
@@ -70,9 +70,9 @@ module RokuBuilder
     def manage_text(all_text:, txt:)
       all_text += txt
       while line = all_text.slice!(/^.*\n/) do
-        puts line
+        puts line if !line.strip.empty?
       end
-      if all_text == "BrightScript Debugger> "
+      if all_text.downcase == "BrightScript Debugger> ".downcase
         print all_text
         all_text = ""
       end
