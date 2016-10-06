@@ -126,7 +126,8 @@ class ConfigParserTest < Minitest::Test
 
   def test_deeplink_app_config
     args = {
-      configs: {project_config: {directory: "dir"}},
+      config: {},
+      configs: {project_config: {directory: "dir"}, init_params: {}},
       options: {deeplink: "a:b", app_id: "xxxxxx"},
       logger: Logger.new("/dev/null")
     }

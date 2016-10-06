@@ -43,7 +43,8 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
     }
     if success
       if type == :nav
@@ -87,7 +88,8 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      logger: logger,
+      init_params: {mappings: {}}
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
 
@@ -109,7 +111,8 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      logger: logger,
+      init_params: {mappings: {}}
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
 
@@ -124,7 +127,8 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      logger: logger,
+      init_params: {mappings: {}}
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
 
