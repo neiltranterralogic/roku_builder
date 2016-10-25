@@ -21,6 +21,8 @@ module RokuBuilder
         path = "#{path}?#{payload}"
         @logger.info "Deeplink:"
         @logger.info payload
+        @logger.info "CURL:"
+        @logger.info "curl -d '' '#{@url}:8060#{path}'"
       end
 
       conn = multipart_connection(port: 8060)
