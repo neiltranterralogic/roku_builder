@@ -1,0 +1,72 @@
+# Roku Intergration Testing/Benchmarking
+
+Allows for intergration testing to be done and to see code coverage of
+intergration tests. Also allows for benchmarking.
+
+## Intergration Tests
+
+Testing is performed by by adding special logging beacons to your app. They
+must follow the following format:
+
+    ROKUTESTING: <type> [id: <id_string>] [action] [suite] [delay: <delay
+    count/time>] [bitmask: <bitmast number>]
+
+Type is used to define the type of the beacon. The following are the possible
+types:
+
+ * start     - Start of a testing suite
+ * mark      - Add a line to benchmark report
+ * command   - Ask the tester to send a command to the app
+ * end       - Stop testing suite
+ * cov_start - Start coverage observing
+ * cov_end   - End coverage observing
+
+ Id is an optionl unique id given to the beacon to allow for the delay and
+ bitmask functions
+
+ Action is used for the command type beacon. It must be one of the following:
+
+  * home
+  * rew
+  * ff
+  * play
+  * select
+  * left
+  * right
+  * down
+  * up
+  * back
+  * replay
+  * info
+  * backspace
+  * search
+  * enter
+  * volumndow
+  * volumnup
+  * mute
+  * channelup
+  * channeldown
+  * tuner
+  * hdmi1
+  * hdmi2
+  * hdmi3
+  * hdmi4
+  * avi
+  * text:<text string>
+
+Suite is used for start, mark, and end beacons to create any number of
+benchmarking reports
+
+Delay is use to tell the tester to delay acting on the beacon by either a
+number of milliseconds or a number of calls. If the value of delay is a regular
+number then the tester will not act on the beacon until the beacon has been
+called one more time then then value. For example, delay: 0 is the same as not
+adding the delay key and delay: 1 will cause the tester to act on the beacon on
+the second time it is called.
+
+If the delay value has 'ms' attached to the end the the tester will delay
+acting on the beacon by that many milliseconds.
+
+The bitmask allow the app to have more controll over when beacons are acted
+upon. The value should be a integer that will be turned into a binary mask that
+determines if the beacon will be acted upon. For example, bitmask: 2 
