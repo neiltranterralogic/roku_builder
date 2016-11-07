@@ -3,7 +3,7 @@
 module RokuBuilder
 
   # Method for running unit tests
-  # This is intended to be used with the brstest librbary but should work
+  # This is intended to be used with the brstest library but should work
   # with other testing libraries
   class Tester < Util
 
