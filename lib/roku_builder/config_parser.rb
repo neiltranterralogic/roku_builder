@@ -71,7 +71,7 @@ module RokuBuilder
       options[:out_folder] = nil
       options[:out_file] = nil
       if options[:out]
-        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
+        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg") or options[:out].end_with?(".gif")
           options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
           if options[:out_folder] = "." and not options[:out].start_with?(".")
             options[:out_folder] = nil
@@ -249,6 +249,12 @@ module RokuBuilder
       configs[:screencapture_config] = {
         out_folder: options[:out_folder],
         out_file: options[:out_file]
+      }
+      configs[:gifcapture_config] = {
+        length: options[:gifcapture].to_i,
+        out_folder: options[:out_folder],
+        out_file: options[:out_file],
+        actions: options[:actions]
       }
       if options[:screen]
         configs[:screen_config] = {type: options[:screen].to_sym}

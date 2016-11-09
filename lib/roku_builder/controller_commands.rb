@@ -24,6 +24,8 @@ module RokuBuilder
         test: { klass: Tester, method: :run_tests, config_key: :test_config },
         screencapture: { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
           failure: FAILED_SCREENCAPTURE },
+        gifcapture: { klass: Inspector, method: :gifcapture, config_key: :gifcapture_config,
+          failure: FAILED_GIFCAPTURE },
         applist: {klass: Linker, method: :list},
         profile: {klass: Profiler, method: :run, config_key: :profiler_config}
       }

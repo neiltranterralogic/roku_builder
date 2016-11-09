@@ -3,7 +3,7 @@
 
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-#require "byebug"
+require "byebug"
 require "roku_builder"
 require "optparse"
 require "pathname"
@@ -64,6 +64,10 @@ parser = OptionParser.new do |opts|
     options[:screencapture] = true
   end
 
+  opts.on("-G", "--gif LENGTH", "Command: save a gif to the output file/folder") do |g|
+    options[:gifcapture] = g
+  end
+
   opts.on("-y", "--type TEXT", "Command: type the given text on the roku device") do |t|
     options[:text] = t
   end
@@ -108,8 +112,12 @@ parser = OptionParser.new do |opts|
     options[:update] = true
   end
 
-  opts.on("-A", "--app-list", "Command: List currently installed apps") do
+  opts.on("--app-list", "Command: List currently installed apps") do
     options[:applist] = true
+  end
+
+  opts.on("-A", "--actions ACTIONS", "Actions to be run during gif capture") do |a|
+    options[:actions] = a
   end
 
   opts.on("-r", "--ref REF", "Git referance to use for sideloading") do |r|

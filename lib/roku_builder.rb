@@ -20,6 +20,8 @@ require 'pstore'
 require 'nokogiri'
 #navigator
 require 'io/console'
+#inspector
+require 'rmagick'
 
 require "roku_builder/controller"
 require "roku_builder/controller_commands"
@@ -41,6 +43,8 @@ require "roku_builder/error_handler"
 require "roku_builder/navigator"
 require "roku_builder/monitor"
 require "roku_builder/version"
+
+include Magick
 
 # Wrapping module for the Roku Builder Gem
 module RokuBuilder
@@ -145,6 +149,9 @@ module RokuBuilder
 
   # Bad print attribute
   BAD_PRINT_ATTRIBUTE = 14
+
+  # Failed to capture gif
+  FAILED_GIFCAPTURE = 15
 end
 
 class ::String

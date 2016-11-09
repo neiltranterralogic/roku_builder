@@ -75,5 +75,86 @@ module RokuBuilder
       @logger.info "Screen captured to #{File.join(out_folder, out_file)}"
       return response.success?
     end
+
+    # Capture a gifcapture of the currently sideloaded app
+    # @param length [Integer] length in seconds of the animation
+    # @param out_folder [String] folder to save the animation to
+    # @param out_file [String] filename to save animation as (default: animation.gif)
+    # @param actions [String] comma seperated actions (should be integers or device commands)
+    # @return [Boolean] Success
+    def gifcapture(length:, out_folder:, out_file: nil, actions:)
+      fps = 15
+      delay = 2000
+      frame_count = length * fps
+      frames = Array.new(frame_count)
+      bad_frames = []
+
+      running = true
+      while running
+        start_time = Time.now
+        actions_thread = Thread.new("#{delay},#{actions}", @device_config) { |actions,config|
+          @logger.debug("Start actions: "+actions)
+          navigator = Navigator.new(**config)
+          actions = actions.split(",")
+          @logger.debug("Action Count: #{actions.count}")
+          while actions.count > 0
+            sleep_time = 0.0
+            while actions.count > 0 and actions[0].to_i.to_s == actions[0]
+              sleep_time += actions.shift.to_i
+            end
+            @logger.debug("Sleeping: #{sleep_time/1000}")
+            sleep sleep_time/1000
+            commands = []
+            while actions.count > 0 and actions[0].to_i.to_s != actions[0]
+              commands.push(actions.shift.to_sym)
+            end
+            @logger.debug("Navigating: #{commands.join(", ")}")
+            navigator.nav(commands: commands)
+          end
+        }
+        while Time.now - start_time < length
+          filename = "capture_#{Time.now.to_i}.jpg"
+          if screencapture(out_folder: out_folder, out_file: filename)
+            frame_timestamp = Time.now
+            frame_num = ((frame_timestamp-start_time-(delay/1000.0)) * fps).to_i + fps
+            @logger.debug("Frame: #{frame_num}")
+            if frames[frame_num]
+              bad_frames.push(File.join(out_folder, filename))
+            else
+              frames[frame_num] = File.join(out_folder, filename)
+            end
+          end
+        end
+        if frames.uniq.count >= frame_count*0.8
+          running = false
+        else
+          @logger.info ("#{frames.uniq.count} of #{frame_count} frames")
+          @logger.unknown("Return to animation start position. Press Enter when ready")
+          gets
+          delay -= 1000/fps
+        end
+        actions_thread.join
+      end
+
+
+      @logger.debug("Removeing bad frames")
+      bad_frames.each {|file| FileUtils.rm(file)} if bad_frames.count > 0
+
+      if frames.count > 0
+        out_file = "anim_#{Time.now.to_i}.gif" unless out_file
+        out = File.join(out_folder, out_file)
+
+        @logger.info("Generating Animation")
+        animation = ImageList.new(*frames)
+        animation.delay = 10
+        animation.write(out)
+
+        @logger.debug("Removeing frames")
+        frames.each {|file| FileUtils.rm(file)}
+        true
+      else
+        false
+      end
+    end
   end
 end
