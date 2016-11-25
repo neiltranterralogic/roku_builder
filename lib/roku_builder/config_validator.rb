@@ -23,6 +23,7 @@ module RokuBuilder
   KEY_MISSING_PATH          = 19
   KEY_MISSING_PASSWORD      = 20
   INVALID_MAPPING_INFO      = 21
+  MISSING_KEY               = 22
 
   MISSING_STAGE_METHOD      = -1
 
@@ -47,7 +48,7 @@ module RokuBuilder
           validate_project(codes: codes, project: project_config)
           if project_config[:stages]
             project_config[:stages].each {|_stage, stage_config|
-              validate_stage(codes: codes, stage: stage_config, project: project_config)
+              validate_stage(codes: codes, stage: stage_config, project: project_config, config: config)
             }
           end
         }
@@ -94,6 +95,7 @@ module RokuBuilder
         "A key is missing its keyed package path.",
         "A key is missing its password.", #20
         "A input mapping is invalid",
+        "A key is missing from the keys section",
         #===============WARNINGS===============#
         "A project is missing its stage method."
       ]
@@ -156,10 +158,11 @@ module RokuBuilder
     # Validates a roku config project
     # @param codes [Array] array of error codes
     # @param project [Hash] project config object
-    def self.validate_stage(codes:, stage:, project:)
+    def self.validate_stage(codes:, stage:, project:, config:)
       errors= [
         [STAGE_MISSING_BRANCH, (!stage[:branch] and project[:stage_method] == :git)],
         [STAGE_MISSING_SCRIPT, (!stage[:script] and project[:stage_method] == :script)],
+        [MISSING_KEY, (!!stage[:key] and stage[:key].class == String and (!config[:keys] or !config[:keys][stage[:key].to_sym]))]
       ]
       process_errors(codes: codes, errors: errors)
     end
