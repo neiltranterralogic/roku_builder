@@ -62,7 +62,7 @@ module RokuBuilder
     # It will add missing attributes but not remove them
     # @param root_dir [String] The app root directory
     # @param attributes [Hash] The new attributes for the app manifest
-    def self.update_manifest(root_dir:, attributes:)
+    def self.update_manifest(root_dir:, attributes:, set_default: true)
       temp_file = Tempfile.new('manifest')
       path = File.join(root_dir, 'manifest')
       new_params = attributes.dup
@@ -79,7 +79,7 @@ module RokuBuilder
               end
             end
           end
-        else
+        elsif set_default
           new_params = self.default_params().merge(new_params)
         end
         new_params.each_pair do |key, value|
