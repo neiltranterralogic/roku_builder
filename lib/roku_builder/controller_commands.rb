@@ -19,6 +19,7 @@ module RokuBuilder
         screen: { klass: Navigator, method: :screen, config_key: :screen_config,
           failure: FAILED_NAVIGATING },
         key: { klass: Keyer, method: :rekey, config_key: :key },
+        genkey: { klass: Keyer, method: :genkey, config_key: :genkey },
         screens: { klass: Navigator, method: :screens },
         text: { klass: Navigator, method: :type, config_key: :text_config },
         test: { klass: Tester, method: :run_tests, config_key: :test_config },

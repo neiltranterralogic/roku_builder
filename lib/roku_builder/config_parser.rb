@@ -257,6 +257,11 @@ module RokuBuilder
       if options[:profile]
         configs[:profiler_config] = {command: options[:profile].to_sym}
       end
+      #Create genkey config
+      configs[:genkey] = {}
+      if options[:out_file]
+        configs[:genkey][:out_file] = File.join(options[:out_folder], options[:out_file])
+      end
     end
     private_class_method :setup_simple_configs
   end

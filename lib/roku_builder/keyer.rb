@@ -5,6 +5,57 @@ module RokuBuilder
   # Change or get dev key
   class Keyer < Util
 
+    def genkey(out_file: nil)
+      telnet_config = {
+        'Host' => @roku_ip_address,
+        'Port' => 8080
+      }
+      connection = Net::Telnet.new(telnet_config)
+      connection.puts("genkey")
+      waitfor_config = {
+        'Match' => /./,
+        'Timeout' => false
+      }
+      password = nil
+      dev_id = nil
+      while password.nil? or dev_id.nil?
+        connection.waitfor(waitfor_config) do |txt|
+          while line = txt.slice!(/^.*\n/) do
+            words = line.split
+            if words[0] == "Password:"
+              password = words[1]
+            elsif words[0] == "DevID:"
+              dev_id = words[1]
+            end
+          end
+        end
+      end
+      connection.close
+      @logger.info("Password: "+password)
+      @logger.info("DevID: "+dev_id)
+
+      unless out_file
+        out_file = File.join("/tmp", "key_"+dev_id+".pkg")
+      end
+
+      Dir.mktmpdir { |dir|
+        ManifestManager.update_manifest({root_dir: dir, attributes: {}})
+        Dir.mkdir(File.join(dir, "source"))
+        File.open(File.join(dir, "source", "main.brs"), "w") do |io|
+          io.puts "sub main()"
+          io.puts "  print \"Load\""
+          io.puts "end sub"
+        end
+        @device_config[:init_params] = {root_dir: dir}
+        loader = Loader.new(**@device_config)
+        loader.sideload()
+        @device_config.delete(:init_params)
+        packager = Packager.new(**@device_config)
+        packager.package(app_name_version: "key_"+dev_id, out_file: out_file, password: password)
+        @logger.info("Keyed PKG: "+out_file)
+      }
+    end
+
     # Sets the key on the roku device
     # @param keyed_pkg [String] Path for a package signed with the desired key
     # @param password [String] Password for the package

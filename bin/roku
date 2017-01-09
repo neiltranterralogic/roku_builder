@@ -76,6 +76,10 @@ parser = OptionParser.new do |opts|
     options[:key] = true
   end
 
+  opts.on("--genkey", "Command: generate a new key") do
+    options[:genkey] = true
+  end
+
   opts.on("--print ATTRIBUTE", "Command: Print attribute for scripting") do |a|
     options[:print] = a
   end
