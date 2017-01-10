@@ -12,19 +12,22 @@ class MonitorTest < Minitest::Test
       logger: Logger.new("/dev/null")
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
+    monitor.instance_variable_set(:@show_prompt, true)
 
     connection.expect(:waitfor, nil) do |config|
       assert_equal(/./, config['Match'])
       assert_equal(false, config['Timeout'])
     end
 
-    def monitor.gets
+    readline = proc {
       sleep(0.1)
       "q"
-    end
+    }
 
-    Net::Telnet.stub(:new, connection) do
-      monitor.monitor(type: :main)
+    Readline.stub(:readline, readline) do
+      Net::Telnet.stub(:new, connection) do
+        monitor.monitor(type: :main)
+      end
     end
 
     connection.verify
@@ -39,6 +42,7 @@ class MonitorTest < Minitest::Test
       logger: Logger.new("/dev/null")
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
+    monitor.instance_variable_set(:@show_prompt, true)
 
     connection.expect(:waitfor, nil) do |config, &blk|
       assert_equal(/./, config['Match'])
@@ -47,14 +51,16 @@ class MonitorTest < Minitest::Test
       blk.call(txt) == ""
     end
 
-    def monitor.gets
+    readline = proc {
       sleep(0.1)
       "q"
-    end
+    }
 
-    Net::Telnet.stub(:new, connection) do
-      monitor.stub(:manage_text, "") do
-        monitor.monitor(type: :main)
+    Readline.stub(:readline, readline) do
+      Net::Telnet.stub(:new, connection) do
+        monitor.stub(:manage_text, "") do
+          monitor.monitor(type: :main)
+        end
       end
     end
 
@@ -70,14 +76,19 @@ class MonitorTest < Minitest::Test
       logger: Logger.new("/dev/null")
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
+    monitor.instance_variable_set(:@show_prompt, true)
 
     connection.expect(:waitfor, nil) do |config|
       assert_equal(/./, config['Match'])
       assert_equal(false, config['Timeout'])
     end
-    connection.expect(:puts, nil, ["text"])
+    connection.expect(:puts, nil) do |text|
+      assert_equal("text", text)
+      monitor.instance_variable_set(:@show_prompt, true)
+    end
 
-    def monitor.gets
+
+    readline = proc {
       @count ||= 0
       sleep(0.1)
       case @count
@@ -87,10 +98,12 @@ class MonitorTest < Minitest::Test
       else
         "q"
       end
-    end
+    }
 
-    Net::Telnet.stub(:new, connection) do
-      monitor.monitor(type: :main)
+    Readline.stub(:readline, readline) do
+      Net::Telnet.stub(:new, connection) do
+        monitor.monitor(type: :main)
+      end
     end
 
     connection.verify
@@ -105,6 +118,7 @@ class MonitorTest < Minitest::Test
       logger: Logger.new("/dev/null")
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
+    monitor.instance_variable_set(:@show_prompt, true)
     monitor.instance_variable_set(:@mock, mock)
 
     def monitor.puts(input)

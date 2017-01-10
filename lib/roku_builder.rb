@@ -20,6 +20,8 @@ require 'pstore'
 require 'nokogiri'
 #navigator
 require 'io/console'
+#monitor
+require 'readline'
 
 require "roku_builder/controller"
 require "roku_builder/controller_commands"

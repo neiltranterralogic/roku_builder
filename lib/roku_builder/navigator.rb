@@ -131,11 +131,11 @@ module RokuBuilder
         if char == "\u0003"
           running = false
         else
-          Thread.new(char) {|char|
-            if @mappings[char.to_sym] != nil
-              nav(commands:[@mappings[char.to_sym][0].to_sym])
-            elsif char.inspect.force_encoding("UTF-8").ascii_only?
-              type(text: char)
+          Thread.new(char) {|character|
+            if @mappings[character.to_sym] != nil
+              nav(commands:[@mappings[character.to_sym][0].to_sym])
+            elsif character.inspect.force_encoding("UTF-8").ascii_only?
+              type(text: character)
             end
           }
         end

@@ -16,6 +16,7 @@ module RokuBuilder
         taskX: 8093,
         profiler: 8080,
       }
+      @show_prompt = false
     end
 
     # Monitor a development log on the Roku device
@@ -41,19 +42,47 @@ module RokuBuilder
           end
         end
       }
+      # setup readline
+
+      libedit = false
+      begin
+        Readline.vi_editing_mode
+      rescue NotImplementedError
+        libedit = true
+      end
+
+      commands = [
+        "bsc", "bscs", "brkd", "bt", "classes", "cont", "cont", "down", "d",
+        "exit", "gc", "help", "last", "list", "next", "print", "p", "?", "step",
+        "s", "t", "over", "out", "up", "u", "var", "q"
+      ].sort
+      commands.collect { |i| i += ' '  } if libedit
+
+      comp = proc { |s| commands.grep( /^#{Regexp.escape(s)}/  )  }
+
+      Readline.completion_append_character = " "
+      Readline.completion_proc = comp
+
+
       running = true
       @logger.unknown "Q to exit"
       while running
         begin
-          command = gets.chomp
-          case command
-          when "q"
-            thread.exit
-            running = false
-          when "stop"
-            thread[:connection].puts("\C-c")
+          if @show_prompt
+            command = Readline.readline('BrightScript Debugger> ', true)
+            if command =~ /^\s*$/ or Readline::HISTORY.to_a[-2] == command
+              Readline::HISTORY.pop
+            end
+            case command
+            when "q"
+              thread.exit
+              running = false
+            else
+              @show_prompt = false
+              thread[:connection].puts(command)
+            end
           else
-            thread[:connection].puts(command)
+            sleep 0.01
           end
         rescue SystemExit, Interrupt
           thread[:connection].puts("\C-c")
@@ -73,7 +102,7 @@ module RokuBuilder
         puts line if !line.strip.empty?
       end
       if all_text.downcase == "BrightScript Debugger> ".downcase
-        print all_text
+        @show_prompt = true
         all_text = ""
       end
       all_text
