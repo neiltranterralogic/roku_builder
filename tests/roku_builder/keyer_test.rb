@@ -123,4 +123,29 @@ class KeyerTest < Minitest::Test
     io.verify
     response.verify
   end
+
+  def test_keyer_generate_new_key
+    connection = Minitest::Mock.new
+
+    connection.expect(:puts, nil, ["genkey"])
+    connection.expect(:waitfor, nil) do |config, &blk|
+      assert_equal(/./, config['Match'])
+      assert_equal(false, config['Timeout'])
+      txt = "Password: password\nDevID: devid\n"
+      blk.call(txt)
+      true
+    end
+    connection.expect(:close, nil, [])
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+    keyer = RokuBuilder::Keyer.new(**device_config)
+    Net::Telnet.stub(:new, connection) do
+      keyer.send(:generate_new_key)
+    end
+  end
 end
