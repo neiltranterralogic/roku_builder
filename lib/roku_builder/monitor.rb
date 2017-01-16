@@ -22,14 +22,8 @@ module RokuBuilder
     # Monitor a development log on the Roku device
     # @param type [Symbol] The log type to monitor
     def monitor(type:)
-      telnet_config = {
-        'Host' => @roku_ip_address,
-        'Port' => @ports[type]
-      }
-      waitfor_config = {
-        'Match' => /./,
-        'Timeout' => false
-      }
+      telnet_config = { 'Host' => @roku_ip_address, 'Port' => @ports[type] }
+      waitfor_config = { 'Match' => /./, 'Timeout' => false }
 
       thread = Thread.new(telnet_config, waitfor_config) {|telnet,waitfor|
         @logger.info "Monitoring #{type} console(#{telnet['Port']}) on #{telnet['Host'] }"
@@ -42,8 +36,16 @@ module RokuBuilder
           end
         end
       }
-      # setup readline
 
+      init_readline()
+
+      run_prompt(thread: thread)
+    end
+
+    private
+
+    # Setup tab completeion for Readline
+    def init_readline
       libedit = false
       begin
         Readline.vi_editing_mode
@@ -62,8 +64,10 @@ module RokuBuilder
 
       Readline.completion_append_character = " "
       Readline.completion_proc = comp
+    end
 
-
+    # Check if needs to display prompt, displays prompt, and processes input
+    def run_prompt(thread:)
       running = true
       @logger.unknown "Q to exit"
       while running
@@ -90,9 +94,7 @@ module RokuBuilder
       end
     end
 
-    private
-
-    # Handel text from telnet
+    # Handle text from telnet
     #  @param all_text [String] remaining partial line text
     #  @param txt [String] current string from telnet
     #  @return [String] remaining partial line text

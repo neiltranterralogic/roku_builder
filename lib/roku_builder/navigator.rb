@@ -8,34 +8,36 @@ module RokuBuilder
     # Setup navigation commands
     def init(mappings: nil)
       @commands = {
-        home: "Home",
-        rew: "Rev",
-        ff: "Fwd",
-        play: "Play",
-        select: "Select",
-        left: "Left",
-        right: "Right",
-        down: "Down",
-        up: "Up",
-        back: "Back",
-        replay: "InstantReplay",
-        info: "Info",
-        backspace: "Backspace",
-        search: "Search",
-        enter: "Enter",
-        volumedown: "VolumeDown",
-        volumeup: "VolumeUp",
-        mute: "VolumeMute",
-        channelup: "ChannelUp",
-        channeldown: "ChannelDown",
-        tuner: "InputTuner",
-        hdmi1: "InputHDMI1",
-        hdmi2: "InputHDMI2",
-        hdmi3: "InputHDMI3",
-        hdmi4: "InputHDMI4",
-        avi: "InputAVI"
+        home: "Home",             rew: "Rev",                 ff: "Fwd",
+        play: "Play",             select: "Select",           left: "Left",
+        right: "Right",           down: "Down",               up: "Up",
+        back: "Back",             replay: "InstantReplay",    info: "Info",
+        backspace: "Backspace",   search: "Search",           enter: "Enter",
+        volumedown: "VolumeDown", volumeup: "VolumeUp",       mute: "VolumeMute",
+        channelup: "ChannelUp",   channeldown: "ChannelDown", tuner: "InputTuner",
+        hdmi1: "InputHDMI1",      hdmi2: "InputHDMI2",        hdmi3: "InputHDMI3",
+        hdmi4: "InputHDMI4",      avi: "InputAVI"
       }
+      @screens = {
+        platform: [:home, :home, :home, :home, :home, :ff, :play, :rew, :play, :ff],
+        secret: [:home, :home, :home, :home, :home, :ff, :ff, :ff, :rew, :rew],
+        secret2: [:home, :home, :home, :home, :home, :up, :right, :down, :left, :up],
+        channels: [:home, :home, :home, :up, :up, :left, :right, :left, :right, :left],
+        developer: [:home, :home, :home, :up, :up, :right, :left, :right, :left, :right],
+        wifi: [:home, :home, :home, :home, :home, :up, :down, :up, :down, :up],
+        antenna: [:home, :home, :home, :home, :home, :ff, :down, :rew, :down, :ff],
+        bitrate: [:home, :home, :home, :home, :home, :rew, :rew, :rew, :ff, :ff],
+        network: [:home, :home, :home, :home, :home, :right, :left, :right, :left, :right],
+        reboot: [:home, :home, :home, :home, :home, :up, :rew, :rew, :ff, :ff]
+      }
+      @runable = [
+        :secret, :channels
+      ]
+      mappings_init(mappings: mappings)
+    end
 
+    # Init Mappings
+    def mappings_init(mappings: nil)
       @mappings = {
         "\e[1~": [ "home", "Home" ],
         "<": [ "rew", "<" ],
@@ -64,25 +66,7 @@ module RokuBuilder
         #"": [ "hdmi4", "" ],
         #"": [ "avi", "" ]
       }
-
       @mappings.merge!(mappings) if mappings
-
-      @screens = {
-        platform: [:home, :home, :home, :home, :home, :ff, :play, :rew, :play, :ff],
-        secret: [:home, :home, :home, :home, :home, :ff, :ff, :ff, :rew, :rew],
-        secret2: [:home, :home, :home, :home, :home, :up, :right, :down, :left, :up],
-        channels: [:home, :home, :home, :up, :up, :left, :right, :left, :right, :left],
-        developer: [:home, :home, :home, :up, :up, :right, :left, :right, :left, :right],
-        wifi: [:home, :home, :home, :home, :home, :up, :down, :up, :down, :up],
-        antenna: [:home, :home, :home, :home, :home, :ff, :down, :rew, :down, :ff],
-        bitrate: [:home, :home, :home, :home, :home, :rew, :rew, :rew, :ff, :ff],
-        network: [:home, :home, :home, :home, :home, :right, :left, :right, :left, :right],
-        reboot: [:home, :home, :home, :home, :home, :up, :rew, :rew, :ff, :ff]
-      }
-
-      @runable = [
-        :secret, :channels
-      ]
     end
 
     # Send a navigation command to the roku device
@@ -152,8 +136,7 @@ module RokuBuilder
         else
           @logger.unknown("Cannot run command automatically")
         end
-        display = []
-        count = []
+        display, count, string = [], [], ""
         @screens[type].each do |command|
           if display.count > 0 and  display[-1] == command
             count[-1] = count[-1] + 1
@@ -162,7 +145,6 @@ module RokuBuilder
             count.push(1)
           end
         end
-        string = ""
         display.each_index do |i|
           if count[i] > 1
             string = string + @commands[display[i]]+" x "+count[i].to_s+", "
@@ -170,7 +152,6 @@ module RokuBuilder
             string = string + @commands[display[i]]+", "
           end
         end
-
         if @runable.include?(type)
           @logger.info(string.strip)
         else
@@ -199,8 +180,7 @@ module RokuBuilder
     ensure
       STDIN.echo = true
       STDIN.cooked!
-
-      return input
+      input
     end
   end
 end

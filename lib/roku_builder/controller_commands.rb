@@ -68,14 +68,13 @@ module RokuBuilder
       stager = Stager.new(**configs[:stage_config])
       loader = Loader.new(**loader_config)
       packager = Packager.new(**configs[:device_config])
-      inspector = Inspector.new(**configs[:device_config])
       logger.warn "Packaging working directory" if options[:working]
       if stager.stage
         # Sideload #
         code, build_version = loader.sideload(**configs[:sideload_config])
-        return code unless code = SUCCESS
+        return code unless code == SUCCESS
         # Key #
-        success = keyer.rekey(**configs[:key])
+        _success = keyer.rekey(**configs[:key])
         # Package #
         options[:build_version] = build_version
         configs = ConfigManager.update_configs(configs: configs, options: options)
@@ -84,23 +83,30 @@ module RokuBuilder
         return FAILED_SIGNING unless success
         # Inspect #
         if options[:inspect]
-          info = inspector.inspect(configs[:inspect_config])
-          inspect_logger = Logger.new(STDOUT)
-          inspect_logger.formatter = proc {|_severity, _datetime, _progname, msg|
-            "%s\n\r" % [msg]
-          }
-          inspect_logger.unknown "=============================================================="
-          inspect_logger.unknown "App Name: #{info[:app_name]}"
-          inspect_logger.unknown "Dev ID: #{info[:dev_id]}"
-          inspect_logger.unknown "Creation Date: #{info[:creation_date]}"
-          inspect_logger.unknown "dev.zip: #{info[:dev_zip]}"
-          inspect_logger.unknown "=============================================================="
+          inspect_package(configs: configs)
         end
       end
       stager.unstage
       logger.info "App Packaged; staged using #{stager.method}"
       SUCCESS
     end
+
+    def self.inspect_package(configs:)
+      inspector = Inspector.new(**configs[:device_config])
+      info = inspector.inspect(configs[:inspect_config])
+      inspect_logger = Logger.new(STDOUT)
+      inspect_logger.formatter = proc {|_severity, _datetime, _progname, msg|
+        "%s\n\r" % [msg]
+      }
+      inspect_logger.unknown "=============================================================="
+      inspect_logger.unknown "App Name: #{info[:app_name]}"
+      inspect_logger.unknown "Dev ID: #{info[:dev_id]}"
+      inspect_logger.unknown "Creation Date: #{info[:creation_date]}"
+      inspect_logger.unknown "dev.zip: #{info[:dev_zip]}"
+      inspect_logger.unknown "=============================================================="
+    end
+    private_class_method :inspect_package
+
     # Run Build
     # @param options [Hash] user options
     # @param configs [Hash] parsed configs

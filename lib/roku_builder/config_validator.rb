@@ -54,14 +54,10 @@ module RokuBuilder
         }
       end
       if config[:keys]
-        config[:keys].each {|key,key_config|
-          validate_key(codes: codes, key: key_config)
-        }
+        config[:keys].each {|_key,key_config| validate_key(codes: codes, key: key_config) }
       end
       if config[:input_mapping]
-        config[:input_mapping].each_value {|info|
-          validate_mapping(codes: codes, mapping: info)
-        }
+        config[:input_mapping].each_value {|info| validate_mapping(codes: codes, mapping: info) }
       end
       codes.uniq!
       codes.push(0) if codes.empty?

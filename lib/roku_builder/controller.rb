@@ -33,7 +33,7 @@ module RokuBuilder
       ErrorHandler.handle_device_codes(device_code: device_code, logger: logger)
 
       # Run Commands
-      command_code = execute_commands(options: options, config: config, configs: configs, logger: logger)
+      command_code = execute_commands(options: options, configs: configs, logger: logger)
       ErrorHandler.handle_command_codes(command_code: command_code, logger: logger)
     end
 
@@ -106,7 +106,7 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
-    def self.execute_commands(options:, config:, configs:, logger:)
+    def self.execute_commands(options:, configs:, logger:)
       command = (commands & options.keys).first
       if ControllerCommands.simple_commands.keys.include?(command)
         params = ControllerCommands.simple_commands[command]

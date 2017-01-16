@@ -22,20 +22,17 @@ module RokuBuilder
       build_version = nil
       if infile
         build_version = ManifestManager.build_version(root_dir: infile)
-        return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         outfile = infile
       else
         # Update manifest
         if update_manifest
           build_version = ManifestManager.update_build(root_dir: @root_dir)
-          return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         else
           build_version = ManifestManager.build_version(root_dir: @root_dir)
-          return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
         end
         outfile = build(build_version: build_version, content: content)
-        return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
       end
+      return [MISSING_MANIFEST, nil] if outfile == MISSING_MANIFEST
       path = "/plugin_install"
       # Connect to roku and upload file
       conn = multipart_connection
@@ -62,13 +59,9 @@ module RokuBuilder
       build_version = ManifestManager.build_version(root_dir: @root_dir) unless build_version
       return MISSING_MANIFEST if build_version == MISSING_MANIFEST
       content ||= {}
-      unless content and content[:folders]
-        content[:folders] = Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
-      end
-      unless content and content[:files]
-        content[:files] = Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
-      end
-      content[:excludes] = [] unless content and content[:excludes]
+      content[:folders] ||= Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
+      content[:files] ||= Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
+      content[:excludes] ||= []
       outfile = "/tmp/build_#{build_version}.zip" unless outfile
       File.delete(outfile) if File.exist?(outfile)
       io = Zip::File.open(outfile, Zip::File::CREATE)

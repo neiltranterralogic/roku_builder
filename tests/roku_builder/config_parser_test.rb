@@ -129,7 +129,6 @@ class ConfigParserTest < Minitest::Test
       config: {},
       configs: {project_config: {directory: "dir"}, init_params: {}},
       options: {deeplink: "a:b", app_id: "xxxxxx"},
-      logger: Logger.new("/dev/null")
     }
     RokuBuilder::ConfigParser.send(:setup_simple_configs, **args)
   end

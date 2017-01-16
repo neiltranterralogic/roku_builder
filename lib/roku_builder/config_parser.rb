@@ -33,7 +33,8 @@ module RokuBuilder
       return [UNKNOWN_STAGE, nil, nil] unless stage
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(config: config, configs: configs, options: options, stage: stage)
-      setup_simple_configs(config: config, configs: configs, options: options, logger: logger)
+      setup_active_configs(config: config, configs: configs, options: options)
+      setup_simple_configs(config: config, configs: configs, options: options)
       return [SUCCESS, configs]
     end
 
@@ -73,7 +74,7 @@ module RokuBuilder
       if options[:out]
         if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
           options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
-          if options[:out_folder] = "." and not options[:out].start_with?(".")
+          if options[:out_folder] == "." and not options[:out].start_with?(".")
             options[:out_folder] = nil
           else
             options[:out_folder] = File.expand_path(options[:out_folder])
@@ -208,20 +209,11 @@ module RokuBuilder
     end
     private_class_method :setup_package_config
 
-    # Setup other configs
+    # Setup configs for active methods, monitoring and navigating
     # @param configs [Hash] The parsed configs hash
     # @param options [Hash] The options hash
     # @param logger [Logger] System logger
-    def self.setup_simple_configs(config:, configs:, options:, logger:)
-      # Create Manifest Config
-      configs[:manifest_config] = {
-        root_dir: configs[:project_config][:directory]
-      }
-      # Create Deeplink Config
-      configs[:deeplink_config] = {options: options[:deeplink]}
-      if options[:app_id]
-        configs[:deeplink_config][:app_id] = options[:app_id]
-      end
+    def self.setup_active_configs(config:, configs:, options:)
       # Create Monitor Config
       if options[:monitor]
         configs[:monitor_config] = {type: options[:monitor].to_sym}
@@ -240,6 +232,23 @@ module RokuBuilder
       if options[:navigate]
         commands = options[:navigate].split(/, */).map{|c| c.to_sym}
         configs[:navigate_config] = {commands: commands}
+      end
+    end
+    private_class_method :setup_active_configs
+
+    # Setup other configs
+    # @param configs [Hash] The parsed configs hash
+    # @param options [Hash] The options hash
+    # @param logger [Logger] System logger
+    def self.setup_simple_configs(config:, configs:, options:)
+      # Create Manifest Config
+      configs[:manifest_config] = {
+        root_dir: configs[:project_config][:directory]
+      }
+      # Create Deeplink Config
+      configs[:deeplink_config] = {options: options[:deeplink]}
+      if options[:app_id]
+        configs[:deeplink_config][:app_id] = options[:app_id]
       end
       # Create Text Config
       configs[:text_config] = {text: options[:text]}

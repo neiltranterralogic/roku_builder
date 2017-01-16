@@ -25,7 +25,7 @@ module RokuBuilder
       connection = Net::Telnet.new(telnet_config)
       code, _build_version = loader.sideload(**sideload_config)
 
-      if code = SUCCESS
+      if code == SUCCESS
         in_tests = false
         connection.waitfor(@end_reg) do |txt|
           in_tests = handle_text(txt: txt, in_tests: in_tests)

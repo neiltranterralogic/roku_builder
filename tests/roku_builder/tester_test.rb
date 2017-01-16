@@ -20,7 +20,7 @@ class TesterTest < Minitest::Test
     }
     tester = RokuBuilder::Tester.new(**device_config)
 
-    loader.expect(:sideload, nil, [loader_config])
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, ""], [loader_config])
     connection.expect(:waitfor, nil, [/\*\*\*\*\* ENDING TESTS \*\*\*\*\*/])
     connection.expect(:puts, nil, ["cont\n"])
 
@@ -55,7 +55,7 @@ class TesterTest < Minitest::Test
     }
     tester = RokuBuilder::Tester.new(**device_config)
 
-    loader.expect(:sideload, nil, [loader_config])
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, ""], [loader_config])
     connection.expect(:waitfor, nil, &waitfor)
     connection.expect(:puts, nil, ["cont\n"])
 

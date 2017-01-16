@@ -6,31 +6,7 @@ module RokuBuilder
   class Keyer < Util
 
     def genkey(out_file: nil)
-      telnet_config = {
-        'Host' => @roku_ip_address,
-        'Port' => 8080
-      }
-      connection = Net::Telnet.new(telnet_config)
-      connection.puts("genkey")
-      waitfor_config = {
-        'Match' => /./,
-        'Timeout' => false
-      }
-      password = nil
-      dev_id = nil
-      while password.nil? or dev_id.nil?
-        connection.waitfor(waitfor_config) do |txt|
-          while line = txt.slice!(/^.*\n/) do
-            words = line.split
-            if words[0] == "Password:"
-              password = words[1]
-            elsif words[0] == "DevID:"
-              dev_id = words[1]
-            end
-          end
-        end
-      end
-      connection.close
+      password, dev_id = generate_new_key()
       @logger.info("Password: "+password)
       @logger.info("DevID: "+dev_id)
 
@@ -92,6 +68,39 @@ module RokuBuilder
       dev_id = dev_id[1] if dev_id
       dev_id ||= "none"
       dev_id
+    end
+
+    private
+
+    # Uses the device to generate a new signing key
+    #  @return [Array<String>] Password and dev_id for the new key
+    def generate_new_key()
+      telnet_config = {
+        'Host' => @roku_ip_address,
+        'Port' => 8080
+      }
+      connection = Net::Telnet.new(telnet_config)
+      connection.puts("genkey")
+      waitfor_config = {
+        'Match' => /./,
+        'Timeout' => false
+      }
+      password = nil
+      dev_id = nil
+      while password.nil? or dev_id.nil?
+        connection.waitfor(waitfor_config) do |txt|
+          while line = txt.slice!(/^.*\n/) do
+            words = line.split
+            if words[0] == "Password:"
+              password = words[1]
+            elsif words[0] == "DevID:"
+              dev_id = words[1]
+            end
+          end
+        end
+      end
+      connection.close
+      return password, dev_id
     end
   end
 end
