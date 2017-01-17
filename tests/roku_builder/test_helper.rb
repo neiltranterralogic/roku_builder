@@ -51,13 +51,19 @@ def good_config
         stages:{
           production: {
             branch: "production",
-            key: {
-              keyed_pkg: "/dev/null",
-              password: "<password for pkg>"
-            }
+            key: "a"
           }
         }
       }
+    },
+    keys: {
+      a: {
+        keyed_pkg: "/dev/null",
+        password: "password"
+      }
+    },
+    input_mapping: {
+      "a": ["home", "Home"]
     }
   }
 end

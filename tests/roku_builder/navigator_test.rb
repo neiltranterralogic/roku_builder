@@ -140,4 +140,148 @@ class NavigatorTest < Minitest::Test
 
     logger.verify
   end
+
+  def test_navigator_read_char
+    getc = Minitest::Mock.new
+    chr = Minitest::Mock.new
+
+    getc.expect(:call, chr)
+    chr.expect(:chr, "a")
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
+    }
+
+    input = nil
+    navigator = RokuBuilder::Navigator.new(**device_config)
+    STDIN.stub(:echo=, nil) do
+      STDIN.stub(:raw!, nil) do
+        STDIN.stub(:getc, getc) do
+          assert_equal "a", navigator.read_char
+        end
+      end
+    end
+    getc.verify
+    chr.verify
+  end
+
+  def test_navigator_read_char_multichar
+    getc = Minitest::Mock.new
+    chr = Minitest::Mock.new
+    read_nonblock = Minitest::Mock.new
+
+    getc.expect(:call, chr)
+    chr.expect(:chr, "\e")
+    read_nonblock.expect(:call, "a", [3])
+    read_nonblock.expect(:call, "b", [2])
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
+    }
+
+    input = nil
+    navigator = RokuBuilder::Navigator.new(**device_config)
+    STDIN.stub(:echo=, nil) do
+      STDIN.stub(:raw!, nil) do
+        STDIN.stub(:getc, getc) do
+          STDIN.stub(:read_nonblock, read_nonblock) do
+            assert_equal "\eab", navigator.read_char
+          end
+        end
+      end
+    end
+    getc.verify
+    chr.verify
+  end
+
+  def test_navigator_interactive
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
+    }
+    navigator = RokuBuilder::Navigator.new(**device_config)
+    navigator.stub(:read_char, "\u0003") do
+      navigator.interactive
+    end
+  end
+
+  def test_navigator_interactive_nav
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
+    }
+
+    read_char = lambda {
+      @i ||= 0
+      char = nil
+      case(@i)
+      when 0
+        char = "<"
+      when 1
+        char = "\u0003"
+      end
+      @i += 1
+      char
+    }
+
+    nav = lambda { |args|
+      assert_equal :rev, args[:commands][0]
+    }
+
+    navigator = RokuBuilder::Navigator.new(**device_config)
+    navigator.stub(:read_char, read_char) do
+      navigator.stub(:nav, nav) do
+        navigator.interactive
+      end
+    end
+  end
+  def test_navigator_interactive_text
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null"),
+      init_params: {mappings: {}}
+    }
+
+    read_char = lambda {
+      @i ||= 0
+      char = nil
+      case(@i)
+      when 0
+        char = "a"
+      when 1
+        char = "\u0003"
+      end
+      @i += 1
+      char
+    }
+
+    type = lambda { |args|
+      assert_equal "a", args[:text]
+    }
+
+    navigator = RokuBuilder::Navigator.new(**device_config)
+    navigator.stub(:read_char, read_char) do
+      navigator.stub(:type, type) do
+        navigator.interactive
+      end
+    end
+  end
 end

@@ -148,4 +148,32 @@ class KeyerTest < Minitest::Test
       keyer.send(:generate_new_key)
     end
   end
+
+  def test_keyer_genkey
+    loader = Minitest::Mock.new
+    packager = Minitest::Mock.new
+
+    loader.expect(:sideload, nil)
+    packager.expect(:package, nil, [app_name_version: "key_dev_id", out_file: "/tmp/key_dev_id.pkg", password: "password"])
+
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      logger: Logger.new("/dev/null")
+    }
+
+    keyer = RokuBuilder::Keyer.new(**device_config)
+
+    RokuBuilder::Loader.stub(:new, loader) do
+      RokuBuilder::Packager.stub(:new, packager) do
+        keyer.stub(:generate_new_key, ["password", "dev_id"]) do
+          keyer.genkey
+        end
+      end
+    end
+
+    loader.verify
+    packager.verify
+  end
 end

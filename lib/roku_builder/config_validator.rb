@@ -180,7 +180,6 @@ module RokuBuilder
 
     def self.validate_mapping(codes:, mapping:)
       errors=[
-        [INVALID_MAPPING_INFO, mapping.nil?],
         [INVALID_MAPPING_INFO, (mapping.count != 2)]
       ]
       process_errors(codes: codes, errors: errors)

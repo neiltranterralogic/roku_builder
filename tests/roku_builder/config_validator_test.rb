@@ -157,4 +157,40 @@ class ConfigValidatorTest < Minitest::Test
     codes = RokuBuilder::ConfigValidator.validate_config(config: config)
     assert_equal [15], codes
   end
+
+  def test_config_manager_validate_project_key
+    config = good_config
+    config[:projects][:project2][:stages][:production][:key] = "b"
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [22], codes
+  end
+
+  def test_config_manager_validate_keys_pkg
+    config = good_config
+    config[:keys][:a][:keyed_pkg] = nil
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [19], codes
+    config = good_config
+    config[:keys][:a][:keyed_pkg] = "<path/to/signed/package>"
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [19], codes
+  end
+
+  def test_config_manager_validate_keys_password
+    config = good_config
+    config[:keys][:a][:password] = nil
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [20], codes
+    config = good_config
+    config[:keys][:a][:password] = "<password>"
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [20], codes
+  end
+
+  def test_config_manager_validate_input_mappings
+    config = good_config
+    config[:input_mapping]["a"] = ["home"]
+    codes = RokuBuilder::ConfigValidator.validate_config(config: config)
+    assert_equal [21], codes
+  end
 end
