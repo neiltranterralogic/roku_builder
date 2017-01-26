@@ -88,7 +88,7 @@ parser = OptionParser.new do |opts|
     options[:profile] = c
   end
 
-  opts.on("--do-stage", "Command: Run the stager. Used for scripting. Always run --do-unscript after") do
+  opts.on("--do-stage", "Command: Run the stager. Used for scripting. Always run --do-unstage after") do
     options[:dostage] = true
   end
 
@@ -145,7 +145,7 @@ parser = OptionParser.new do |opts|
     options[:edit_params] = p
   end
 
-  opts.on("--config CONFIG", "Set a custom config file. Default: '~/.roku_config.rb'") do |c|
+  opts.on("--config CONFIG", "Set a custom config file. Default: '~/.roku_config.json'") do |c|
     options[:config] = c
   end
 
