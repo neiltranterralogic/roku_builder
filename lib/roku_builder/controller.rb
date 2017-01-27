@@ -28,6 +28,10 @@ module RokuBuilder
       load_code, config, configs = ConfigManager.load_config(options: options, logger: logger)
       ErrorHandler.handle_load_codes(options: options, load_code: load_code, logger: logger)
 
+      # Check Configs
+      configs_code = validate_configs(configs: configs)
+      ErrorHandler.handle_configs_codes(configs_code: configs_code, logger: logger)
+
       # Check devices
       device_code, configs = check_devices(options: options, config: config, configs: configs, logger: logger)
       ErrorHandler.handle_device_codes(device_code: device_code, logger: logger)
@@ -101,6 +105,17 @@ module RokuBuilder
       VALID
     end
     private_class_method :validate_depricated_commands
+
+    # Validate config hash
+    # @param configs [Hash] The Configs hash
+    # @return [Integer] Status code for command validation
+    def self.validate_configs(configs:)
+      unless Dir.exist?(configs[:out][:folder])
+        return MISSING_OUT_FOLDER
+      end
+      VALID
+    end
+    private_class_method :validate_configs
 
     # Run commands
     # @param options [Hash] The options hash

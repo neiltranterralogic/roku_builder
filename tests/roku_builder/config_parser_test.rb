@@ -127,9 +127,69 @@ class ConfigParserTest < Minitest::Test
   def test_deeplink_app_config
     args = {
       config: {},
-      configs: {project_config: {directory: "dir"}, init_params: {}},
+      configs: {project_config: {directory: "dir"}, init_params: {}, out: {}},
       options: {deeplink: "a:b", app_id: "xxxxxx"},
     }
     RokuBuilder::ConfigParser.send(:setup_simple_configs, **args)
+  end
+
+  def test_outfile_config
+    configs = {}
+    args = {
+     options: {out: nil},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    assert_nil configs[:out][:file]
+    assert_equal "/tmp", configs[:out][:folder]
+
+    configs = {}
+    args = {
+     options: {out: "/home/user"},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    assert_nil configs[:out][:file]
+    assert_equal "/home/user", configs[:out][:folder]
+
+    configs = {}
+    args = {
+     options: {out: "/home/user/file.pkg"},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    refute_nil configs[:out][:file]
+    assert_equal "/home/user", configs[:out][:folder]
+    assert_equal "file.pkg", configs[:out][:file]
+
+    configs = {}
+    args = {
+     options: {out: "/home/user/file.zip"},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    refute_nil configs[:out][:file]
+    assert_equal "/home/user", configs[:out][:folder]
+    assert_equal "file.zip", configs[:out][:file]
+
+    configs = {}
+    args = {
+     options: {out: "/home/user/file.jpg"},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    refute_nil configs[:out][:file]
+    assert_equal "/home/user", configs[:out][:folder]
+    assert_equal "file.jpg", configs[:out][:file]
   end
 end

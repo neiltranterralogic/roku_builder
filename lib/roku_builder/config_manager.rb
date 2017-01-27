@@ -124,17 +124,14 @@ module RokuBuilder
     def self.update_configs(configs:, options:)
       if options[:build_version]
         configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
-        unless options[:outfile]
-          pathname = File.join(options[:out_folder], "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}")
-          if options[:out]
-            configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file]) if configs[:package_config]
-            configs[:build_config][:outfile]    = File.join(options[:out_folder], options[:out_file]) if configs[:build_config]
-          else
-            configs[:package_config][:out_file] = pathname+".pkg" if configs[:package_config]
-            configs[:build_config][:outfile]    = pathname+".zip" if configs[:build_config]
-          end
-          configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
+        unless configs[:out][:file]
+          configs[:out][:file] = "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}"
         end
+        pathname = File.join(configs[:out][:folder], configs[:out][:file])
+        configs[:package_config][:out_file] = pathname if configs[:package_config]
+        configs[:build_config][:out_file]   = pathname if configs[:build_config]
+
+        configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
       end
       return configs
     end

@@ -280,4 +280,62 @@ class ConfigManagerTest < Minitest::Test
     assert_equal 2, config[:projects][:p2][:folders].count
     File.delete(target_config) if File.exist?(target_config)
   end
+
+  def test_config_manager_update_configs
+    configs = {
+      project_config: { app_name: "<app_name>" },
+      package_config: {},
+      stage: "<stage>",
+      out: { file: nil, folder: "/tmp" }
+    }
+    options = {
+      build_version: "<build_version>"
+    }
+    configs = RokuBuilder::ConfigManager.update_configs(configs: configs, options: options)
+    assert_equal "<app_name> - <stage> - <build_version>", configs[:package_config][:app_name_version]
+    assert_equal "<app_name>_<stage>_<build_version>", configs[:out][:file]
+    assert_equal "/tmp/<app_name>_<stage>_<build_version>", configs[:package_config][:out_file]
+
+    configs = {
+      project_config: { app_name: "<app_name>" },
+      package_config: {},
+      stage: "<stage>",
+      out: { file: "file.pkg", folder: "/home/user" }
+    }
+    options = {
+      build_version: "<build_version>"
+    }
+    configs = RokuBuilder::ConfigManager.update_configs(configs: configs, options: options)
+    assert_equal "<app_name> - <stage> - <build_version>", configs[:package_config][:app_name_version]
+    assert_equal "file.pkg", configs[:out][:file]
+    assert_equal "/home/user/file.pkg", configs[:package_config][:out_file]
+
+    configs = {
+      project_config: { app_name: "<app_name>" },
+      build_config: {},
+      stage: "<stage>",
+      out: { file: nil, folder: "/tmp" }
+    }
+    options = {
+      build_version: "<build_version>"
+    }
+    configs = RokuBuilder::ConfigManager.update_configs(configs: configs, options: options)
+    assert_equal "<app_name>_<stage>_<build_version>", configs[:out][:file]
+    assert_equal "/tmp/<app_name>_<stage>_<build_version>", configs[:build_config][:out_file]
+
+    configs = {
+      project_config: { app_name: "<app_name>" },
+      inspect_config: {},
+      package_config: {},
+      stage: "<stage>",
+      out: { file: nil, folder: "/tmp" }
+    }
+    options = {
+      build_version: "<build_version>"
+    }
+    configs = RokuBuilder::ConfigManager.update_configs(configs: configs, options: options)
+    assert_equal "<app_name>_<stage>_<build_version>", configs[:out][:file]
+    assert_equal "/tmp/<app_name>_<stage>_<build_version>", configs[:package_config][:out_file]
+    assert_equal "/tmp/<app_name>_<stage>_<build_version>", configs[:inspect_config][:pkg]
+  end
 end

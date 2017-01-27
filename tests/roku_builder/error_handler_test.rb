@@ -43,7 +43,11 @@ class ErrorHandlerTest < Minitest::Test
           RokuBuilder::FAILED_DEEPLINKING,
           RokuBuilder::FAILED_NAVIGATING,
           RokuBuilder::FAILED_SCREENCAPTURE,
+          RokuBuilder::MISSING_MANIFEST,
           RokuBuilder::BAD_PRINT_ATTRIBUTE
+        ],
+        configs_code: [
+          RokuBuilder::MISSING_OUT_FOLDER
         ]
       },
       info: {
@@ -60,6 +64,11 @@ class ErrorHandlerTest < Minitest::Test
         ],
         options_code: [
           RokuBuilder::DEPRICATED
+        ]
+      },
+      debug: {
+        configs_code: [
+          RokuBuilder::VALID
         ]
       }
     }

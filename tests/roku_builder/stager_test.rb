@@ -285,5 +285,52 @@ class StagerTest < Minitest::Test
     stash.verify
     pstore.verify
   end
+
+  def test_stager_load_second_state
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
+    branch_name = 'branch'
+    git = Minitest::Mock.new
+    branch = Minitest::Mock.new
+    stashes = Minitest::Mock.new
+    stash = Minitest::Mock.new
+    other_stash = Minitest::Mock.new
+    pstore = Minitest::Mock.new
+
+    stager_config = {
+      method: :git,
+      root_dir: root_dir,
+      key: branch_name,
+      logger: nil
+    }
+
+    pstore.expect(:transaction, nil) do |&block|
+     block.call
+    end
+    git.expect(:branches, ['other_branch'])
+    pstore.expect(:[], 'other_branch', [:current_branch])
+    pstore.expect(:[]=, nil, [:current_branch, nil])
+
+    git.expect(:branch, branch)
+    branch.expect(:stashes, [other_stash, stash])
+    git.expect(:checkout, nil, ['other_branch'])
+    git.expect(:branch, branch)
+    stash.expect(:message, "roku-builder-temp-stash")
+    other_stash.expect(:message, "random_messgae")
+    branch.expect(:stashes, stashes)
+    stashes.expect(:pop, nil, ["stash@{1}"])
+
+    Git.stub(:open, git) do
+      PStore.stub(:new, pstore) do
+        stager = RokuBuilder::Stager.new(**stager_config)
+        assert stager.unstage
+      end
+    end
+    git.verify
+    branch.verify
+    stashes.verify
+    stash.verify
+    other_stash.verify
+    pstore.verify
+  end
 end
 

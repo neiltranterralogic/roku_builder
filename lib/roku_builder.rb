@@ -124,6 +124,9 @@ module RokuBuilder
   # Unknown stage given
   UNKNOWN_STAGE      = 7
 
+  # Missing out folder
+  MISSING_OUT_FOLDER = 8
+
 
   ### Execute Codes ###
 

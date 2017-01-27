@@ -124,12 +124,8 @@ class MonitorTest < Minitest::Test
     def monitor.puts(input)
       @mock.puts(input)
     end
-    def monitor.print(input)
-      @mock.print(input)
-    end
 
     mock.expect(:puts, nil, ["midline split\n"])
-    mock.expect(:print, nil, ["BrightScript Debugger> "])
 
     all_text = "midline "
     txt = "split\nBrightScript Debugger> "
@@ -137,6 +133,8 @@ class MonitorTest < Minitest::Test
     result = monitor.send(:manage_text, {all_text: all_text, txt: txt})
 
     assert_equal "", result
+
+    mock.verify
 
   end
 end

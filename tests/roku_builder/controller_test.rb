@@ -149,11 +149,15 @@ class ControllerTest < Minitest::Test
             RokuBuilder::ErrorHandler.stub(:handle_configure_codes, nil) do
               RokuBuilder::ConfigManager.stub(:load_config, nil) do
                 RokuBuilder::ErrorHandler.stub(:handle_load_codes, nil) do
-                  RokuBuilder::Controller.stub(:check_devices, nil) do
-                    RokuBuilder::ErrorHandler.stub(:handle_device_codes, nil) do
-                      RokuBuilder::Controller.stub(:execute_commands, nil) do
-                        RokuBuilder::ErrorHandler.stub(:handle_command_codes, nil) do
-                          RokuBuilder::Controller.run(options: test[:options], logger: logger)
+                  RokuBuilder::Controller.stub(:validate_configs, nil) do
+                    RokuBuilder::ErrorHandler.stub(:handle_configs_codes, nil) do
+                      RokuBuilder::Controller.stub(:check_devices, nil) do
+                        RokuBuilder::ErrorHandler.stub(:handle_device_codes, nil) do
+                          RokuBuilder::Controller.stub(:execute_commands, nil) do
+                            RokuBuilder::ErrorHandler.stub(:handle_command_codes, nil) do
+                              RokuBuilder::Controller.run(options: test[:options], logger: logger)
+                            end
+                          end
                         end
                       end
                     end

@@ -75,6 +75,19 @@ module RokuBuilder
       end
     end
 
+    # Handle codes returned from configuring
+    # @param configure_code [Integer] the error code returned by configure
+    # @param logger [Logger] system logger
+    def self.handle_configs_codes(configs_code:, logger:)
+      case configs_code
+      when MISSING_OUT_FOLDER
+        logger.fatal 'The folder passed in the command line options does not exist.'
+        abort
+      when VALID
+        logger.debug 'Configs OK'
+      end
+    end
+
     # Handle codes returned from checking devices
     # @param device_code [Integer] the error code returned by check_devices
     # @param logger [Logger] system logger

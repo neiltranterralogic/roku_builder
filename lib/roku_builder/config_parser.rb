@@ -21,7 +21,7 @@ module RokuBuilder
       #set project
       setup_project(config: config, options: options)
       #set outfile
-      setup_outfile(options: options)
+      setup_outfile(options: options, configs: configs)
       # Create Device Config
       configs[:device_config] = config[:devices][options[:device].to_sym]
       return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
@@ -68,23 +68,22 @@ module RokuBuilder
 
     # Setup the out folder/file options
     # @param options [Hash] The options hash
-    def self.setup_outfile(options:)
-      options[:out_folder] = nil
-      options[:out_file] = nil
+    def self.setup_outfile(options:, configs:)
+      configs[:out] = {file: nil, folder: nil}
       if options[:out]
         if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
-          options[:out_folder], options[:out_file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
-          if options[:out_folder] == "." and not options[:out].start_with?(".")
-            options[:out_folder] = nil
+          configs[:out][:folder], configs[:out][:file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
+          if configs[:out][:folder] == "." and not options[:out].start_with?(".")
+            configs[:out][:folder] = nil
           else
-            options[:out_folder] = File.expand_path(options[:out_folder])
+            configs[:out][:folder] = File.expand_path(configs[:out][:folder])
           end
         else
-          options[:out_folder] = options[:out]
+          configs[:out][:folder] = options[:out]
         end
       end
-      unless options[:out_folder]
-        options[:out_folder] = "/tmp"
+      unless configs[:out][:folder]
+         configs[:out][:folder] = "/tmp"
       end
     end
     private_class_method :setup_outfile
@@ -197,8 +196,8 @@ module RokuBuilder
           password: configs[:key][:password],
           app_name_version: "#{configs[:project_config][:app_name]} - #{stage}"
         }
-        if options[:out_file]
-          configs[:package_config][:out_file] = File.join(options[:out_folder], options[:out_file])
+        if configs[:out][:file]
+          configs[:package_config][:out_file] = File.join(configs[:out][:folder], configs[:out][:file])
         end
         # Create Inspector Config
         configs[:inspect_config] = {
@@ -256,8 +255,8 @@ module RokuBuilder
       configs[:test_config] = {sideload_config: configs[:sideload_config]}
       #Create screencapture config
       configs[:screencapture_config] = {
-        out_folder: options[:out_folder],
-        out_file: options[:out_file]
+        out_folder: configs[:out][:folder],
+        out_file: configs[:out][:file]
       }
       if options[:screen]
         configs[:screen_config] = {type: options[:screen].to_sym}

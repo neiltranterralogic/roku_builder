@@ -35,7 +35,7 @@ module RokuBuilder
       end
       response = conn.get path
       return false if response.status != 200
-
+      out_file = out_file+".pkg" unless out_file.end_with?(".pkg")
       File.open(out_file, 'w+') {|fp| fp.write(response.body)}
       true
     end
