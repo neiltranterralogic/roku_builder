@@ -48,6 +48,9 @@ module RokuBuilder
       success = nil
       if stager.stage
         loader = Loader.new(**config)
+        build_version = ManifestManager.build_version(**configs[:manifest_config])
+        options[:build_version] = build_version
+        configs = ConfigManager.update_configs(configs: configs, options: options)
         success = loader.sideload(**configs[:sideload_config])[0]
       end
       stager.unstage

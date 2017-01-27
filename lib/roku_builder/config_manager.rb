@@ -130,7 +130,9 @@ module RokuBuilder
         pathname = File.join(configs[:out][:folder], configs[:out][:file])
         configs[:package_config][:out_file] = pathname if configs[:package_config]
         configs[:build_config][:out_file]   = pathname if configs[:build_config]
-
+        if configs[:sideload_config] and options[:out]
+          configs[:sideload_config][:out_file]   = pathname
+        end
         configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
       end
       return configs

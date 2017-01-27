@@ -15,10 +15,9 @@ module RokuBuilder
     # @param root_dir [String] Path to the root directory of the roku app
     # @param content [Hash] Hash containing arrays for folder, files, and excludes. Default: nil
     # @return [String] Build version on success, nil otherwise
-    def sideload(update_manifest: false, content: nil, infile: nil)
+    def sideload(update_manifest: false, content: nil, infile: nil, out_file: nil)
       Navigator.new(**@device_config).nav(commands: [:home])
       result = FAILED_SIDELOAD
-      out_file = nil
       build_version = nil
       if infile
         build_version = ManifestManager.build_version(root_dir: infile)
@@ -30,7 +29,8 @@ module RokuBuilder
         else
           build_version = ManifestManager.build_version(root_dir: @root_dir)
         end
-        out_file = build(build_version: build_version, content: content)
+        @logger.info "Build: #{out_file}" if out_file
+        out_file = build(build_version: build_version, out_file: out_file, content: content)
       end
       return [MISSING_MANIFEST, nil] if out_file == MISSING_MANIFEST
       path = "/plugin_install"
@@ -42,7 +42,7 @@ module RokuBuilder
       }
       response = conn.post path, payload
       # Cleanup
-      File.delete(out_file) unless infile
+      File.delete(out_file) if infile.nil? and out_file.nil?
       result = SUCCESS if response.status==200 and response.body=~/Install Success/
       result = IDENTICAL_SIDELOAD if response.status==200 and response.body=~/Identical to previous version/
       [result, build_version]

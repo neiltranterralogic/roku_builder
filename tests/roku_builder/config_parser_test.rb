@@ -191,5 +191,17 @@ class ConfigParserTest < Minitest::Test
     refute_nil configs[:out][:file]
     assert_equal "/home/user", configs[:out][:folder]
     assert_equal "file.jpg", configs[:out][:file]
+
+    configs = {}
+    args = {
+     options: {out: "file.jpg"},
+     configs: configs
+    }
+    RokuBuilder::ConfigParser.send(:setup_outfile, **args)
+    refute_nil configs[:out]
+    refute_nil configs[:out][:folder]
+    refute_nil configs[:out][:file]
+    assert_equal "/tmp", configs[:out][:folder]
+    assert_equal "file.jpg", configs[:out][:file]
   end
 end
