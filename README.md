@@ -75,8 +75,10 @@ configuration options:
 
  Each stage has the following options:
 
- * branch: name of the branch for the given stage (if stage_method = git)
- * script: scripts to use to stage the app (if stage_method = script)
+ * branch: name of the branch for the given stage (if stage_method = git). If
+    using stage_method = stage then this can be removed.
+ * script: scripts to use to stage the app (if stage_method = script). If using
+    stage_method = git this can be removed.
  * script -> stage: script run form the app root directory to stage app
  * script -> unstage: script run form the app root directory to unstage app
  * key: has of key options for signing a package

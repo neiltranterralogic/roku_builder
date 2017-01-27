@@ -124,7 +124,7 @@ parser = OptionParser.new do |opts|
     options[:working] = true
   end
 
-  opts.on("-c", "--current", "Use current directory to sideload or test. Overides any project config") do
+  opts.on("-c", "--current", "Use current directory to sideload or test. Overrides any project config") do
     options[:current] = true
   end
 

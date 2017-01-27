@@ -18,9 +18,8 @@
       "stage_method": "<git|script>",
       "stages":{
         "production": {
-          "branch": "production",
-          <or>
-          "script": {"stage": "<command to stage>", "unstage": "<command to unstage, optional>""}
+          "branch": "<branch>",
+          "script": {"stage": "<command to stage>", "unstage": "<command to unstage, optional>"},
           "key": "key1"
         }
       }
