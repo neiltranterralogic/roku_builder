@@ -171,5 +171,19 @@ class ControllerTest < Minitest::Test
       logger.verify
     end
   end
+
+  def test_controller_validate_configs
+    configs = {out: {folder: "/out/folder"}}
+    exist = lambda {|args| assert_equal "/out/folder", args; true}
+    Dir.stub(:exist?, exist) do
+      assert_equal RokuBuilder::VALID, RokuBuilder::Controller.send(:validate_configs, configs: configs)
+    end
+
+    configs = {out: {folder: "/out/folder"}}
+    exist = lambda {|args| assert_equal "/out/folder", args; false}
+    Dir.stub(:exist?, exist) do
+      assert_equal RokuBuilder::MISSING_OUT_FOLDER, RokuBuilder::Controller.send(:validate_configs, configs: configs)
+    end
+  end
 end
 

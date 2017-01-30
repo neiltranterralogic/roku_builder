@@ -403,7 +403,6 @@ class ControllerCommandsTest < Minitest::Test
     stager = Minitest::Mock.new
 
     options = {print: 'title', config: "~/.roku_config.json"}
-    config = good_config
     configs = {stage_config: {}}
     code = nil
     scripter_config = {attribute: :title, configs: configs}
@@ -417,6 +416,37 @@ class ControllerCommandsTest < Minitest::Test
       end
     end
     assert_equal RokuBuilder::SUCCESS, code
+    stager.verify
+  end
+  def test_controller_commands_dostage
+    logger = Logger.new("/dev/null")
+    stager = Minitest::Mock.new
+
+    options = {dostage: true, config: "~/.roku_config.json"}
+    configs = {stage_config: {}}
+    code = nil
+    stager.expect(:stage, true)
+
+    RokuBuilder::Stager.stub(:new, stager) do
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, configs: configs, logger: logger})
+    end
+    assert_equal true, code
+    stager.verify
+  end
+
+  def test_controller_commands_dounstage
+    logger = Logger.new("/dev/null")
+    stager = Minitest::Mock.new
+
+    options = {dounstage: true, config: "~/.roku_config.json"}
+    configs = {stage_config: {}}
+    code = nil
+    stager.expect(:unstage, true)
+
+    RokuBuilder::Stager.stub(:new, stager) do
+      code = RokuBuilder::Controller.send(:execute_commands, {options: options, configs: configs, logger: logger})
+    end
+    assert_equal true, code
     stager.verify
   end
 end

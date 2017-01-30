@@ -156,7 +156,6 @@ class NavigatorTest < Minitest::Test
       init_params: {mappings: {}}
     }
 
-    input = nil
     navigator = RokuBuilder::Navigator.new(**device_config)
     STDIN.stub(:echo=, nil) do
       STDIN.stub(:raw!, nil) do
@@ -187,7 +186,6 @@ class NavigatorTest < Minitest::Test
       init_params: {mappings: {}}
     }
 
-    input = nil
     navigator = RokuBuilder::Navigator.new(**device_config)
     STDIN.stub(:echo=, nil) do
       STDIN.stub(:raw!, nil) do
