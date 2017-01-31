@@ -72,6 +72,8 @@ configuration options:
 ##### Project Configuration
 
  * projects.default: the key for the default project
+ * projects.parent_dir: optional directory path that all projects are relative
+    to
  * projects.<project_id>.directory: full path of the git repository the houses
     the roku app
  * projects.<project_id>.app_name: Name used when packaging the app
@@ -96,6 +98,7 @@ configuration options:
 
 ##### Key Configuration
 
+ * keys.key_dir: optional directory that all keys are relative to
  * keys.<key_id>.keyed_pkg: path to a pkg file that has been signed
  * keys.<key_id>.password: password for the signed pkg
 

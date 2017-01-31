@@ -46,17 +46,29 @@ module RokuBuilder
     # @return [Hash] roku config object
     def self.get_config(config:, logger:)
       begin
-        config = JSON.parse(File.open(config).read, {symbolize_names: true})
+        config = {parent_config: config}
+        depth = 1
+        while config[:parent_config]
+          config_parent = JSON.parse(File.open(config[:parent_config]).read, {symbolize_names: true})
+          config.delete(:parent_config)
+          config.merge!(config_parent) {|key, v1, v2| v1}
+          depth += 1
+          if depth > 10
+            logger.fatal "Parent configs too deep."
+            return nil
+          end
+        end
         config[:devices][:default] = config[:devices][:default].to_sym
         config[:projects][:default] = config[:projects][:default].to_sym
         config[:projects].each_pair do |key,value|
           next if key == :default
+          next if key == :project_dir
           if value[:stage_method]
             value[:stage_method] = value[:stage_method].to_sym
           end
         end
         config[:projects].each_pair do |key, value|
-          unless key == :default
+          unless key == :default or key == :project_dir
             if value[:parent] and config[:projects][value[:parent].to_sym]
               new_value = config[:projects][value[:parent].to_sym]
               new_value = new_value.deep_merge value
