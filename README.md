@@ -153,6 +153,8 @@ or:
 
     $ roku -ps production
 
+The `--package/-p` command will automatically [Rekey](https://github.com/rokudev/docs/blob/master/develop/guides/packaging.md#rekeying) your roku device before packaging the channel
+
 #### Building
 
 You can build an app to be sideloaded later or by someone else by using the
