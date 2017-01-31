@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    roku_builder (3.11.1)
+    roku_builder (3.12.0)
       faraday (~> 0.11)
       faraday-digestauth (~> 0.2)
       git (~> 1.3)

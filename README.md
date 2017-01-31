@@ -74,6 +74,8 @@ configuration options:
  * projects.default: the key for the default project
  * projects.parent_dir: optional directory path that all projects are relative
     to
+ * projects.<project_id>.parent: optional id of parent project to copy configs
+    from
  * projects.<project_id>.directory: full path of the git repository the houses
     the roku app
  * projects.<project_id>.app_name: Name used when packaging the app
