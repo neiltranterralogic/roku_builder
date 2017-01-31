@@ -37,5 +37,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov",         "~> 0.12"
   spec.add_development_dependency "coveralls",         "~> 0.8"
   spec.add_development_dependency "yard",              "~> 0.9"
-  spec.add_development_dependency "guard-livereload",  "~> 2.5"
+  spec.add_development_dependency "guard",             "~> 2.14"
+  spec.add_development_dependency "guard-minitest",    "~> 2.4"
 end
