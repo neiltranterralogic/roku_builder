@@ -91,6 +91,16 @@ value is a array with the desired command to run and a human readable key name.
 To see the key press code for a specific key the --navigate command can be run
 with the --debug option on to see a print out of all the keys pressed.
 
+#### Basic steps for creating a Roku channel/application package
+
+Official docs for packaging an application can be found [in the sdk](https://sdkdocs.roku.com/display/sdkdoc/Packaging+Your+Application), however the basic steps are:
+
+1.  Side-load your application onto a Roku device for testing.
+1.  Run the genkey utility to generate a key.  This key will sign packages. This step only needs to be done once.
+1.  Run the package utility to generate the package.
+1.  Download the package from the Roku device to your computer.
+
+RokuBuilder makes running each of these steps easy, without needing to use the Roku device web interface or telnet.
 
 #### Sideloading
 
@@ -140,6 +150,20 @@ command:
 or:
 
     $ roku -lc
+
+#### Generating a key for signing packages
+
+Before you can package a channel, you must [generate a key](https://sdkdocs.roku.com/display/sdkdoc/Packaging+Your+Application#PackagingYourApplication-RunthegenkeyUtility) that is used to sign the package. This key is used to sign a new package and is also needed to sign a package when updating a channel.
+
+You can create a key by running the genkey command:
+
+    $ roku --genkey --debug
+
+This will output the following data, all of which need to put in the `keys` section of `~/.roku_config.json`:
+
+*  `Keyed PKG`: This is the signing key, used to sign new and updated packages
+*  `Password`: Key's password
+*  `DevID`: The developer ID associated with the key.  Don't need to save this, but it is best practice to include this string in the signing keys filename
 
 #### Packaging
 
