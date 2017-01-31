@@ -155,10 +155,10 @@ options you use will depend on the type of staging you are using and the app
 you are trying to run the command. The options are as follows:
 
  * --ref or -r
- ** This option only works with git typr staging. It will allow you to run a
+   * This option only works with git type staging. It will allow you to run a
       command on a specific git branch, tag, or referance.
  * --stage or -s
- ** This option will work with either git or script staging. It allows you to
+   * This option will work with either git or script staging. It allows you to
       sideload a specific stage. If using script staging then it will run the
       configured stage script before sideloading and then run the unstage
       script after. If using git staging it will stach any local changes,
@@ -166,14 +166,14 @@ you are trying to run the command. The options are as follows:
       branch, and unstach changes. This is the only source option that you can
       use when packaging.
  * --working or -w
- ** This option will work with git or script staging. It will use the project
+   * This option will work with git or script staging. It will use the project
       configs to determine the directory to use but will not run any staging
       method.
  * --current or -c
- ** This option will ignore any project configurattion and just us the entire
+   * This option will ignore any project configurattion and just us the entire
       current directory.
  * --in or -I
- ** This option allows you to pass in a zip file of an already built app.
+   * This option allows you to pass in a zip file of an already built app.
 
 
 #### Sideloading
