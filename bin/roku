@@ -104,8 +104,8 @@ parser = OptionParser.new do |opts|
     options[:screens] = true
   end
 
-  opts.on("-m", "--monitor TYPE", "Command: run telnet to monitor roku log") do |m|
-    options[:monitor] = m
+  opts.on("-m", "--monitor [TYPE]", "Command: run telnet to monitor roku log") do |m|
+    options[:monitor] = m || "main"
   end
 
   opts.on("-u", "--update-manifest", "Command: update the manifest file") do
