@@ -55,37 +55,51 @@ This will create the file '~/.roku_config.json' with a default configuration.
 Edit this file to add appropriate values. The following are default
 configuration options:
 
+##### Top Level Configuration
+
  * devices: information for accessing devices
- * devices -> default: id of the default device
  * projects: this is a hash of project objects
- * projects -> default: the key for the default project
+ * keys: contains keys that will be used for signing packages
+ * input_mapping: allows you to change key mappings for the intractive navigator
 
- Each Device has the following options:
+##### Device Configuration
 
- * ip: ip address of the device
- * user: dev username for the roku device
- * password: dev password for the roku device
+ * devices.default: id of the default device
+ * devices.<device_id>.ip: ip address of the device
+ * devices.<device_id>.user: dev username for the roku device
+ * devices.<device_id>.password: dev password for the roku device
 
- Each project has the following options:
+##### Project Configuration
 
- * directory: full path of the git repository the houses the roku app
- * app_name: Name used when packaging the app
- * stage_method: Which method to use for switching app stages (git or script)
- * stages: a hash of stage objects
+ * projects.default: the key for the default project
+ * projects.<project_id>.directory: full path of the git repository the houses
+    the roku app
+ * projects.<project_id>.app_name: Name used when packaging the app
+ * projects.<project_id>.stage_method: Which method to use for switching app
+    stages (git or script)
+ * projects.<project_id>.stages: a hash of stage objects
+ * projects.<project_id>.stages.<stage_id>.branch: name of the branch for the
+    given stage (if stage_method = git). If using stage_method = stage then
+    this can be removed.
+ * projects.<project_id>.stages.<stage_id>.script: scripts to use to stage the
+    app (if stage_method = script). If using stage_method = git this can be
+    removed.
+ * projects.<project_id>.stages.<stage_id>.script.stage: script run form the
+    app root directory to stage app
+ * projects.<project_id>.stages.<stage_id>.script -> unstage: script run form
+    the app root directory to unstage app
+ * projects.<project_id>.stages.<stage_id>.key: this can be a string referencing
+    a key in the keys section or a hash of options
+ * projects.<project_id>.stages.<stage_id>.key.keyed_pkg: path to a pkg file
+    that has been signed
+ * projects.<project_id>.stages.<stage_id>.key.password: password for the signed pkg
 
- Each stage has the following options:
+##### Key Configuration
 
- * branch: name of the branch for the given stage (if stage_method = git). If
-    using stage_method = stage then this can be removed.
- * script: scripts to use to stage the app (if stage_method = script). If using
-    stage_method = git this can be removed.
- * script -> stage: script run form the app root directory to stage app
- * script -> unstage: script run form the app root directory to unstage app
- * key: has of key options for signing a package
- * key -> keyed_pkg: path to a pkg file that has been signed
- * key -> password: password for the signed pkg
+ * keys.<key_id>.keyed_pkg: path to a pkg file that has been signed
+ * keys.<key_id>.password: password for the signed pkg
 
-There is an optional "input_mappings" section that will allow you to override
+The "input_mappings" section is optional but will allow you to override
 the default input mappings. In the section each key is a key press code. The
 value is a array with the desired command to run and a human readable key name.
 To see the key press code for a specific key the --navigate command can be run
@@ -102,58 +116,100 @@ Official docs for packaging an application can be found [in the sdk](https://sdk
 
 RokuBuilder makes running each of these steps easy, without needing to use the Roku device web interface or telnet.
 
+#### Projects and Stages
+
+The configuration for this gem allows you to define any number of project and
+any number of stages for each project. It is intended that each app be defined
+as a project and then the stages for that project would allow you to define
+production/staging/etc. stages.
+
+There are two different ways that stages can be defined. You can use a script
+to define your stage. This gives you the greatest amount of freedom allowing
+you to setup your stage anyway you want. The other option is to use git
+staging. To do this you must have one branch for eash stage.
+
+The project used in the examples below is a smart default. If you are in a
+project directory then it will use that project. If you are not then it will
+use the defualt that you have defined in your config. You can define what
+project you want the command to be run on using the --project option:
+
+    $ roku -lw --project project1
+
+or:
+
+    $ roku -lw -P project1
+
+#### Commands and Sources
+
+There are several commands that require a source option to run properly. These
+include:
+
+ * Sideload
+ * Build
+ * Package
+ * Test
+ * Key
+
+There are several source options that can be supplied to these commands. Which
+options you use will depend on the type of staging you are using and the app
+you are trying to run the command. The options are as follows:
+
+ * --ref or -r
+ ** This option only works with git typr staging. It will allow you to run a
+      command on a specific git branch, tag, or referance.
+ * --stage or -s
+ ** This option will work with either git or script staging. It allows you to
+      sideload a specific stage. If using script staging then it will run the
+      configured stage script before sideloading and then run the unstage
+      script after. If using git staging it will stach any local changes,
+      switch to the configured branch, sideload, switch back to the previous
+      branch, and unstach changes. This is the only source option that you can
+      use when packaging.
+ * --working or -w
+ ** This option will work with git or script staging. It will use the project
+      configs to determine the directory to use but will not run any staging
+      method.
+ * --current or -c
+ ** This option will ignore any project configurattion and just us the entire
+      current directory.
+ * --in or -I
+ ** This option allows you to pass in a zip file of an already built app.
+
+
 #### Sideloading
 
-There are several ways to side load an app. You can sideload based on a stage,
-an arbitrary git referance or the working directory.
-
-To sideload a stage you can run the following command:
+You can sideload an app directly to the device using this gem. The gem will
+zip all of the configured files and upload it to the device and the remove the
+zip. You can do so with the following commands:
 
     $ roku --sideload --stage production
 
-This will sideload the production stage. By default the production stage is
-used. So the above is equivalent to the following:
+or:
 
-    $ roku --sideload
+    $ roku -ls production
 
-and:
+When sideoading you can use any of the source options approiate to your staging
+method.
 
-    $ roku -l
+#### Building
 
-To sideload via a git referance you can run the following command
+You can build an app to be sideloaded later or by someone else by using the
+following command:
 
-    $ roku --sideload --ref master
-
-This will sideload the master branch. The following is equivalent:
-
-    $ roku -lr master
-
-To sideload the current working directory you can run the following:
-
-    $ roku --sideload --working
+    $ roku --build --working
 
 or:
 
-    $ roku -lw
+    $ roku -bw
 
-If you choose to sideload via stage or git referance then the roku tool with
-stash any changes in the working directory and then apply the stash after. From
-time to time there may be an issue with this and you will have to clear the
-stash manually.
+When bulding you can use any of the source options approiate to your staging
+method except the --in option.
 
-You can also sideload the current directory even if it is not setup as a
-project. If the directory has a manifest file then you can run the following
-command:
+#### Generating a key
 
-    $ roku --sideload --current
-
-or:
-
-    $ roku -lc
-
-#### Generating a key for signing packages
-
-Before you can package a channel, you must [generate a key](https://sdkdocs.roku.com/display/sdkdoc/Packaging+Your+Application#PackagingYourApplication-RunthegenkeyUtility) that is used to sign the package. This key is used to sign a new package and is also needed to sign a package when updating a channel.
+Before you can package a channel, you must [generate a key](https://sdkdocs.roku.com/display/sdkdoc/Packaging+Your+Application#PackagingYourApplication-RunthegenkeyUtility)
+that is used to sign the package. This key is used to sign a new package and is
+also needed to sign a package when updating a channel.
 
 You can create a key by running the genkey command:
 
@@ -177,19 +233,8 @@ or:
 
     $ roku -ps production
 
-The `--package/-p` command will automatically [Rekey](https://github.com/rokudev/docs/blob/master/develop/guides/packaging.md#rekeying) your roku device before packaging the channel
-
-#### Building
-
-You can build an app to be sideloaded later or by someone else by using the
-following command:
-
-    $ roku --build --stage production
-
-or:
-
-    $ roku -bw
-
+The package command will automatically [Rekey](https://github.com/rokudev/docs/blob/master/develop/guides/packaging.md#rekeying)
+your roku device before packaging the channel
 
 #### Monitoring Logs
 
@@ -203,19 +248,39 @@ brightscript log:
 or:
     $ roku -m main
 
+or
+
+    $ roku --monitor
+
 The following are the options to be passed in as type:
 
  * main
- * sg
- * task1
- * task2
- * task3
- * taskX
+ * sg (depricated)
+ * task1 (depricated)
+ * task2 (depricated)
+ * task3 (depricated)
+ * taskX (depricated)
  * profile
+
+If no option is passed in then main log is monitored.
 
 The tool connects to the roku via telnet and prints everything that it
 recieves. It will continue indefinatly unless it is stopped via Ctrl-c or
 entering "q".
+
+The monitor tool also includes command history and some tab completeion.
+
+#### Interactive Navigation
+
+The gem has the ability to capture keyboard input and send it to the roku as
+remote inputs. This can be done by running the following command:
+
+    $ roku --navigate
+
+Running in verbose mode will print out all of the key mappings avaiable. If you
+want to change these mappings you can do so via the input_mapping config values
+. To determine the codes needed to enter in the input_mapping config you can
+run the navigator in debug mode.
 
 #### Profiling Scene Graph
 
@@ -248,7 +313,7 @@ are run otherwise it will just grab the test run from last time.
 Another tool for testing is the navigate command. You can use this to script
 navigation on the roku console. The command is used as follows:
 
-    $ roku --navigate <command>
+    $ roku --nav <command>
 
 The possible commands are as follows:
 
@@ -293,46 +358,13 @@ You can use a differnt configuration file useing the following option:
 
 This path will be expanded so you do not have to use the full path
 
-You can use your keyboard to control the roku by running the following command:
-
-    $ roku --navigate
-
-To see the key mapings you can run the following command:
-
-    $ roku --navigate -V
-
-## Projects
-
-The project used in the above examples is a smart default. If you are in a
-project directory then it will use that project. If you are not then it will
-use the defualt that you have defined in your config. You can define what
-project you want the command to be run on using the --project option:
-
-    $ roku -lw --project project1
-
-or:
-
-    $ roku -lw -P project1
-
-## Stages
-
-Each project can have any number of stages. stages can be defined in a number
-of ways. The default is to use git branches to define stages. You can setup a
-branch for each stage and the gem will automatically switch between them as
-needed. If using git stages then the gem will ensure to stash any change you
-currently have before checking out the required branch. When done it will
-switch back and unstash the changes. You can use the -w or --working options
-to avoid this.
-
-The other method of staging is script staging. This will run a script you
-define before and after performing any actions. This will let you stage your
-app anyway you like as long as it can be done via script.
-
 ## Devices
 
-In the examples above the default device is used. If you have multiple devices
-defined in your config then you can select a different one using the following
-option:
+In the examples above the device used is a smart default. It will use the
+default device defined in the configuration file. If that device is not online
+it will look start at the top and try each device until it findes an avaiable
+device. If you have multiple devices defined in your config then you can select
+a different one using the following option:
 
     $ roku -lw --device device2
 
@@ -351,10 +383,6 @@ directory:
 
 ## Improvements
 
- * Increase testing
-   * Config Unit Tests
-   * Intergration Tests
- * Move RokuBuilder::Controller to RokuBuilder?
  * Allow start and end delimiter for tests to be configured
  * Fix file naming when building from a referance
  * Extend profiling
