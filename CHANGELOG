@@ -1,0 +1,287 @@
+ = 3.12.0 =
+
+  - Add optional "parent_config", "project_dir", and "key_dir" config options
+  - `--monitor` can be called without an argument. "main" is used by default
+  - Depricate unused monitor screens
+  - Update README to be clearer
+
+ = 3.11.1
+
+  - Fix outfile handeling
+  - build file is not deleted if --out option is supplied
+  - Update help messages
+  - Update config example with script options
+  - Update README with script options
+  - Update dependancies
+
+ = 3.11.0
+
+  - Add genkey command
+  - add command history and autocomplete functionality to the `--monitor` command
+
+ = 3.10.7
+
+  - Test for missing keys in config
+  - Allow update_manifests to not set the default values
+
+ = 3.10.6
+
+  - Deeplinker output includes curl command
+
+ = 3.10.5
+
+  - Dependancies update
+  - Ruby Update
+
+ = 3.10.4
+
+  - Fix debugger bug
+
+ = 3.10.3
+
+  - Fix navigator bug
+
+ = 3.10.2
+
+  - Allow input_mappings to be configured
+  - Change Default mappings
+
+ = 3.10.1
+
+  - Go to home before sideloading
+
+ = 3.10.0
+
+  - Add interactive navigator
+  - Send key sequences for allowed screens
+
+ = 3.9.0
+
+  - Handle missing stage
+  - Allow seprate key config
+  - Account for some missing files
+  - Better parse error handeling
+  - Print out deeplink params in verbose mode
+  - Fix outfile handeling
+  - Fix Keyer
+  - Dependancies update
+
+ = 3.8.4
+
+  - Clean up docs
+  - Account for no dev id when keying
+  - Do not require a device for printing
+
+ = 3.8.3
+
+  - Dependancies update
+
+ = 3.8.2
+
+  - Remove requirement for a production stage
+
+ = 3.8.1
+
+
+  - Add app_name to printer
+  - Dependancies Update
+
+ = 3.8.0
+
+  - Update package inspection printing
+  - Add Scene Graph profiler
+
+ = 3.7.3
+
+  - Add profiler port to monitor
+
+ = 3.7.2
+
+  - Do not require a device for commands that do not use one
+  - Add stop command to be used like ctrl-c
+
+ = 3.7.1
+
+  - Ensure git stager creates stash
+
+ = 3.7.0
+
+  - Add stage/unstage commands
+
+ = 3.6.6
+
+  - Do not require an unstage script
+  - Account for comments/empty lines in manifest
+  - Dependancies update
+
+ = 3.6.5
+
+  - Skipped
+
+ = 3.6.4
+
+  - Add Print command
+
+ = 3.6.3
+
+  - Update License
+  - Allow projects to define parents
+
+ = 3.6.2
+
+  - Allow deeplink with no options
+  - Allow deeplinking to specific app
+  - Add app-list command
+
+ = 3.6.1
+
+  - Allow excludes on normal sideload
+
+ = 3.6.0
+
+  - Allow sideloading zip file
+  - add excludes config to exclude files during build/package
+  - Update ruby version
+
+ = 3.5.0
+
+  - Depricate --deeplink command
+  - Allow deeplink commands to sideload app
+  - Add verbose messages
+
+ = 3.4.4
+
+  - Improve project selection
+
+ = 3.4.3
+
+  - Add key command
+
+ = 3.4.2
+
+  - Bug fixes for staging method
+
+ = 3.4.1
+
+  - Bug fix for manifest update
+
+ = 3.4.0
+
+  - Add update manifest
+  - Add script based staging
+  - Dependancies update
+
+ = 3.3.4
+
+  - Add debugger break
+  - Dependancies update
+  - Code cleanup
+  - README badges
+
+ = 3.3.3
+
+  - Build version update fix
+  - Set ruby version
+
+ = 3.3.2
+
+  - Fix monitor port numbers
+
+ = 3.3.1
+
+  - Add screen and screens commands
+
+ = 3.3.0
+
+  - Find online devices if not specified
+  - Allow monitor to interact with debugger
+
+ = 3.2.3
+
+  - Bug fix for stage with no key
+
+ = 3.2.2
+
+  - Build bug fixes
+
+ = 3.2.1
+
+  - Fix for sideloading working directory
+
+ = 3.2.0
+
+  - Add screen capture
+  - Add documentation
+
+ = 3.1.2
+
+  - Add support for both developer interfaces
+
+ = 3.1.1
+
+  - Update to support new developer interface
+
+ = 3.1.0
+
+  - Add monitor
+  - Allow config to be edited
+
+ = 3.0.0
+
+  - Code refactor and cleanup
+  - Add validate command
+
+ = 2.0.3
+
+  - Prevent configuration command from overwriting existing config
+
+ = 2.0.2
+
+  - Remove debugger requirement
+
+ = 2.0.1
+
+  - Sideloader bugfix
+
+ = 2.0.0
+
+  - Remove depricated options
+  - Allow sideloading current directory
+
+ = 1.5.1
+
+  - Fix printing version
+
+ = 1.5.0
+
+  - Add inspector for packaging
+
+ = 1.4.1
+
+  - Allow packaging of working directory
+  - Allow build with stage and working
+
+ = 1.4.0
+
+  - Ensure git is not used if --working is passed
+  - Allow outfile to be defined
+
+ = 1.3.0
+
+  - Add manifest update command
+  - Allow multiple devices
+
+ = 1.2.1
+
+  - Fix update manifest bug
+
+ = 1.2.0
+
+  - Add smart project selection
+
+ = 1.1.0
+
+  - Depricate manifest update options
+  - Add ability to fetch before sideload or build
+  - Fix updating build number
+  - Fix parsing deeplinking options
