@@ -47,7 +47,12 @@ module RokuBuilder
         project = nil
         config[:projects].each_pair {|key,value|
           if value.is_a?(Hash)
-            repo_path = Pathname.new(value[:directory]).realdirpath
+            repo_path = ""
+            if config[:projects][:project_dir]
+              repo_path = Pathname.new(File.join(config[:projects][:project_dir], value[:directory])).realdirpath
+            else
+              repo_path = Pathname.new(value[:directory]).realdirpath
+            end
             path.descend do |path_parent|
               if path_parent == repo_path
                 project = key

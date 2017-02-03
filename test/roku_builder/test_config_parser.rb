@@ -82,6 +82,7 @@ class ConfigParserTest < Minitest::Test
     config = good_config
     config[:projects][:project_dir] = "/tmp"
     config[:projects][:project1][:directory] = "project1"
+    config[:projects][:project2][:directory] = "project2"
 
 
     code = nil
@@ -92,6 +93,31 @@ class ConfigParserTest < Minitest::Test
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
     assert_equal "/tmp/project1", configs[:project_config][:directory]
+  end
+
+  def test_manifest_config_project_select
+    logger = Logger.new("/dev/null")
+    options = {
+      config: File.expand_path(File.join(File.dirname(__FILE__), "test_files", "controller_config_test", "valid_config.json")),
+      stage: 'production',
+      update_manifest: false,
+      fetch: false,
+    }
+    config = good_config
+    config[:projects][:project_dir] = "/tmp"
+    config[:projects][:project1][:directory] = "project1"
+    config[:projects][:project2][:directory] = "project2"
+
+    code = nil
+    configs = nil
+
+    Pathname.stub(:pwd, Pathname.new("/tmp/project2")) do
+      code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+    end
+
+    assert_equal RokuBuilder::SUCCESS, code
+    assert_equal Hash, config.class
+    assert_equal "/tmp/project2", configs[:project_config][:directory]
   end
 
   def test_manifest_config_key_directory
