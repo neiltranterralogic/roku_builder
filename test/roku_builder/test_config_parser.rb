@@ -95,7 +95,7 @@ class ConfigParserTest < Minitest::Test
     assert_equal "/tmp/project1", configs[:project_config][:directory]
   end
 
-  def test_manifest_config_project_select
+  def test_manifest_config_project_directory_select
     logger = Logger.new("/dev/null")
     options = {
       config: File.expand_path(File.join(File.dirname(__FILE__), "test_files", "controller_config_test", "valid_config.json")),
