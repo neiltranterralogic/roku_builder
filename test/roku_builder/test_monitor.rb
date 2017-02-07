@@ -12,7 +12,6 @@ class MonitorTest < Minitest::Test
       logger: Logger.new("/dev/null")
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
-    monitor.instance_variable_set(:@show_prompt, true)
 
     connection.expect(:waitfor, nil) do |config|
       assert_equal(/./, config['Match'])

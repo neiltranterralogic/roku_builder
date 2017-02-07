@@ -73,20 +73,20 @@ module RokuBuilder
       while running
         begin
           if @show_prompt
-            command = Readline.readline('BrightScript Debugger> ', true)
-            if command =~ /^\s*$/ or Readline::HISTORY.to_a[-2] == command
-              Readline::HISTORY.pop
-            end
-            case command
-            when "q"
-              thread.exit
-              running = false
-            else
-              @show_prompt = false
-              thread[:connection].puts(command)
-            end
+            prompt = 'BrightScript Debugger> '
           else
-            sleep 0.01
+            prompt = ''
+          end
+          command = Readline.readline(prompt, true)
+          if command =~ /^\s*$/ or Readline::HISTORY.to_a[-2] == command
+            Readline::HISTORY.pop
+          end
+          case command
+          when "q"
+            thread.exit
+            running = false
+          else
+            thread[:connection].puts(command)
           end
         rescue SystemExit, Interrupt
           thread[:connection].puts("\C-c")
@@ -103,9 +103,12 @@ module RokuBuilder
       while line = all_text.slice!(/^.*\n/) do
         puts line if !line.strip.empty?
       end
+
       if all_text.downcase == "BrightScript Debugger> ".downcase
         @show_prompt = true
         all_text = ""
+      else
+        @show_prompt = false
       end
       all_text
     end
