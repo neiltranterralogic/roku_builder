@@ -46,18 +46,8 @@ module RokuBuilder
     # @return [Hash] roku config object
     def self.get_config(config:, logger:)
       begin
-        config = {parent_config: config}
-        depth = 1
-        while config[:parent_config]
-          config_parent = JSON.parse(File.open(config[:parent_config]).read, {symbolize_names: true})
-          config.delete(:parent_config)
-          config.merge!(config_parent) {|key, v1, v2| v1}
-          depth += 1
-          if depth > 10
-            logger.fatal "Parent configs too deep."
-            return nil
-          end
-        end
+        config = build_config(config: config, logger: logger)
+        return nil unless config
         config[:devices][:default] = config[:devices][:default].to_sym
         config[:projects][:default] = config[:projects][:default].to_sym
         config[:projects].each_pair do |key,value|
@@ -81,6 +71,22 @@ module RokuBuilder
         logger.fatal "Config file is not valid JSON"
         nil
       end
+    end
+
+    def self.build_config(config:, logger:)
+      config = {parent_config: config}
+      depth = 1
+      while config[:parent_config]
+        config_parent = JSON.parse(File.open(config[:parent_config]).read, {symbolize_names: true})
+        config.delete(:parent_config)
+        config.merge!(config_parent) {|_key, v1, _v2| v1}
+        depth += 1
+        if depth > 10
+          logger.fatal "Parent configs too deep."
+          return nil
+        end
+      end
+      config
     end
 
 
