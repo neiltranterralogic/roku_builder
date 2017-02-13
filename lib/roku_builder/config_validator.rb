@@ -36,28 +36,21 @@ module RokuBuilder
     def self.validate_config(config:)
       codes = []
       validate_structure(codes: codes, config: config)
-      if config[:devices]
-        config[:devices].each {|device, device_config|
-          next if device == :default
-          validate_device(codes: codes, device: device_config)
-        }
-      end
-      if config[:projects]
-        config[:projects].each {|project,project_config|
-          next if project == :default or project == :project_dir
-          validate_project(codes: codes, project: project_config)
-          if project_config[:stages]
-            project_config[:stages].each {|_stage, stage_config|
-              validate_stage(codes: codes, stage: stage_config, project: project_config, config: config)
-            }
+      [:projects, :devices, :keys].each do |type|
+        if config[type]
+          config[type].each do |key, value|
+            next if [:default, :key_dir, :project_dir].include?(key)
+            method = "validate_#{type.to_s[0..-2]}".to_sym
+            attrs = {codes: codes}
+            attrs[type.to_s[0..-2].to_sym] = value
+            send(method, attrs)
+            if value[:stages]
+              value[:stages].each {|_stage, stage_config|
+                validate_stage(codes: codes, stage: stage_config, project: value, config: config)
+              }
+            end
           end
-        }
-      end
-      if config[:keys]
-        config[:keys].each {|key,key_config|
-          next if key == :key_dir
-          validate_key(codes: codes, key: key_config)
-        }
+        end
       end
       if config[:input_mapping]
         config[:input_mapping].each_value {|info| validate_mapping(codes: codes, mapping: info) }
