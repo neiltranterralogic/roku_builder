@@ -87,6 +87,7 @@ module RokuBuilder
             running = false
           else
             thread[:connection].puts(command)
+            sleep(0.1)
           end
         rescue SystemExit, Interrupt
           thread[:connection].puts("\C-c")
