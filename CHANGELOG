@@ -1,3 +1,8 @@
+ = 3.12.3 =
+
+  - Fix Monitor draw order on commands
+  - Dependancies update
+
  = 3.12.2 =
 
   - Fix bug with monitor not exiting

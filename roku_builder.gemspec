@@ -39,4 +39,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "yard",              "~> 0.9"
   spec.add_development_dependency "guard",             "~> 2.14"
   spec.add_development_dependency "guard-minitest",    "~> 2.4"
+  spec.add_development_dependency "m",                 "~> 1.5"
 end
