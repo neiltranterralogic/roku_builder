@@ -21,7 +21,8 @@ module RokuBuilder
 
     # Monitor a development log on the Roku device
     # @param type [Symbol] The log type to monitor
-    def monitor(type:)
+    # @param regexp [Regexp] regular expression to filter text on
+    def monitor(type:, regexp: nil)
       telnet_config = { 'Host' => @roku_ip_address, 'Port' => @ports[type] }
       waitfor_config = { 'Match' => /./, 'Timeout' => false }
 
@@ -32,7 +33,7 @@ module RokuBuilder
         all_text = ""
         while true
           connection.waitfor(waitfor) do |txt|
-            all_text = manage_text(all_text: all_text, txt: txt)
+            all_text = manage_text(all_text: all_text, txt: txt, regexp: regexp)
           end
         end
       }
@@ -98,11 +99,14 @@ module RokuBuilder
     # Handle text from telnet
     #  @param all_text [String] remaining partial line text
     #  @param txt [String] current string from telnet
+    #  @param regexp [Regexp] regular expression to filter text on
     #  @return [String] remaining partial line text
-    def manage_text(all_text:, txt:)
+    def manage_text(all_text:, txt:, regexp: nil)
       all_text += txt
       while line = all_text.slice!(/^.*\n/) do
-        puts line if !line.strip.empty?
+        if !line.strip.empty?
+          puts line if regexp.nil? or regexp.match(line)
+        end
       end
 
       if all_text.downcase == "BrightScript Debugger> ".downcase

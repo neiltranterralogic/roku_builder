@@ -170,6 +170,10 @@ parser = OptionParser.new do |opts|
     options[:in] = i
   end
 
+  opts.on("-r", "--regexp REGEXP", "A regular expression used to filter monitor logs") do |r|
+    options[:regexp] = r
+  end
+
   opts.on("-x", "--exclude", "Apply exclude config to sideload") do
     options[:exclude] = true
   end

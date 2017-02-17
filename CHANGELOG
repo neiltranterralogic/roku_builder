@@ -1,3 +1,7 @@
+ = 3.12.4 =
+
+  - Add regexp option for filtering monitor logs
+
  = 3.12.3 =
 
   - Fix Monitor draw order on commands

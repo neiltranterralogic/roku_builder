@@ -195,6 +195,17 @@ class ConfigParserTest < Minitest::Test
     RokuBuilder::ConfigParser.send(:setup_simple_configs, **args)
   end
 
+  def test_monitor_config
+    args = {
+      config: {},
+      configs: {project_config: {directory: "dir"}, init_params: {}, out: {}},
+      options: {monitor: "main", regexp: "^A$"},
+    }
+    RokuBuilder::ConfigParser.send(:setup_active_configs, **args)
+    refute_nil args[:configs][:monitor_config][:regexp]
+    assert args[:configs][:monitor_config][:regexp].match("A")
+  end
+
   def test_outfile_config
     configs = {}
     args = {

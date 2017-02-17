@@ -227,6 +227,9 @@ module RokuBuilder
       # Create Monitor Config
       if options[:monitor]
         configs[:monitor_config] = {type: options[:monitor].to_sym}
+        if options[:regexp]
+          configs[:monitor_config][:regexp] = /#{options[:regexp]}/
+        end
       end
       # Create Navigate Config
       mappings = {}
