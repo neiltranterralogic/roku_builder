@@ -282,7 +282,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {navigate: "up", config: ":execute_commands,/.roku_config.json"}
+    options = {navigate: "up", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:nav, true, [configs[:navigate_config]])
@@ -312,7 +312,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {screen: "secret", config: ":execute_commands,/.roku_config.json"}
+    options = {screen: "secret", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:screen, true, [configs[:screen_config]])
@@ -327,7 +327,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {screens: true, config: ":execute_commands,/.roku_config.json"}
+    options = {screens: true, config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:screens, true)
@@ -342,7 +342,7 @@ class ControllerCommandsTest < Minitest::Test
     logger = Logger.new("/dev/null")
     navigator = Minitest::Mock.new
 
-    options = {text: "text string", config: ":execute_commands,/.roku_config.json"}
+    options = {text: "text string", config: "~/.roku_config.json"}
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
     navigator.expect(:type, true, [configs[:text_config]])

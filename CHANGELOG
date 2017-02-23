@@ -1,3 +1,7 @@
+ = 3.12.5 =
+
+  - Fix issue with inspector
+
  = 3.12.4 =
 
   - Add regexp option for filtering monitor logs

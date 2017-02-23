@@ -207,14 +207,14 @@ module RokuBuilder
           password: configs[:key][:password],
           app_name_version: "#{configs[:project_config][:app_name]} - #{stage}"
         }
-        if configs[:out][:file]
-          configs[:package_config][:out_file] = File.join(configs[:out][:folder], configs[:out][:file])
-        end
         # Create Inspector Config
         configs[:inspect_config] = {
-          pkg: configs[:package_config][:out_file],
           password: configs[:key][:password]
         }
+        if configs[:out][:file]
+          configs[:package_config][:out_file] = File.join(configs[:out][:folder], configs[:out][:file])
+          configs[:inspect_config][:pkg] = File.join(configs[:out][:folder], configs[:out][:file])
+        end
       end
     end
     private_class_method :setup_package_config

@@ -15,6 +15,7 @@ module RokuBuilder
     #   * dev_zip
     def inspect(pkg:, password:)
 
+      pkg = pkg+".pkg" unless pkg.end_with?(".pkg")
       # upload new key with password
       path = "/plugin_inspect"
       conn = multipart_connection
