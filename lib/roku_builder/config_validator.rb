@@ -5,7 +5,7 @@ module RokuBuilder
   MISSING_DEVICES           = 1
   MISSING_DEVICES_DEFAULT   = 2
   DEVICE_DEFAULT_BAD        = 3
-  MISSING_PROJECTS          = 4
+  #                         = 4
   MISSING_PROJECTS_DEFAULT  = 5
   PROJECTS_DEFAULT_BAD      = 6
   DEVICE_MISSING_IP         = 7
@@ -69,7 +69,7 @@ module RokuBuilder
         "Devices config is missing.",
         "Devices default is missing.",
         "Devices default is not a hash.",
-        "Projects config is missing.",
+        "",
         "Projects default is missing.", #5
         "Projects default is not a hash.",
         "A device config is missing its IP address.",
@@ -101,7 +101,6 @@ module RokuBuilder
         [MISSING_DEVICES, !config[:devices]],
         [MISSING_DEVICES_DEFAULT, (config[:devices] and !config[:devices][:default])],
         [DEVICE_DEFAULT_BAD, (config[:devices] and config[:devices][:default] and !config[:devices][:default].is_a?(Symbol))],
-        [MISSING_PROJECTS, (!config[:projects])],
         [MISSING_PROJECTS_DEFAULT, (config[:projects] and !config[:projects][:default])],
         [MISSING_PROJECTS_DEFAULT, (config[:projects] and config[:projects][:default] == "<project id>".to_sym)],
         [PROJECTS_DEFAULT_BAD, (config[:projects] and config[:projects][:default] and !config[:projects][:default].is_a?(Symbol))]

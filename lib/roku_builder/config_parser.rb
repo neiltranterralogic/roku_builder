@@ -19,7 +19,7 @@ module RokuBuilder
         options[:device] = config[:devices][:default]
       end
       #set project
-      setup_project(config: config, options: options)
+      setup_project(config: config, options: options) if project_required(options: options)
       #set outfile
       setup_outfile(options: options, configs: configs)
       # Create Device Config
@@ -30,7 +30,7 @@ module RokuBuilder
       return [project_config, nil, nil] unless project_config.class == Hash
       configs[:project_config] = project_config
       stage = setup_stage_config(configs: configs, options: options, logger: logger)[1]
-      return [UNKNOWN_STAGE, nil, nil] unless stage
+      return [UNKNOWN_STAGE, nil, nil] if stage.nil? and project_required(options: options)
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(config: config, configs: configs, options: options, stage: stage)
       setup_active_configs(config: config, configs: configs, options: options)
@@ -109,7 +109,7 @@ module RokuBuilder
           files: nil,
           stage_method: :current
         }
-      else
+      elsif project_required(options: options)
         project_config = config[:projects][options[:project].to_sym]
         return UNKNOWN_PROJECT unless project_config
         if config[:projects][:project_dir]
@@ -121,6 +121,16 @@ module RokuBuilder
     end
     private_class_method :setup_project_config
 
+    # Determine whether a project is required
+    # @param options [Hash] The options hash
+    # @return [Boolean] Whether a project is required or not
+    def self.project_required(options:)
+      has_source_command = (Controller.source_commands & options.keys).count > 0
+      non_project_source = ([:current, :in] & options.keys).count > 0
+      has_source_command and not non_project_source
+    end
+    private_class_method :project_required
+
     # Setup the project stage config
     # @param configs [Hash] The loaded config hash
     # @param options [Hash] The options hash
@@ -128,27 +138,29 @@ module RokuBuilder
     def self.setup_stage_config(configs:, options:, logger:)
       stage_config = {logger: logger}
       stage = options[:stage].to_sym if options[:stage]
-      project_config = configs[:project_config]
-      unless project_config[:stage_method] == :current
-        stage ||= project_config[:stages].keys[0].to_sym
-      else
-        stage = :current
-      end
-      options[:stage] = stage
-      stage_config[:root_dir] = project_config[:directory]
-      stage_config[:method] = project_config[:stage_method]
-      stage_config[:method] ||= :git
-      case stage_config[:method]
-      when :git
-        if options[:ref]
-          stage_config[:key] = options[:ref]
+      if project_required(options: options)
+        project_config = configs[:project_config]
+        unless project_config[:stage_method] == :current
+          stage ||= project_config[:stages].keys[0].to_sym
         else
-          return [nil, nil] unless project_config[:stages][stage]
-          stage_config[:key] = project_config[:stages][stage][:branch]
+          stage = :current
         end
-      when :script
-        return [nil, nil] unless project_config[:stages][stage]
-        stage_config[:key] = project_config[:stages][stage][:script]
+        options[:stage] = stage
+        stage_config[:root_dir] = project_config[:directory]
+        stage_config[:method] = project_config[:stage_method]
+        stage_config[:method] ||= :git
+        case stage_config[:method]
+        when :git
+          if options[:ref]
+            stage_config[:key] = options[:ref]
+          else
+            return [nil, nil] unless project_config[:stages][stage]
+            stage_config[:key] = project_config[:stages][stage][:branch]
+          end
+        when :script
+          return [nil, nil] unless project_config[:stages][stage]
+          stage_config[:key] = project_config[:stages][stage][:script]
+        end
       end
       configs[:stage_config] = stage_config
       configs[:stage] = stage

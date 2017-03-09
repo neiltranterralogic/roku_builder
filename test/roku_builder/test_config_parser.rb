@@ -10,6 +10,7 @@ class ConfigParserTest < Minitest::Test
       stage: 'production',
       update_manifest: false,
       fetch: false,
+      sideload: true
     }
     config = good_config
     code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
@@ -37,7 +38,7 @@ class ConfigParserTest < Minitest::Test
   def test_setup_stage_config_script
     args = {
       configs: {project_config: {directory: "/tmp", stage_method: :script, stages: {production: {script: "script"}}}},
-      options: {stage: "production"},
+      options: {stage: "production", sideload: true},
       logger: Logger.new("/dev/null")
     }
     config = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)[0]
@@ -47,7 +48,7 @@ class ConfigParserTest < Minitest::Test
   def test_setup_stage_config_git_ref
     args = {
       configs: {project_config: {directory: "/tmp", stage_method: :git, }},
-      options: {stage: "production", ref: "git-ref"},
+      options: {stage: "production", ref: "git-ref", sideload: true},
       logger: Logger.new("/dev/null")
     }
     config = RokuBuilder::ConfigParser.send(:setup_stage_config, **args)[0]
@@ -61,6 +62,7 @@ class ConfigParserTest < Minitest::Test
       stage: 'production',
       update_manifest: false,
       fetch: false,
+      sideload: true
     }
     config = good_config
 
@@ -78,7 +80,9 @@ class ConfigParserTest < Minitest::Test
 
   def test_manifest_config_project_directory
     logger = Logger.new("/dev/null")
-    options = {}
+    options = {
+      sideload: true
+    }
     config = good_config
     config[:projects][:project_dir] = "/tmp"
     config[:projects][:project1][:directory] = "project1"
@@ -102,6 +106,7 @@ class ConfigParserTest < Minitest::Test
       stage: 'production',
       update_manifest: false,
       fetch: false,
+      sideload: true
     }
     config = good_config
     config[:projects][:project_dir] = "/tmp"

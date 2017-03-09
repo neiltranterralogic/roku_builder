@@ -92,7 +92,7 @@ class ConfigValidatorTest < Minitest::Test
     config = good_config
     config[:projects] = nil
     codes = RokuBuilder::ConfigValidator.validate_config(config: config)
-    assert_equal [4], codes
+    assert_equal [0], codes
   end
 
   def test_config_manager_validate_projects_default

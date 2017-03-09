@@ -49,20 +49,22 @@ module RokuBuilder
         config = build_config(config: config, logger: logger)
         return nil unless config
         config[:devices][:default] = config[:devices][:default].to_sym
-        config[:projects][:default] = config[:projects][:default].to_sym
-        config[:projects].each_pair do |key,value|
-          next if key == :default
-          next if key == :project_dir
-          if value[:stage_method]
-            value[:stage_method] = value[:stage_method].to_sym
+        if config[:projects]
+          config[:projects][:default] = config[:projects][:default].to_sym
+          config[:projects].each_pair do |key,value|
+            next if key == :default
+            next if key == :project_dir
+            if value[:stage_method]
+              value[:stage_method] = value[:stage_method].to_sym
+            end
           end
-        end
-        config[:projects].each_pair do |key, value|
-          unless key == :default or key == :project_dir
-            if value[:parent] and config[:projects][value[:parent].to_sym]
-              new_value = config[:projects][value[:parent].to_sym]
-              new_value = new_value.deep_merge value
-              config[:projects][key] = new_value
+          config[:projects].each_pair do |key, value|
+            unless key == :default or key == :project_dir
+              if value[:parent] and config[:projects][value[:parent].to_sym]
+                new_value = config[:projects][value[:parent].to_sym]
+                new_value = new_value.deep_merge value
+                config[:projects][key] = new_value
+              end
             end
           end
         end

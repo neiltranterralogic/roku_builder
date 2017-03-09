@@ -96,13 +96,6 @@ class ConfigManagerTest < Minitest::Test
     assert_nil config
     assert_nil configs
 
-    # Test Unknown Project
-    options = {validate: true, project: :bad, config: target_config}
-    code, config, configs = RokuBuilder::ConfigManager.load_config(options: options, logger: logger)
-    assert_equal RokuBuilder::UNKNOWN_PROJECT, code
-    assert_nil config
-    assert_nil configs
-
     # Test Depricated Config
     options = {validate: true, stage: 'production', config: target_config}
     RokuBuilder::ConfigValidator.stub(:validate_config, [-1]) do
