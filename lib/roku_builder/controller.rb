@@ -184,7 +184,7 @@ module RokuBuilder
     # List of depricated options
     # @return [Hash] Hash of depricated options and the warning message for each
     def self.depricated_options
-      {deeplink_depricated: "-L and --deeplink are depricated. Use -o -r --deeplink-options." }
+      {deeplink_depricated: "-L and --deeplink are depricated. Use -o or --deeplink-options." }
     end
 
     # List of source options

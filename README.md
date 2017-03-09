@@ -52,8 +52,9 @@ following command:
     $ roku --configure
 
 This will create the file '~/.roku_config.json' with a default configuration.
-Edit this file to add appropriate values. The following are default
-configuration options:
+Edit this file to add appropriate values. A configuration example with the
+minimum require fields can be found in this project called 'config.json.min'.
+The following are default configuration options:
 
 ##### Top Level Configuration
 

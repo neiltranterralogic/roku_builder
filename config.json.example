@@ -3,7 +3,7 @@
     "default": "<device_id>",
     "<device_id>": {
       "ip": "xxx.xxx.xxx.xxx",
-      "user": "<username>",
+      "user": "rokudev",
       "password": "<password>"
     }
   },
