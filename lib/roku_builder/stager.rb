@@ -5,7 +5,7 @@ module RokuBuilder
   # Change stage of roku application
   class Stager
 
-    def initialize(key: nil, method:, root_dir:, logger:)
+    def initialize(key: nil, method:, root_dir: nil, logger:)
       @method = method
       @key = key
       @root_dir = root_dir
@@ -25,11 +25,9 @@ module RokuBuilder
     # @return [Boolean] whether the staging was successful or not
     def stage
       @orginal_directory = Dir.pwd
-      Dir.chdir(@root_dir) unless @root_dir == @orginal_directory
+      Dir.chdir(@root_dir) unless @root_dir.nil? or @root_dir == @orginal_directory
       case @method
-      when :current
-        # Do Nothing
-      when :working
+      when :current, :in, :working
         # Do Nothing
       when :git
         begin
@@ -48,12 +46,10 @@ module RokuBuilder
     # @return [Boolean] whether the revert was successful or not
     def unstage
       @orginal_directory ||= Dir.pwd
-      Dir.chdir(@root_dir) unless @root_dir == @orginal_directory
+      Dir.chdir(@root_dir) unless @root_dir.nil? or @root_dir == @orginal_directory
       unstage_success = true
       case @method
-      when :current
-        # Do Nothing
-      when :working
+      when :current, :in, :working
         # Do Nothing
       when :git
         begin

@@ -34,6 +34,7 @@ module RokuBuilder
       setup_sideload_config(configs: configs, options: options)
       setup_package_config(config: config, configs: configs, options: options, stage: stage)
       setup_active_configs(config: config, configs: configs, options: options)
+      setup_manifest_configs(configs: configs, options: options)
       setup_simple_configs(config: config, configs: configs, options: options)
       return [SUCCESS, configs]
     end
@@ -137,14 +138,11 @@ module RokuBuilder
     # @return [Hash] The stage config hash
     def self.setup_stage_config(configs:, options:, logger:)
       stage_config = {logger: logger}
+      stage_config[:method] = ([:in, :current] & options.keys).first
       stage = options[:stage].to_sym if options[:stage]
       if project_required(options: options)
         project_config = configs[:project_config]
-        unless project_config[:stage_method] == :current
-          stage ||= project_config[:stages].keys[0].to_sym
-        else
-          stage = :current
-        end
+        stage ||= project_config[:stages].keys[0].to_sym
         options[:stage] = stage
         stage_config[:root_dir] = project_config[:directory]
         stage_config[:method] = project_config[:stage_method]
@@ -172,16 +170,18 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @param branch [String] the branch to sideload
     def self.setup_sideload_config(configs:, options:)
-      root_dir = configs[:project_config][:directory]
-      content = {
-        folders: configs[:project_config][:folders],
-        files: configs[:project_config][:files],
-      }
-      all_commands = options.keys & Controller.commands
-      if options[:exclude] or Controller.exclude_commands.include?(all_commands.first)
-        content[:excludes] = configs[:project_config][:excludes]
+      root_dir, content = nil, nil
+      if configs[:project_config]
+        root_dir = configs[:project_config][:directory]
+        content = {
+          folders: configs[:project_config][:folders],
+          files: configs[:project_config][:files],
+        }
+        all_commands = options.keys & Controller.commands
+        if options[:exclude] or Controller.exclude_commands.include?(all_commands.first)
+          content[:excludes] = configs[:project_config][:excludes]
+        end
       end
-
       # Create Sideload Config
       configs[:sideload_config] = {
         update_manifest: options[:update_manifest],
@@ -189,12 +189,8 @@ module RokuBuilder
         content: content
       }
       # Create Build Config
-      configs[:build_config] = {
-        content: content
-      }
-      configs[:init_params][:loader] = {
-        root_dir: root_dir
-      }
+      configs[:build_config] = { content: content }
+      configs[:init_params][:loader] = { root_dir: root_dir }
     end
     private_class_method :setup_sideload_config
 
@@ -261,15 +257,26 @@ module RokuBuilder
     end
     private_class_method :setup_active_configs
 
+    # Setup manifest configs
+    # @param configs [Hash] The parsed configs hash
+    # @param options [Hash] The options hash
+    # @param logger [Logger] System logger
+    def self.setup_manifest_configs(configs:, options:)
+      # Create Manifest Config
+      root_dir = configs[:project_config][:directory] if configs[:project_config]
+      root_dir = options[:in] if options[:in]
+      root_dir = Pathname.pwd.to_s if options[:current]
+      configs[:manifest_config] = {
+        root_dir: root_dir
+      }
+    end
+    private_class_method :setup_manifest_configs
+
     # Setup other configs
     # @param configs [Hash] The parsed configs hash
     # @param options [Hash] The options hash
     # @param logger [Logger] System logger
     def self.setup_simple_configs(config:, configs:, options:)
-      # Create Manifest Config
-      configs[:manifest_config] = {
-        root_dir: configs[:project_config][:directory]
-      }
       # Create Deeplink Config
       configs[:deeplink_config] = {options: options[:deeplink]}
       if options[:app_id]

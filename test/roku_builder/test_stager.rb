@@ -39,6 +39,18 @@ class StagerTest < Minitest::Test
     assert stager.unstage
   end
 
+  def test_stager_stage_in
+    root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
+    stager_config = {
+      method: :in,
+      root_dir: root_dir,
+      logger: nil
+    }
+    stager = RokuBuilder::Stager.new(**stager_config)
+    assert stager.stage
+    assert stager.unstage
+  end
+
   def test_stager_stage_git_stash
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     branch_name = 'branch'
