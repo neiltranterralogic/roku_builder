@@ -1,3 +1,10 @@
+ = 3.12.6 =
+
+ - Update dependancies
+ - Allow no projects in config
+ - Fix in file handeling
+ - Update config
+
  = 3.12.5 =
 
   - Fix issue with inspector
