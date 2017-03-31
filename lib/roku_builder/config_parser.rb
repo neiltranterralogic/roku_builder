@@ -14,10 +14,10 @@ module RokuBuilder
     # @return [Hash] Intermeidate configs
     def self.parse_config(options:, config:, logger:)
       configs = {init_params: {}}
+      #expand in
+      options[:in] = File.expand_path(options[:in]) if options[:in]
       #set device
-      unless options[:device]
-        options[:device] = config[:devices][:default]
-      end
+      options[:device] = config[:devices][:default] unless options[:device]
       #set project
       setup_project(config: config, options: options) if project_required(options: options)
       #set outfile

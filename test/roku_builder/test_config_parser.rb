@@ -38,6 +38,24 @@ class ConfigParserTest < Minitest::Test
     assert_equal :in, configs[:stage_config][:method]
   end
 
+  def test_manifest_config_in_expand
+    logger = Logger.new("/dev/null")
+    options = {
+      config: File.expand_path(File.join(File.dirname(__FILE__), "test_files", "controller_config_test", "valid_config.json")),
+      in: "./infile",
+      update_manifest: false,
+      fetch: false,
+      sideload: true
+    }
+    config = good_config
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+
+    assert_equal RokuBuilder::SUCCESS, code
+    assert_equal Hash, config.class
+    assert_equal File.join(Dir.pwd, "infile"), configs[:manifest_config][:root_dir]
+    assert_equal :in, configs[:stage_config][:method]
+  end
+
   def test_manifest_config_current
     logger = Logger.new("/dev/null")
     options = {
