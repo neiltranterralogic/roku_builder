@@ -196,7 +196,7 @@ module RokuBuilder
     # List of commands requiring a source option
     # @return [Array<Symbol>] List of command symbols that require a source in the options hash
     def self.source_commands
-      [:sideload, :package, :test, :build, :key, :update]
+      [:sideload, :package, :test, :build, :key, :update, :print]
     end
 
     # List of commands the activate the exclude files
