@@ -228,11 +228,12 @@ class ConfigParserTest < Minitest::Test
   end
 
   def test_manifest_config_key_directory
+    tmp_file = Tempfile.new("pkg")
     logger = Logger.new("/dev/null")
     options = {key: true, project: :project2}
     config = good_config
-    config[:keys][:key_dir] = "/tmp"
-    config[:keys][:a][:keyed_pkg] = "a"
+    config[:keys][:key_dir] = File.dirname(tmp_file.path)
+    config[:keys][:a][:keyed_pkg] = File.basename(tmp_file.path)
 
 
     code = nil
@@ -242,7 +243,40 @@ class ConfigParserTest < Minitest::Test
 
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
-    assert_equal "/tmp/a", configs[:key][:keyed_pkg]
+    assert_equal tmp_file.path, configs[:key][:keyed_pkg]
+    tmp_file.close
+  end
+
+  def test_manifest_config_key_directory_bad
+    tmp_file = Tempfile.new("pkg")
+    logger = Logger.new("/dev/null")
+    options = {key: true, project: :project2}
+    config = good_config
+    config[:keys][:key_dir] = "/bad"
+    config[:keys][:a][:keyed_pkg] = File.basename(tmp_file.path)
+
+    code = nil
+    configs = nil
+
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+
+    assert_equal RokuBuilder::BAD_KEY_FILE, code
+  end
+
+  def test_manifest_config_key_path_bad
+    tmp_file = Tempfile.new("pkg")
+    logger = Logger.new("/dev/null")
+    options = {key: true, project: :project2}
+    config = good_config
+    config[:keys][:key_dir] = File.dirname(tmp_file.path)
+    config[:keys][:a][:keyed_pkg] = File.basename(tmp_file.path)+".bad"
+
+    code = nil
+    configs = nil
+
+    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+
+    assert_equal RokuBuilder::BAD_KEY_FILE, code
   end
 
   def test_setup_sideload_config

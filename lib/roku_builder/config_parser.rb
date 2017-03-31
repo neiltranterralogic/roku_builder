@@ -32,7 +32,8 @@ module RokuBuilder
       stage = setup_stage_config(configs: configs, options: options, logger: logger)[1]
       return [UNKNOWN_STAGE, nil, nil] if stage.nil? and project_required(options: options)
       setup_sideload_config(configs: configs, options: options)
-      setup_package_config(config: config, configs: configs, options: options, stage: stage)
+      code = setup_package_config(config: config, configs: configs, options: options, stage: stage)
+      return [code, nil, nil] unless code == SUCCESS
       setup_active_configs(config: config, configs: configs, options: options)
       setup_manifest_configs(configs: configs, options: options)
       setup_simple_configs(config: config, configs: configs, options: options)
@@ -208,6 +209,7 @@ module RokuBuilder
           if config[:keys][:key_dir]
             configs[:key][:keyed_pkg] = File.join(config[:keys][:key_dir], configs[:key][:keyed_pkg])
           end
+          return BAD_KEY_FILE unless File.exist?(configs[:key][:keyed_pkg])
         end
       end
       if options[:package]
@@ -225,6 +227,7 @@ module RokuBuilder
           configs[:inspect_config][:pkg] = File.join(configs[:out][:folder], configs[:out][:file])
         end
       end
+      return SUCCESS
     end
     private_class_method :setup_package_config
 

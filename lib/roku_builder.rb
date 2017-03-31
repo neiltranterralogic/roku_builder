@@ -130,6 +130,9 @@ module RokuBuilder
   # Bad Project Directory
   BAD_PROJECT_DIR = 9
 
+  # Bad Key File
+  BAD_KEY_FILE = 10
+
 
   ### Execute Codes ###
 

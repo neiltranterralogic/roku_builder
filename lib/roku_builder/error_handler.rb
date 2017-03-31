@@ -75,6 +75,9 @@ module RokuBuilder
       when BAD_PROJECT_DIR
         logger.fatal "Invalid directory for project"
         abort
+      when BAD_KEY_FILE
+        logger.fatal "Invalid key path"
+        abort
       end
     end
 
