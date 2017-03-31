@@ -72,6 +72,9 @@ module RokuBuilder
       when UNKNOWN_STAGE
         logger.fatal "Unknown stage"
         abort
+      when BAD_PROJECT_DIR
+        logger.fatal "Invalid directory for project"
+        abort
       end
     end
 

@@ -17,7 +17,7 @@ class ConfigParserTest < Minitest::Test
 
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
-    assert_equal "/dev/null", configs[:manifest_config][:root_dir]
+    assert_equal "/tmp", configs[:manifest_config][:root_dir]
   end
 
   def test_manifest_config_in
@@ -76,6 +76,63 @@ class ConfigParserTest < Minitest::Test
     assert_nil project[:files]
   end
 
+  def test_setup_project_config_good_project_dir
+    config = good_config
+    args = {
+      config: config,
+      options: {sideload: true, project: :project1}
+    }
+    project = {}
+    File.stub(:exist?, true) do
+      project = RokuBuilder::ConfigParser.send(:setup_project_config, **args)
+    end
+    refute_equal RokuBuilder::BAD_PROJECT_DIR, project
+  end
+
+  def test_setup_project_config_bad_project_dir
+    config = good_config
+    config[:projects][:project1][:directory] = "/dev/null"
+    args = {
+      config: config,
+      options: {sideload: true, project: :project1}
+    }
+    project = {}
+    File.stub(:exist?, true) do
+      project = RokuBuilder::ConfigParser.send(:setup_project_config, **args)
+    end
+    assert_equal RokuBuilder::BAD_PROJECT_DIR, project
+  end
+
+  def test_setup_project_config_bad_child_project_dir
+    config = good_config
+    config[:projects][:project_dir] = "/tmp"
+    config[:projects][:project1][:directory] = "bad"
+    args = {
+      config: config,
+      options: {sideload: true, project: :project1}
+    }
+    project = {}
+    File.stub(:exist?, true) do
+      project = RokuBuilder::ConfigParser.send(:setup_project_config, **args)
+    end
+    assert_equal RokuBuilder::BAD_PROJECT_DIR, project
+  end
+
+  def test_setup_project_config_bad_parent_project_dir
+    config = good_config
+    config[:projects][:project_dir] = "/bad"
+    config[:projects][:project1][:directory] = "good"
+    args = {
+      config: config,
+      options: {sideload: true, project: :project1}
+    }
+    project = {}
+    File.stub(:exist?, true) do
+      project = RokuBuilder::ConfigParser.send(:setup_project_config, **args)
+    end
+    assert_equal RokuBuilder::BAD_PROJECT_DIR, project
+  end
+
   def test_setup_stage_config_script
     args = {
       configs: {project_config: {directory: "/tmp", stage_method: :script, stages: {production: {script: "script"}}}},
@@ -116,7 +173,7 @@ class ConfigParserTest < Minitest::Test
 
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
-    assert_equal "/dev/nuller", configs[:project_config][:directory]
+    assert_equal "/tmp", configs[:project_config][:directory]
   end
 
   def test_manifest_config_project_directory
@@ -133,7 +190,9 @@ class ConfigParserTest < Minitest::Test
     code = nil
     configs = nil
 
-    code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+    Dir.stub(:exist?, true) do
+      code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+    end
 
     assert_equal RokuBuilder::SUCCESS, code
     assert_equal Hash, config.class
@@ -158,7 +217,9 @@ class ConfigParserTest < Minitest::Test
     configs = nil
 
     Pathname.stub(:pwd, Pathname.new("/tmp/project2")) do
-      code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+      Dir.stub(:exist?, true) do
+        code, configs = RokuBuilder::ConfigParser.parse_config(options: options, config: config, logger: logger)
+      end
     end
 
     assert_equal RokuBuilder::SUCCESS, code

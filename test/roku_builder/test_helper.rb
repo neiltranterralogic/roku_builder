@@ -27,7 +27,7 @@ def good_config
     projects: {
       default: :project1,
       project1: {
-        directory: "/dev/null",
+        directory: "/tmp",
         folders: ["resources","source"],
         files: ["manifest"],
         app_name: "<app name>",
@@ -36,14 +36,14 @@ def good_config
           production: {
             branch: "production",
             key: {
-              keyed_pkg: "/dev/null",
+              keyed_pkg: "/tmp",
               password: "<password for pkg>"
             }
           }
         }
       },
       project2: {
-        directory: "/dev/nuller",
+        directory: "/tmp",
         folders: ["resources","source"],
         files: ["manifest"],
         app_name: "<app name>",
@@ -58,7 +58,7 @@ def good_config
     },
     keys: {
       a: {
-        keyed_pkg: "/dev/null",
+        keyed_pkg: "/tmp",
         password: "password"
       }
     },

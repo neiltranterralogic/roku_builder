@@ -127,6 +127,9 @@ module RokuBuilder
   # Missing out folder
   MISSING_OUT_FOLDER = 8
 
+  # Bad Project Directory
+  BAD_PROJECT_DIR = 9
+
 
   ### Execute Codes ###
 

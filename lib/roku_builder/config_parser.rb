@@ -116,6 +116,7 @@ module RokuBuilder
         if config[:projects][:project_dir]
           project_config[:directory] = File.join(config[:projects][:project_dir], project_config[:directory])
         end
+        return BAD_PROJECT_DIR unless Dir.exist?(project_config[:directory])
         project_config[:stage_method] = :working if options[:working]
       end
       project_config
