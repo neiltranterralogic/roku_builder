@@ -36,6 +36,8 @@ class ErrorHandlerTest < Minitest::Test
           RokuBuilder::UNKNOWN_DEVICE,
           RokuBuilder::UNKNOWN_PROJECT,
           RokuBuilder::UNKNOWN_STAGE,
+          RokuBuilder::BAD_PROJECT_DIR,
+          RokuBuilder::BAD_KEY_FILE
         ],
         command_code: [
           RokuBuilder::FAILED_SIDELOAD,
