@@ -1,68 +1,187 @@
 # ********** Copyright Viacom, Inc. Apache 2.0 **********
 
 module RokuBuilder
-
-  MISSING_DEVICES           = 1
-  MISSING_DEVICES_DEFAULT   = 2
-  DEVICE_DEFAULT_BAD        = 3
-  #                         = 4
-  MISSING_PROJECTS_DEFAULT  = 5
-  PROJECTS_DEFAULT_BAD      = 6
-  DEVICE_MISSING_IP         = 7
-  DEVICE_MISSING_USER       = 8
-  DEVICE_MISSING_PASSWORD   = 9
-  PROJECT_MISSING_APP_NAME  = 10
-  PROJECT_MISSING_DIRECTORY = 11
-  PROJECT_MISSING_FOLDERS   = 12
-  PROJECT_FOLDERS_BAD       = 13
-  PROJECT_MISSING_FILES     = 14
-  PROJECT_FILES_BAD         = 15
-  STAGE_MISSING_BRANCH      = 16
-  STAGE_MISSING_SCRIPT      = 17
-  PROJECT_STAGE_METHOD_BAD  = 18
-  KEY_MISSING_PATH          = 19
-  KEY_MISSING_PASSWORD      = 20
-  INVALID_MAPPING_INFO      = 21
-  MISSING_KEY               = 22
-
-  MISSING_STAGE_METHOD      = -1
-
-  # Validate Config File
   class ConfigValidator
 
-    # Validates the roku config
-    # @param config [Hash] roku config object
-    # @return [Array] error codes for valid config (see self.error_codes)
-    def self.validate_config(config:)
-      codes = []
-      validate_structure(codes: codes, config: config)
-      [:projects, :devices, :keys].each do |type|
-        if config[type]
-          config[type].each do |key, value|
-            next if [:default, :key_dir, :project_dir].include?(key)
-            method = "validate_#{type.to_s[0..-2]}".to_sym
-            attrs = {codes: codes}
-            attrs[type.to_s[0..-2].to_sym] = value
-            send(method, attrs)
-            if value[:stages]
-              value[:stages].each {|_stage, stage_config|
-                validate_stage(codes: codes, stage: stage_config, project: value, config: config)
-              }
-            end
+    VALID_CONFIG              = 0
+    MISSING_DEVICES           = 1
+    MISSING_DEVICES_DEFAULT   = 2
+    DEVICE_DEFAULT_BAD        = 3
+    #                         = 4
+    MISSING_PROJECTS_DEFAULT  = 5
+    PROJECTS_DEFAULT_BAD      = 6
+    DEVICE_MISSING_IP         = 7
+    DEVICE_MISSING_USER       = 8
+    DEVICE_MISSING_PASSWORD   = 9
+    PROJECT_MISSING_APP_NAME  = 10
+    PROJECT_MISSING_DIRECTORY = 11
+    PROJECT_MISSING_FOLDERS   = 12
+    PROJECT_FOLDERS_BAD       = 13
+    PROJECT_MISSING_FILES     = 14
+    PROJECT_FILES_BAD         = 15
+    STAGE_MISSING_BRANCH      = 16
+    STAGE_MISSING_SCRIPT      = 17
+    PROJECT_STAGE_METHOD_BAD  = 18
+    KEY_MISSING_PATH          = 19
+    KEY_MISSING_PASSWORD      = 20
+    INVALID_MAPPING_INFO      = 21
+    MISSING_KEY               = 22
+
+    MISSING_STAGE_METHOD      = -1
+
+    def initialize(config:)
+      @logger = Logger.instance
+      @config = config
+      validate_config
+    end
+
+    def print_errors
+      @codes.each do |code|
+        if code > 0
+          @logger.fatal error_codes[code]
+          if code < 0
+            @logger.warn error_codes[code]
           end
         end
       end
-      if config[:input_mapping]
-        config[:input_mapping].each_value {|info| validate_mapping(codes: codes, mapping: info) }
-      end
-      codes.uniq!
-      codes.push(0) if codes.empty?
-      codes
     end
 
-    # Error code messages for config validation
-    # @return [Array] error code messages
-    def self.error_codes()
+    def is_fatal?
+      !@codes.select{|code| code > 0}.empty?
+    end
+
+    def is_depricated?
+      !@codes.select{|code| code < 0}.empty?
+    end
+
+    def is_valid?
+      @codes.select{|code| code > 0}.empty?
+    end
+
+    private
+
+    def validate_config
+      @codes = []
+      validate_structure
+      [:projects, :devices, :keys, :input_mapping].each do |section|
+        validate_section(section: section) if @config[section]
+      end
+      @codes.uniq!
+      @codes.push(VALID_CONFIG) if @codes.empty?
+    end
+
+    def validate_section(section:)
+      @config[section].each do |key, value|
+        next unless should_validate(key: key)
+        call_validate_method_for_section(section: section, content: value)
+        if has_stages(section_content: value)
+          validate_stages(project_content: value)
+        end
+      end
+    end
+
+    def should_validate(key:)
+      !([:default, :key_dir, :project_dir].include?(key))
+    end
+
+    def call_validate_method_for_section(section:, content:)
+      section_singular = singularize(section: section.to_s)
+      attrs = {}
+      attrs[section_singular] = content
+      method = "validate_#{section_singular}".to_sym
+      send(method, attrs)
+    end
+
+    def singularize(section:)
+      section = section[0..-2] if section.end_with?("s")
+      section.to_sym
+    end
+
+    def has_stages(section_content:)
+      section_content.class == Hash and section_content[:stages]
+    end
+
+    def validate_stages(project_content:)
+      project_content[:stages].each_value {|stage_config|
+        validate_stage(stage: stage_config, project: project_content)
+      }
+    end
+
+
+    def validate_structure
+      errors = [
+        [MISSING_DEVICES, !@config[:devices]],
+        [MISSING_DEVICES_DEFAULT, (@config[:devices] and !@config[:devices][:default])],
+        [DEVICE_DEFAULT_BAD, (@config[:devices] and @config[:devices][:default] and !@config[:devices][:default].is_a?(Symbol))],
+        [MISSING_PROJECTS_DEFAULT, (@config[:projects] and !@config[:projects][:default])],
+        [MISSING_PROJECTS_DEFAULT, (@config[:projects] and @config[:projects][:default] == "<project id>".to_sym)],
+        [PROJECTS_DEFAULT_BAD, (@config[:projects] and @config[:projects][:default] and !@config[:projects][:default].is_a?(Symbol))]
+      ]
+      process_errors(errors: errors)
+    end
+
+    def validate_device(device:)
+      errors = [
+        [DEVICE_MISSING_IP, (!device[:ip])],
+        [DEVICE_MISSING_IP, (device[:ip] == "xxx.xxx.xxx.xxx")],
+        [DEVICE_MISSING_IP, (device[:ip] == "")],
+        [DEVICE_MISSING_USER, (!device[:user])],
+        [DEVICE_MISSING_USER, (device[:user] == "<username>")],
+        [DEVICE_MISSING_USER, (device[:user] == "")],
+        [DEVICE_MISSING_PASSWORD, (!device[:password])],
+        [DEVICE_MISSING_PASSWORD, (device[:password] == "<password>")],
+        [DEVICE_MISSING_PASSWORD, (device[:password] == "")]
+      ]
+      process_errors(errors: errors)
+    end
+
+    def validate_project(project:)
+      errors= [
+        [PROJECT_MISSING_APP_NAME, (!project[:app_name])],
+        [PROJECT_MISSING_DIRECTORY, (!project[:directory])],
+        [PROJECT_MISSING_FOLDERS, (!project[:folders])],
+        [PROJECT_FOLDERS_BAD, (project[:folders] and !project[:folders].is_a?(Array))],
+        [PROJECT_MISSING_FILES, (!project[:files])],
+        [PROJECT_FILES_BAD, (project[:files] and !project[:files].is_a?(Array))],
+        [MISSING_STAGE_METHOD, ( !project[:stage_method])],
+        [PROJECT_STAGE_METHOD_BAD, (![:git, :script, nil].include?(project[:stage_method]))]
+      ]
+      process_errors(errors: errors)
+    end
+
+    def validate_stage(stage:, project:)
+      errors= [
+        [STAGE_MISSING_BRANCH, (!stage[:branch] and project[:stage_method] == :git)],
+        [STAGE_MISSING_SCRIPT, (!stage[:script] and project[:stage_method] == :script)],
+        [MISSING_KEY, (!!stage[:key] and stage[:key].class == String and (!@config[:keys] or !@config[:keys][stage[:key].to_sym]))]
+      ]
+      process_errors(errors: errors)
+    end
+
+    def validate_key(key:)
+      errors= [
+        [KEY_MISSING_PATH, (!key[:keyed_pkg])],
+        [KEY_MISSING_PATH, (key[:keyed_pkg] == "<path/to/signed/package>")],
+        [KEY_MISSING_PASSWORD, (!key[:password])],
+        [KEY_MISSING_PASSWORD, (key[:password] == "<password>")],
+      ]
+      process_errors(errors: errors)
+    end
+
+    def validate_input_mapping(input_mapping:)
+      errors=[
+        [INVALID_MAPPING_INFO, (input_mapping.count != 2)]
+      ]
+      process_errors(errors: errors)
+    end
+
+    def process_errors(errors:)
+      errors.each do |error|
+        @codes.push(error[0]) if error[1]
+      end
+    end
+
+    def error_codes
       [
         #===============FATAL ERRORS===============#
         "Valid Config.",
@@ -91,100 +210,6 @@ module RokuBuilder
         #===============WARNINGS===============#
         "A project is missing its stage method."
       ]
-    end
-
-    # Validates the roku config structure
-    # @param codes [Array] array of error codes
-    # @param config [Hash] roku config object
-    def self.validate_structure(codes:, config:)
-      errors = [
-        [MISSING_DEVICES, !config[:devices]],
-        [MISSING_DEVICES_DEFAULT, (config[:devices] and !config[:devices][:default])],
-        [DEVICE_DEFAULT_BAD, (config[:devices] and config[:devices][:default] and !config[:devices][:default].is_a?(Symbol))],
-        [MISSING_PROJECTS_DEFAULT, (config[:projects] and !config[:projects][:default])],
-        [MISSING_PROJECTS_DEFAULT, (config[:projects] and config[:projects][:default] == "<project id>".to_sym)],
-        [PROJECTS_DEFAULT_BAD, (config[:projects] and config[:projects][:default] and !config[:projects][:default].is_a?(Symbol))]
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_structure
-
-    # Validates a roku config device
-    # @param codes [Array] array of error codes
-    # @param device [Hash] device config object
-    def self.validate_device(codes:, device:)
-      errors = [
-        [DEVICE_MISSING_IP, (!device[:ip])],
-        [DEVICE_MISSING_IP, (device[:ip] == "xxx.xxx.xxx.xxx")],
-        [DEVICE_MISSING_IP, (device[:ip] == "")],
-        [DEVICE_MISSING_USER, (!device[:user])],
-        [DEVICE_MISSING_USER, (device[:user] == "<username>")],
-        [DEVICE_MISSING_USER, (device[:user] == "")],
-        [DEVICE_MISSING_PASSWORD, (!device[:password])],
-        [DEVICE_MISSING_PASSWORD, (device[:password] == "<password>")],
-        [DEVICE_MISSING_PASSWORD, (device[:password] == "")]
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_device
-
-    # Validates a roku config project
-    # @param codes [Array] array of error codes
-    # @param project [Hash] project config object
-    def self.validate_project(codes:, project:)
-      errors= [
-        [PROJECT_MISSING_APP_NAME, (!project[:app_name])],
-        [PROJECT_MISSING_DIRECTORY, (!project[:directory])],
-        [PROJECT_MISSING_FOLDERS, (!project[:folders])],
-        [PROJECT_FOLDERS_BAD, (project[:folders] and !project[:folders].is_a?(Array))],
-        [PROJECT_MISSING_FILES, (!project[:files])],
-        [PROJECT_FILES_BAD, (project[:files] and !project[:files].is_a?(Array))],
-        [MISSING_STAGE_METHOD, ( !project[:stage_method])],
-        [PROJECT_STAGE_METHOD_BAD, (![:git, :script, nil].include?(project[:stage_method]))]
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_project
-
-    # Validates a roku config project
-    # @param codes [Array] array of error codes
-    # @param project [Hash] project config object
-    def self.validate_stage(codes:, stage:, project:, config:)
-      errors= [
-        [STAGE_MISSING_BRANCH, (!stage[:branch] and project[:stage_method] == :git)],
-        [STAGE_MISSING_SCRIPT, (!stage[:script] and project[:stage_method] == :script)],
-        [MISSING_KEY, (!!stage[:key] and stage[:key].class == String and (!config[:keys] or !config[:keys][stage[:key].to_sym]))]
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_stage
-
-    # Validates a roku config project
-    # @param codes [Array] array of error codes
-    # @param project [Hash] project config object
-    def self.validate_key(codes:, key:)
-      errors= [
-        [KEY_MISSING_PATH, (!key[:keyed_pkg])],
-        [KEY_MISSING_PATH, (key[:keyed_pkg] == "<path/to/signed/package>")],
-        [KEY_MISSING_PASSWORD, (!key[:password])],
-        [KEY_MISSING_PASSWORD, (key[:password] == "<password>")],
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_key
-
-    def self.validate_mapping(codes:, mapping:)
-      errors=[
-        [INVALID_MAPPING_INFO, (mapping.count != 2)]
-      ]
-      process_errors(codes: codes, errors: errors)
-    end
-    private_class_method :validate_mapping
-
-    def self.process_errors(codes:, errors:)
-      errors.each do |error|
-        codes.push(error[0]) if error[1]
-      end
     end
   end
 end
