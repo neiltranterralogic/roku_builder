@@ -7,7 +7,7 @@ module RokuBuilder
 
     def genkey(out_file: nil)
       password, dev_id = generate_new_key()
-      @logger.info("Password: "+password)
+      @logger.unknown("Password: "+password)
       @logger.info("DevID: "+dev_id)
 
       unless out_file
@@ -28,7 +28,7 @@ module RokuBuilder
         @device_config.delete(:init_params)
         packager = Packager.new(**@device_config)
         packager.package(app_name_version: "key_"+dev_id, out_file: out_file, password: password)
-        @logger.info("Keyed PKG: "+out_file)
+        @logger.unknown("Keyed PKG: "+out_file)
       }
     end
 
