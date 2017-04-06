@@ -1,3 +1,9 @@
+ = 3.12.8 =
+
+ - Always print password/path from genkey
+ - Update dependancies
+ - Update README
+
  = 3.12.7 =
 
  - Ensure in file/dir is expanded
