@@ -115,16 +115,15 @@ with the --debug option on to see a print out of all the keys pressed.
 
 Official docs for packaging an application can be found [in the sdk](https://sdkdocs.roku.com/display/sdkdoc/Packaging+Your+Application), however the basic steps are:
 
-1.  Side-load your application onto a Roku device for testing.
 1.  Run the genkey utility to generate a key.  This key will sign packages. This step only needs to be done once.
-1.  Run the package utility to generate the package.
-1.  Download the package from the Roku device to your computer.
+1.  Add the key to your configuration file. This will also only need to be done once.
+1.  Run the package utility to generate package. This will create a .pkg file in /tmp.
 
 RokuBuilder makes running each of these steps easy, without needing to use the Roku device web interface or telnet.
 
 #### Projects and Stages
 
-The configuration for this gem allows you to define any number of project and
+The configuration for this gem allows you to define any number of projects and
 any number of stages for each project. It is intended that each app be defined
 as a project and then the stages for that project would allow you to define
 production/staging/etc. stages.
@@ -165,12 +164,8 @@ you are trying to run the command. The options are as follows:
       command on a specific git branch, tag, or referance.
  * --stage or -s
    * This option will work with either git or script staging. It allows you to
-      sideload a specific stage. If using script staging then it will run the
-      configured stage script before sideloading and then run the unstage
-      script after. If using git staging it will stach any local changes,
-      switch to the configured branch, sideload, switch back to the previous
-      branch, and unstach changes. This is the only source option that you can
-      use when packaging.
+      sideload a specific stage. See below for more information. This is the
+      only source option that you can use when packaging.
  * --working or -w
    * This option will work with git or script staging. It will use the project
       configs to determine the directory to use but will not run any staging
@@ -181,6 +176,60 @@ you are trying to run the command. The options are as follows:
  * --in or -I
    * This option allows you to pass in a zip file of an already built app.
 
+#### Staging
+
+It is usually a good idea to have multiple versions of your roku app. For
+example you could have a production and staging version of your app. RokuBuilder
+allows for this by using stages. There are two methods of staging, git, or
+script.
+
+If you choose to stage via git then for each stage you will define a git branch
+or ref. While staging (like durning packaging) RokuBuilder will stash all
+changes, checkout the defined branch, complete the requested action, checkout
+the orginal branch, and pop stashed changes.
+
+If you choose to use script staging then for each stage you will define a
+script to run that will change the app directory approiatly for that stage.
+You may also optionally define an unstage script that will return the directory
+to a clean working state. The script can be anything that will run in the
+project directory.
+
+A script staging example would be if you have a shell script (stage.sh) that
+append a config url in your manifest. You would have a different url for each
+stage:
+
+    #! /bin/bash
+    if [ "production" = $1 ]; then
+      echo "url=https://prod.url.com" >> manifest
+    else
+      echo "url=https://staging.url.com" >> manifest
+    fi
+
+You could also have a script (unstage.sh) that removed that last line:
+
+    #! /bin/bash
+    mv manifest manifest.tmp
+    head -n -1 manifest.tmp > manifest
+    rm manifest.tmp
+
+In your config you could have the following two stages assuming that these
+scripts were in the project root directory:
+
+    "stages": {
+      "prod": {
+        "script": {"stage": "./stage.sh production", "unstage": "./unstage"}
+      }
+      "staging": {
+        "script": {"stage": "./stage.sh staging", "unstage": "./unstage"}
+      }
+    }
+
+This would allow you to use the following two commands:
+
+    $ roku -ls prod
+    $ roku -ls staging
+
+This would sideload the app with the approiate url in the manifest.
 
 #### Sideloading
 
@@ -219,13 +268,12 @@ also needed to sign a package when updating a channel.
 
 You can create a key by running the genkey command:
 
-    $ roku --genkey --debug
+    $ roku --genkey
 
 This will output the following data, all of which need to put in the `keys` section of `~/.roku_config.json`:
 
 *  `Keyed PKG`: This is the signing key, used to sign new and updated packages
 *  `Password`: Key's password
-*  `DevID`: The developer ID associated with the key.  Don't need to save this, but it is best practice to include this string in the signing keys filename
 
 #### Packaging
 
