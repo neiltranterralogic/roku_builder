@@ -26,8 +26,7 @@ module RokuBuilder
     KEY_MISSING_PASSWORD      = 20
     INVALID_MAPPING_INFO      = 21
     MISSING_KEY               = 22
-
-    MISSING_STAGE_METHOD      = -1
+    MISSING_STAGE_METHOD      = 23
 
     def initialize(config:)
       @logger = Logger.instance
@@ -207,7 +206,6 @@ module RokuBuilder
         "A key is missing its password.", #20
         "A input mapping is invalid",
         "A key is missing from the keys section",
-        #===============WARNINGS===============#
         "A project is missing its stage method."
       ]
     end

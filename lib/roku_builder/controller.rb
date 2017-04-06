@@ -212,6 +212,10 @@ module RokuBuilder
         :text, :monitor, :screencapture, :applist, :profile, :key, :genkey ]
     end
 
+    def self.exclude_command?(options:)
+      all_commands = options.keys & commands
+      (all_commands & exclude_commands).count > 0
+    end
 
     # Configure the gem
     # @param options [Hash] The options hash

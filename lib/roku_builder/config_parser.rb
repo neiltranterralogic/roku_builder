@@ -2,312 +2,349 @@
 
 module RokuBuilder
 
-  # Contains methods that will parse the loaded config and generate
-  # intermeidate configs for each of the tools.
   class ConfigParser
 
-    # Parse config and generate intermeidate configs
-    # @param options [Hash] The options hash
-    # @param config [Hash] The loaded config hash
-    # @param logger [Logger] system logger
-    # @return [Integer] Return code
-    # @return [Hash] Intermeidate configs
-    def self.parse_config(options:, config:, logger:)
-      configs = {init_params: {}}
-      #expand in
-      options[:in] = File.expand_path(options[:in]) if options[:in]
-      #set device
-      options[:device] = config[:devices][:default] unless options[:device]
-      #set project
-      setup_project(config: config, options: options) if project_required(options: options)
-      #set outfile
-      setup_outfile(options: options, configs: configs)
-      # Create Device Config
-      configs[:device_config] = config[:devices][options[:device].to_sym]
-      return [UNKNOWN_DEVICE, nil, nil] unless configs[:device_config]
-      configs[:device_config][:logger] = logger
-      project_config = setup_project_config(config: config, options: options)
-      return [project_config, nil, nil] unless project_config.class == Hash
-      configs[:project_config] = project_config
-      stage = setup_stage_config(configs: configs, options: options, logger: logger)[1]
-      return [UNKNOWN_STAGE, nil, nil] if stage.nil? and project_required(options: options)
-      setup_sideload_config(configs: configs, options: options)
-      code = setup_package_config(config: config, configs: configs, options: options, stage: stage)
-      return [code, nil, nil] unless code == SUCCESS
-      setup_active_configs(config: config, configs: configs, options: options)
-      setup_manifest_configs(configs: configs, options: options)
-      setup_simple_configs(config: config, configs: configs, options: options)
-      return [SUCCESS, configs]
+    attr_reader :parsed
+
+    def self.parse(options:, config:)
+      parser = new(options: options, config: config)
+      parser.parsed
     end
 
-    # Pick or choose the project being used
-    # @param config [Hash] The loaded config hash
-    # @param options [Hash] The options hash
-    def self.setup_project(config:, options:)
-      unless options[:project]
-        path = Pathname.pwd
-        project = nil
-        config[:projects].each_pair {|key,value|
-          if value.is_a?(Hash)
-            repo_path = ""
-            if config[:projects][:project_dir]
-              repo_path = Pathname.new(File.join(config[:projects][:project_dir], value[:directory])).realdirpath
-            else
-              repo_path = Pathname.new(value[:directory]).realdirpath
-            end
-            path.descend do |path_parent|
-              if path_parent == repo_path
-                project = key
-                break
-              end
-            end
-            break if project
-          end
-        }
+    def initialize(options:, config:)
+      @logger = Logger.instance
+      @options = options
+      @config = config
+      @parsed = {init_params: {}}
+      parse_config
+    end
+
+    def parse_config
+      process_in_argument
+      setup_device
+      setup_project
+      setup_outfile
+      setup_project_config
+      setup_stage_config
+      setup_sideload_config
+      setup_package_config
+      setup_monitor_configs
+      setup_navigate_configs
+      setup_manifest_config
+      setup_deeplink_configs
+      setup_text_configs
+      setup_test_configs
+      setup_screencapture_configs
+      setup_screen_config
+      setup_profiler_configs
+      setup_genkey_configs
+    end
+
+    def process_in_argument
+      @options[:in] = File.expand_path(@options[:in]) if @options[:in]
+    end
+
+    def setup_device
+      @options[:device] = @config[:devices][:default] unless @options[:device]
+      @parsed[:device_config] = @config[:devices][@options[:device].to_sym]
+      raise ArgumentError, "Unknown device: #{@options[:device]}" unless @parsed[:device_config]
+    end
+
+    def setup_project
+      if project_required and not @options[:project]
+        project = current_project
         if project
-          options[:project] = project
+          @options[:project] = project
         else
-          options[:project] = config[:projects][:default]
+          @options[:project] = @config[:projects][:default]
         end
       end
     end
-    private_class_method :setup_project
 
-    # Setup the out folder/file options
-    # @param options [Hash] The options hash
-    def self.setup_outfile(options:, configs:)
-      configs[:out] = {file: nil, folder: nil}
-      if options[:out]
-        if options[:out].end_with?(".zip") or options[:out].end_with?(".pkg") or options[:out].end_with?(".jpg")
-          configs[:out][:folder], configs[:out][:file] = Pathname.new(options[:out]).split.map{|p| p.to_s}
-          if configs[:out][:folder] == "." and not options[:out].start_with?(".")
-            configs[:out][:folder] = nil
-          else
-            configs[:out][:folder] = File.expand_path(configs[:out][:folder])
-          end
-        else
-          configs[:out][:folder] = options[:out]
-        end
-      end
-      unless configs[:out][:folder]
-         configs[:out][:folder] = "/tmp"
-      end
-    end
-    private_class_method :setup_outfile
-
-    # Setup the project config with the chosen project
-    # @param config [Hash] The loaded config hash
-    # @param options [Hash] The options hash
-    # @return [Hash] The project config hash
-    def self.setup_project_config(config:, options:)
-      #Create Project Config
-      project_config = {}
-      if options[:current]
-        pwd =  Pathname.pwd.to_s
-        return MISSING_MANIFEST unless File.exist?(File.join(pwd, "manifest"))
-        project_config = {
-          directory: pwd,
-          folders: nil,
-          files: nil,
-          stage_method: :current
-        }
-      elsif project_required(options: options)
-        project_config = config[:projects][options[:project].to_sym]
-        return UNKNOWN_PROJECT unless project_config
-        if config[:projects][:project_dir]
-          project_config[:directory] = File.join(config[:projects][:project_dir], project_config[:directory])
-        end
-        return BAD_PROJECT_DIR unless Dir.exist?(project_config[:directory])
-        project_config[:stage_method] = :working if options[:working]
-      end
-      project_config
-    end
-    private_class_method :setup_project_config
-
-    # Determine whether a project is required
-    # @param options [Hash] The options hash
-    # @return [Boolean] Whether a project is required or not
-    def self.project_required(options:)
-      has_source_command = (Controller.source_commands & options.keys).count > 0
-      non_project_source = ([:current, :in] & options.keys).count > 0
+    def project_required
+      has_source_command = (Controller.source_commands & @options.keys).count > 0
+      non_project_source = ([:current, :in] & @options.keys).count > 0
       has_source_command and not non_project_source
     end
-    private_class_method :project_required
 
-    # Setup the project stage config
-    # @param configs [Hash] The loaded config hash
-    # @param options [Hash] The options hash
-    # @return [Hash] The stage config hash
-    def self.setup_stage_config(configs:, options:, logger:)
-      stage_config = {logger: logger}
-      stage_config[:method] = ([:in, :current] & options.keys).first
-      stage = options[:stage].to_sym if options[:stage]
-      if project_required(options: options)
-        project_config = configs[:project_config]
-        stage ||= project_config[:stages].keys[0].to_sym
-        options[:stage] = stage
-        stage_config[:root_dir] = project_config[:directory]
-        stage_config[:method] = project_config[:stage_method]
-        stage_config[:method] ||= :git
-        case stage_config[:method]
-        when :git
-          if options[:ref]
-            stage_config[:key] = options[:ref]
-          else
-            return [nil, nil] unless project_config[:stages][stage]
-            stage_config[:key] = project_config[:stages][stage][:branch]
-          end
-        when :script
-          return [nil, nil] unless project_config[:stages][stage]
-          stage_config[:key] = project_config[:stages][stage][:script]
-        end
+    def current_project
+      @config[:projects].each_pair do |key,value|
+        return key if is_current_project?(project_config: value)
       end
-      configs[:stage_config] = stage_config
-      configs[:stage] = stage
-      [stage_config, stage]
+      nil
     end
 
-    # Setup config hashes for sideloading
-    # @param configs [Hash] The parsed configs hash
-    # @param options [Hash] The options hash
-    # @param branch [String] the branch to sideload
-    def self.setup_sideload_config(configs:, options:)
-      root_dir, content = nil, nil
-      if configs[:project_config]
-        root_dir = configs[:project_config][:directory]
-        content = {
-          folders: configs[:project_config][:folders],
-          files: configs[:project_config][:files],
-        }
-        all_commands = options.keys & Controller.commands
-        if options[:exclude] or Controller.exclude_commands.include?(all_commands.first)
-          content[:excludes] = configs[:project_config][:excludes]
+    def is_current_project?(project_config:)
+      return false unless project_config.is_a?(Hash)
+      repo_path = get_repo_path(project_config: project_config)
+      Pathname.pwd.descend do |path_parent|
+        return true if path_parent == repo_path
+      end
+    end
+
+    def get_repo_path(project_config:)
+      if @config[:projects][:project_dir]
+        repo_path = Pathname.new(File.join(@config[:projects][:project_dir], project_config[:directory])).realdirpath
+      else
+        repo_path = Pathname.new(project_config[:directory]).realdirpath
+      end
+    end
+
+    def setup_outfile
+      @parsed[:out] = {file: nil, folder: nil}
+      if @options[:out]
+        if out_file_defined?
+          setup_outfile_and_folder
+        else
+          @parsed[:out][:folder] = @options[:out]
         end
       end
+      set_default_outfile
+    end
+
+    def out_file_defined?
+      @options[:out].end_with?(".zip") or @options[:out].end_with?(".pkg") or @options[:out].end_with?(".jpg")
+    end
+
+    def setup_outfile_and_folder
+      @parsed[:out][:folder], @parsed[:out][:file] = Pathname.new(@options[:out]).split.map{|p| p.to_s}
+      if @parsed[:out][:folder] == "." and not @options[:out].start_with?(".")
+        @parsed[:out][:folder] = nil
+      else
+        @parsed[:out][:folder] = File.expand_path(@parsed[:out][:folder])
+      end
+    end
+
+    def set_default_outfile
+      unless @parsed[:out][:folder]
+        @parsed[:out][:folder] = "/tmp"
+      end
+    end
+
+    def setup_project_config
+      if @options[:current]
+        stub_project_config_for_current
+      elsif  project_required
+        @parsed[:project_config] = @config[:projects][@options[:project].to_sym]
+        raise ParseError, "Unknown Project: #{@options[:project]}" unless @parsed[:project_config]
+        set_project_directory
+        check_for_working
+      end
+    end
+
+    def stub_project_config_for_current
+      pwd =  Pathname.pwd.to_s
+      raise ParseError, "Missing Manifest" unless File.exist?(File.join(pwd, "manifest"))
+      @parsed[:project_config] = {
+        directory: pwd,
+        folders: nil,
+        files: nil,
+        stage_method: :current
+      }
+    end
+
+    def set_project_directory
+      if @config[:projects][:project_dir]
+        @parsed[:project_config][:directory] = File.join(@config[:projects][:project_dir], @parsed[:project_config][:directory])
+      end
+      unless Dir.exist?(@parsed[:project_config][:directory])
+        raise ParseError, "Missing project dirtectory: #{@parsed[:project_config][:dirtectory]}"
+      end
+    end
+
+    def check_for_working
+      @parsed[:project_config][:stage_method] = :working if @options[:working]
+    end
+
+
+    def setup_stage_config
+      setup_mininal_stage_configs
+      setup_project_stage_config if project_required
+    end
+
+    def setup_mininal_stage_configs
+      @parsed[:stage_config] = {}
+      @parsed[:stage_config][:method] = ([:in, :current] & @options.keys).first
+      @parsed[:stage] = @options[:stage].to_sym if @options[:stage]
+    end
+
+    def setup_project_stage_config
+      @parsed[:stage] ||= @parsed[:project_config][:stages].keys[0].to_sym
+      @parsed[:stage_config][:root_dir] = @parsed[:project_config][:directory]
+      raise ParseError, "Unknown Stage: #{@parsed[:stage]}" unless @parsed[:project_config][:stages][@parsed[:stage]]
+      setup_staging_method
+      setup_staging_key
+    end
+
+    def setup_staging_method
+      @parsed[:stage_config][:method] = @parsed[:project_config][:stage_method]
+      unless [:git, :script].include? @parsed[:stage_config][:method]
+        raise ParseError, "Unknown Stage Method: #{@parsed[:stage_config][:method]}"
+      end
+    end
+
+    def setup_staging_key
+      case @parsed[:stage_config][:method]
+      when :git
+        if @options[:ref]
+          @parsed[:stage_config][:key] = @options[:ref]
+        else
+          @parsed[:stage_config][:key] = @parsed[:project_config][:stages][@parsed[:stage]][:branch]
+        end
+      when :script
+        @parsed[:stage_config][:key] = @parsed[:project_config][:stages][@parsed[:stage]][:script]
+      end
+    end
+
+    def setup_sideload_config
+      root_dir, content = setup_project_values
       # Create Sideload Config
-      configs[:sideload_config] = {
-        update_manifest: options[:update_manifest],
-        infile: options[:in],
+      @parsed[:sideload_config] = {
+        update_manifest: @options[:update_manifest],
+        infile: @options[:in],
         content: content
       }
       # Create Build Config
-      configs[:build_config] = { content: content }
-      configs[:init_params][:loader] = { root_dir: root_dir }
+      @parsed[:build_config] = { content: content }
+      @parsed[:init_params][:loader] = { root_dir: root_dir }
     end
-    private_class_method :setup_sideload_config
 
-    # Setup config hashes for packaging
-    # @param configs [Hash] The parsed configs hash
-    # @param options [Hash] The options hash
-    # @param stage [Symbol] The stage to package
-    def self.setup_package_config(config:, configs:, options:, stage:)
-      if options[:package] or options[:key]
-        # Create Key Config
-        configs[:key] = configs[:project_config][:stages][stage][:key]
-        if configs[:key].class == String
-          configs[:key] = config[:keys][configs[:key].to_sym]
-          if config[:keys][:key_dir]
-            configs[:key][:keyed_pkg] = File.join(config[:keys][:key_dir], configs[:key][:keyed_pkg])
-          end
-          return BAD_KEY_FILE unless File.exist?(configs[:key][:keyed_pkg])
-        end
-      end
-      if options[:package]
-        # Create Package Config
-        configs[:package_config] = {
-          password: configs[:key][:password],
-          app_name_version: "#{configs[:project_config][:app_name]} - #{stage}"
+    def setup_project_values
+      if @parsed[:project_config]
+        root_dir = @parsed[:project_config][:directory]
+        content = {
+          folders: @parsed[:project_config][:folders],
+          files: @parsed[:project_config][:files],
         }
-        # Create Inspector Config
-        configs[:inspect_config] = {
-          password: configs[:key][:password]
-        }
-        if configs[:out][:file]
-          configs[:package_config][:out_file] = File.join(configs[:out][:folder], configs[:out][:file])
-          configs[:inspect_config][:pkg] = File.join(configs[:out][:folder], configs[:out][:file])
-        end
+        content[:excludes] = @parsed[:project_config][:excludes] if add_excludes?
+        [root_dir, content]
+      else
+        [nil, nil]
       end
-      return SUCCESS
     end
-    private_class_method :setup_package_config
 
-    # Setup configs for active methods, monitoring and navigating
-    # @param configs [Hash] The parsed configs hash
-    # @param options [Hash] The options hash
-    # @param logger [Logger] System logger
-    def self.setup_active_configs(config:, configs:, options:)
-      # Create Monitor Config
-      if options[:monitor]
-        configs[:monitor_config] = {type: options[:monitor].to_sym}
-        if options[:regexp]
-          configs[:monitor_config][:regexp] = /#{options[:regexp]}/
+    def add_excludes?
+      @options[:exclude] or Controller.exclude_command?(options: @options)
+    end
+
+    def setup_package_config
+      setup_key_config if @options[:package] or @options[:key]
+      if @options[:package]
+        setup_package_config_hashes
+        setup_package_config_out_files
+      end
+    end
+
+    def setup_key_config
+      @parsed[:key] = @parsed[:project_config][:stages][@parsed[:stage]][:key]
+      get_global_key_config if @parsed[:key].class == String
+    end
+
+    def get_global_key_config
+      raise ParseError, "Unknown Key: #{@parsed[:key]}" unless @config[:keys][@parsed[:key].to_sym]
+      @parsed[:key] = @config[:keys][@parsed[:key].to_sym]
+      if @config[:keys][:key_dir]
+        @parsed[:key][:keyed_pkg] = File.join(@config[:keys][:key_dir], @parsed[:key][:keyed_pkg])
+      end
+      unless File.exist?(@parsed[:key][:keyed_pkg])
+        raise ParseError, "Bad key file: #{@parsed[:key][:keyed_pkg]}"
+      end
+    end
+
+    def setup_package_config_hashes
+      @parsed[:package_config] = {
+        password: @parsed[:key][:password],
+        app_name_version: "#{@parsed[:project_config][:app_name]} - #{@parsed[:stage]}"
+      }
+      @parsed[:inspect_config] = {
+        password: @parsed[:key][:password]
+      }
+    end
+
+    def setup_package_config_out_files
+      if @parsed[:out][:file]
+        @parsed[:package_config][:out_file] = File.join(@parsed[:out][:folder], @parsed[:out][:file])
+        @parsed[:inspect_config][:pkg] = File.join(@parsed[:out][:folder], @parsed[:out][:file])
+      end
+    end
+
+    def setup_monitor_configs
+      if @options[:monitor]
+        @parsed[:monitor_config] = {type: @options[:monitor].to_sym}
+        if @options[:regexp]
+          @parsed[:monitor_config][:regexp] = /#{@options[:regexp]}/
         end
       end
-      # Create Navigate Config
+    end
+
+    def setup_navigate_configs
+      @parsed[:init_params][:navigator] = {mappings: generate_maggings}
+      if @options[:navigate]
+        @parsed[:navigate_config] = {
+          commands: @options[:navigate].split(/, */).map{|c| c.to_sym}
+        }
+      end
+    end
+
+    def generate_maggings
       mappings = {}
-      if config[:input_mapping]
-        config[:input_mapping].each_pair {|key, value|
+      if @config[:input_mapping]
+        @config[:input_mapping].each_pair {|key, value|
           unless "".to_sym == key
             key = key.to_s.sub(/\\e/, "\e").to_sym
             mappings[key] = value
           end
         }
       end
-      configs[:init_params][:navigator] = {mappings: mappings}
-      if options[:navigate]
-        commands = options[:navigate].split(/, */).map{|c| c.to_sym}
-        configs[:navigate_config] = {commands: commands}
-      end
+      mappings
     end
-    private_class_method :setup_active_configs
 
-    # Setup manifest configs
-    # @param configs [Hash] The parsed configs hash
-    # @param options [Hash] The options hash
-    # @param logger [Logger] System logger
-    def self.setup_manifest_configs(configs:, options:)
-      # Create Manifest Config
-      root_dir = configs[:project_config][:directory] if configs[:project_config]
-      root_dir = options[:in] if options[:in]
-      root_dir = Pathname.pwd.to_s if options[:current]
-      configs[:manifest_config] = {
-        root_dir: root_dir
+    def setup_manifest_config
+      @parsed[:manifest_config] = {
+        root_dir: get_root_dir
       }
     end
-    private_class_method :setup_manifest_configs
 
-    # Setup other configs
-    # @param configs [Hash] The parsed configs hash
-    # @param options [Hash] The options hash
-    # @param logger [Logger] System logger
-    def self.setup_simple_configs(config:, configs:, options:)
-      # Create Deeplink Config
-      configs[:deeplink_config] = {options: options[:deeplink]}
-      if options[:app_id]
-        configs[:deeplink_config][:app_id] = options[:app_id]
-      end
-      # Create Text Config
-      configs[:text_config] = {text: options[:text]}
-      # Create Test Config
-      configs[:test_config] = {sideload_config: configs[:sideload_config]}
-      #Create screencapture config
-      configs[:screencapture_config] = {
-        out_folder: configs[:out][:folder],
-        out_file: configs[:out][:file]
-      }
-      if options[:screen]
-        configs[:screen_config] = {type: options[:screen].to_sym}
-      end
-      #Create Profiler Config
-      if options[:profile]
-        configs[:profiler_config] = {command: options[:profile].to_sym}
-      end
-      #Create genkey config
-      configs[:genkey] = {}
-      if options[:out_file]
-        configs[:genkey][:out_file] = File.join(options[:out_folder], options[:out_file])
+    def get_root_dir
+      root_dir = @parsed[:project_config][:directory] if @parsed[:project_config]
+      root_dir = @options[:in] if @options[:in]
+      root_dir = Pathname.pwd.to_s if @options[:current]
+      root_dir
+    end if
+
+    def setup_deeplink_configs
+      @parsed[:deeplink_config] = {options: @options[:deeplink]}
+      if @options[:app_id]
+        @parsed[:deeplink_config][:app_id] = @options[:app_id]
       end
     end
-    private_class_method :setup_simple_configs
+    def setup_text_configs
+      @parsed[:text_config] = {text: @options[:text]}
+    end
+    def setup_test_configs
+      @parsed[:test_config] = {sideload_config: @parsed[:sideload_config]}
+    end
+    def setup_screencapture_configs
+      @parsed[:screencapture_config] = {
+        out_folder: @parsed[:out][:folder],
+        out_file: @parsed[:out][:file]
+      }
+    end
+    def setup_screen_config
+      if @options[:screen]
+        @parsed[:screen_config] = {type: @options[:screen].to_sym}
+      end
+    end
+    def setup_profiler_configs
+      if @options[:profile]
+        @parsed[:profiler_config] = {command: @options[:profile].to_sym}
+      end
+    end
+    def setup_genkey_configs
+      @parsed[:genkey] = {}
+      if @options[:out_file]
+        @parsed[:genkey][:out_file] = File.join(@options[:out_folder], @options[:out_file])
+      end
+    end
   end
 end

@@ -13,6 +13,10 @@ require "byebug"
 require "roku_builder"
 require "minitest/autorun"
 
+def test_files_path(klass)
+  File.join(File.dirname(__FILE__), "test_files", klass.to_s.underscore)
+end
+
 
 def good_config
   {
