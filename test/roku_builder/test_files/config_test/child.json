@@ -1,0 +1,11 @@
+{
+  "parent_config": "./parent.json",
+  "devices": {
+    "default": "roku",
+    "roku": {
+      "ip": "111.222.333.444",
+      "user": "user",
+      "password": "pass"
+    }
+  }
+}

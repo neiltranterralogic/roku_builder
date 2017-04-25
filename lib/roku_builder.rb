@@ -23,28 +23,13 @@ require 'io/console'
 #monitor
 require 'readline'
 
-require "roku_builder/controller"
-require "roku_builder/controller_commands"
-require "roku_builder/util"
-require "roku_builder/keyer"
-require "roku_builder/inspector"
-require "roku_builder/stager"
-require "roku_builder/loader"
-require "roku_builder/packager"
-require "roku_builder/linker"
-require "roku_builder/tester"
-require "roku_builder/scripter"
-require "roku_builder/profiler"
-require "roku_builder/manifest_manager"
-require "roku_builder/config_manager"
-require "roku_builder/config_validator"
-require "roku_builder/config_parser"
-require "roku_builder/error_handler"
-require "roku_builder/navigator"
-require "roku_builder/monitor"
-require "roku_builder/version"
 
-# Wrapping module for the Roku Builder Gem
+require 'roku_builder/util'
+Dir.glob("lib/roku_builder/*").each do |path|
+  file = "roku_builder/"+File.basename(path, ".rb")
+  require file unless file == "roku_builder/util"
+end
+
 module RokuBuilder
 
   ### Global Codes ###

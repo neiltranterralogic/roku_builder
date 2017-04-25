@@ -12,10 +12,6 @@ options = {}
 options[:config] = '~/.roku_config.json'
 options[:update_manifest] = false
 
-logger = Logger.new(STDOUT)
-logger.formatter = proc {|severity, datetime, _progname, msg|
-  "[%s #%s] %5s: %s\n\r" % [datetime.strftime("%Y-%m-%d %H:%M:%S.%4N"), $$, severity, msg]
-}
 
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: roku <command> [options]"
