@@ -178,7 +178,7 @@ module RokuBuilder
 
     def setup_staging_method
       @parsed[:stage_config][:method] = @parsed[:project_config][:stage_method]
-      unless [:git, :script].include? @parsed[:stage_config][:method]
+      unless [:git, :script, :current, :working].include? @parsed[:stage_config][:method]
         raise ParseError, "Unknown Stage Method: #{@parsed[:stage_config][:method]}"
       end
     end

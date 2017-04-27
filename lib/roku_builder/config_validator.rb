@@ -38,9 +38,9 @@ module RokuBuilder
       @codes.each do |code|
         if code > 0
           @logger.fatal error_codes[code]
-          if code < 0
-            @logger.warn error_codes[code]
-          end
+        end
+        if code < 0
+          @logger.warn error_codes[code]
         end
       end
     end

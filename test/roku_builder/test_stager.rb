@@ -8,8 +8,7 @@ class StagerTest < Minitest::Test
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     stager_config = {
       method: :working,
-      root_dir: root_dir,
-      logger: nil
+      root_dir: root_dir
     }
     stager = RokuBuilder::Stager.new(**stager_config)
     assert_equal stager_config[:method], stager.method
@@ -19,8 +18,7 @@ class StagerTest < Minitest::Test
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     stager_config = {
       method: :working,
-      root_dir: root_dir,
-      logger: nil
+      root_dir: root_dir
     }
     stager = RokuBuilder::Stager.new(**stager_config)
     assert stager.stage
@@ -31,8 +29,7 @@ class StagerTest < Minitest::Test
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     stager_config = {
       method: :current,
-      root_dir: root_dir,
-      logger: nil
+      root_dir: root_dir
     }
     stager = RokuBuilder::Stager.new(**stager_config)
     assert stager.stage
@@ -43,8 +40,7 @@ class StagerTest < Minitest::Test
     root_dir = File.join(File.dirname(__FILE__), "test_files", "stager_test")
     stager_config = {
       method: :in,
-      root_dir: root_dir,
-      logger: nil
+      root_dir: root_dir
     }
     stager = RokuBuilder::Stager.new(**stager_config)
     assert stager.stage
@@ -62,8 +58,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: nil
+      key: branch_name
     }
 
     git.expect(:current_branch, 'other_branch')
@@ -101,8 +96,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: nil
+      key: branch_name
     }
 
     git.expect(:current_branch, 'other_branch')
@@ -133,13 +127,11 @@ class StagerTest < Minitest::Test
     branch = Minitest::Mock.new
     stashes = Minitest::Mock.new
     stash = Minitest::Mock.new
-    logger = Minitest::Mock.new
 
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: logger
+      key: branch_name
     }
 
     def git.checkout(branch)
@@ -151,7 +143,6 @@ class StagerTest < Minitest::Test
     git.expect(:branch, branch)
     branch.expect(:stashes, stashes)
     stashes.expect(:save, true, ["roku-builder-temp-stash"])
-    logger.expect(:error, nil, ["Branch or ref does not exist"])
     git.expect(:branch, branch)
     branch.expect(:stashes, [stash])
     git.expect(:branch, branch)
@@ -168,7 +159,6 @@ class StagerTest < Minitest::Test
     branch.verify
     stashes.verify
     stash.verify
-    logger.verify
   end
 
   def test_stager_stage_git_error_unstage
@@ -180,9 +170,9 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: logger
+      key: branch_name
     }
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
 
     def git.checkout(branch)
       raise Git::GitExecuteError.new
@@ -197,6 +187,7 @@ class StagerTest < Minitest::Test
     end
     git.verify
     logger.verify
+    RokuBuilder::Logger.set_testing
   end
 
   def test_stager_stage_script
@@ -204,8 +195,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :script,
       key: {stage: "stage_script", unstage: "unstage_script"},
-      root_dir: root_dir,
-      logger: nil
+      root_dir: root_dir
     }
     RokuBuilder::Controller.stub(:system, nil) do
       stager = RokuBuilder::Stager.new(**stager_config)
@@ -225,8 +215,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: nil
+      key: branch_name
     }
 
     git.expect(:current_branch, 'other_branch')
@@ -266,8 +255,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: nil
+      key: branch_name
     }
 
     pstore.expect(:transaction, nil) do |&block|
@@ -311,8 +299,7 @@ class StagerTest < Minitest::Test
     stager_config = {
       method: :git,
       root_dir: root_dir,
-      key: branch_name,
-      logger: nil
+      key: branch_name
     }
 
     pstore.expect(:transaction, nil) do |&block|

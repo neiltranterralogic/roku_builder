@@ -7,38 +7,42 @@ module RokuBuilder
 
     # Run the builder
     # @param options [Hash] The options hash
-    def self.run(options:, logger:)
-      if options[:debug]
-        logger.level = Logger::DEBUG
-      elsif options[:verbose]
-        logger.level = Logger::INFO
-      else
-        logger.level = Logger::WARN
-      end
+    def self.run(options:)
+      initialize_logger(options: options)
 
       # Validate Options
       options_code = validate_options(options: options)
-      ErrorHandler.handle_options_codes(options_code: options_code, options: options, logger: logger)
+      ErrorHandler.handle_options_codes(options_code: options_code, options: options, logger: Logger.instance)
 
       # Configure Gem
-      configure_code = configure(options: options, logger: logger)
-      ErrorHandler.handle_configure_codes(configure_code: configure_code, logger: logger)
+      configure_code = configure(options: options, logger: Logger.instance)
+      ErrorHandler.handle_configure_codes(configure_code: configure_code, logger: Logger.instance)
 
       # Load Config
-      load_code, config, configs = ConfigManager.load_config(options: options, logger: logger)
-      ErrorHandler.handle_load_codes(options: options, load_code: load_code, logger: logger)
-
-      # Check Configs
-      configs_code = validate_configs(configs: configs)
-      ErrorHandler.handle_configs_codes(configs_code: configs_code, logger: logger)
+      config = Config.new(options: options)
+      config.load
+      config.validate
+      config.parse
 
       # Check devices
-      device_code, configs = check_devices(options: options, config: config, configs: configs, logger: logger)
-      ErrorHandler.handle_device_codes(device_code: device_code, logger: logger)
+      device_code = check_devices(options: options, config: config, logger: Logger.instance)
+      ErrorHandler.handle_device_codes(device_code: device_code, logger: Logger.instance)
 
       # Run Commands
-      command_code = execute_commands(options: options, configs: configs, logger: logger)
-      ErrorHandler.handle_command_codes(command_code: command_code, logger: logger)
+      command_code = execute_commands(options: options, config: config, logger: Logger.instance)
+      ErrorHandler.handle_command_codes(command_code: command_code, logger: Logger.instance)
+    end
+
+    def self.initialize_logger(options:)
+      if options[:debug]
+        Logger.set_debug
+      elsif options[:verbose]
+        Logger.set_info
+      else
+        Logger.set_warn
+      end
+
+      logger = Logger.instance
     end
 
     # Validates the user options
@@ -106,26 +110,15 @@ module RokuBuilder
     end
     private_class_method :validate_depricated_commands
 
-    # Validate config hash
-    # @param configs [Hash] The Configs hash
-    # @return [Integer] Status code for command validation
-    def self.validate_configs(configs:)
-      unless Dir.exist?(configs[:out][:folder])
-        return MISSING_OUT_FOLDER
-      end
-      VALID
-    end
-    private_class_method :validate_configs
-
     # Run commands
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
-    def self.execute_commands(options:, configs:, logger:)
+    def self.execute_commands(options:, config:, logger:)
       command = (commands & options.keys).first
       if ControllerCommands.simple_commands.keys.include?(command)
         params = ControllerCommands.simple_commands[command]
-        params[:configs] = configs
+        params[:config] = config
         params[:logger] = logger
         ControllerCommands.simple_command(**params)
       else
@@ -135,8 +128,8 @@ module RokuBuilder
           case key
           when :options
             args[:options] = options
-          when :configs
-            args[:configs] = configs
+          when :config
+            args[:config] = config
           when :logger
             args[:logger] = logger
           end
@@ -149,26 +142,26 @@ module RokuBuilder
     # Ensure that the selected device is accessable
     # @param options [Hash] The options hash
     # @param logger [Logger] system logger
-    def self.check_devices(options:, config:, configs:, logger:)
+    def self.check_devices(options:, config:, logger:)
       command = (options.keys & commands).first
       if device_commands.include?(command)
         ping = Net::Ping::External.new
-        host = configs[:device_config][:ip]
-        return [GOOD_DEVICE, configs] if ping.ping? host, 1, 0.2, 1
-        return [BAD_DEVICE, nil] if options[:device_given]
-        config[:devices].each_pair {|key, value|
+        host = config.parsed[:device_config][:ip]
+        return GOOD_DEVICE if ping.ping? host, 1, 0.2, 1
+        return BAD_DEVICE if options[:device_given]
+        config.raw[:devices].each_pair {|key, value|
           unless key == :default
             host = value[:ip]
             if ping.ping? host, 1, 0.2, 1
-              configs[:device_config] = value
-              configs[:device_config][:logger] = logger
-              return [CHANGED_DEVICE, configs]
+              config.parsed[:device_config] = value
+              config.parsed[:device_config][:logger] = logger
+              return CHANGED_DEVICE
             end
           end
         }
-        return [NO_DEVICES, nil]
+        return NO_DEVICES
       end
-      return [GOOD_DEVICE, configs]
+      return GOOD_DEVICE
     end
     private_class_method :check_devices
 
@@ -234,7 +227,9 @@ module RokuBuilder
           FileUtils.copy(source_config, target_config)
         end
         if options[:edit_params]
-          ConfigManager.edit_config(config: target_config, options: options, logger: logger)
+          config = Config.new(options: options)
+          config.load
+          config.edit
         end
         return SUCCESS
       end

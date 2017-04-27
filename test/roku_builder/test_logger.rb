@@ -10,6 +10,33 @@ class LoggerTest < Minitest::Test
     assert_equal logger_a, logger_b
   end
 
+  def test_set_debug
+    logger = Minitest::Mock.new
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
+    logger.expect(:level=, nil, [Logger::DEBUG])
+    RokuBuilder::Logger.set_debug
+    logger.verify
+    RokuBuilder::Logger.set_testing
+  end
+
+  def test_set_info
+    logger = Minitest::Mock.new
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
+    logger.expect(:level=, nil, [Logger::INFO])
+    RokuBuilder::Logger.set_info
+    logger.verify
+    RokuBuilder::Logger.set_testing
+  end
+
+  def test_set_warn
+    logger = Minitest::Mock.new
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
+    logger.expect(:level=, nil, [Logger::WARN])
+    RokuBuilder::Logger.set_warn
+    logger.verify
+    RokuBuilder::Logger.set_testing
+  end
+
   def test_logger_testing
     RokuBuilder::Logger.set_testing
     logger = RokuBuilder::Logger.instance

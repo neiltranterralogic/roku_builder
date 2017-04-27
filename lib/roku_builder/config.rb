@@ -12,18 +12,42 @@ module RokuBuilder
       @logger = Logger.instance
       @config = nil
       @parsed = nil
-      check_config_file
-      load_config
-      fix_config_symbol_values
-      validate_config
     end
 
     def raw
       @config
     end
 
+    def load
+      check_config_file
+      load_config
+    end
+
     def parse
       @parsed = ConfigParser.parse(options: @options, config: @config)
+    end
+
+    def validate
+      validator = ConfigValidator.new(config: @config)
+      validator.print_errors
+      raise InvalidConfig if validator.is_fatal?
+    end
+
+    def edit
+      apply_options
+      config_string = JSON.pretty_generate(@config)
+      file = File.open(@options[:config], "w")
+      file.write(config_string)
+      file.close
+    end
+
+    def update
+      if @options[:build_version]
+        update_package_config
+        update_build_config
+        update_sideload_config
+        update_inspect_config
+      end
     end
 
     private
@@ -33,11 +57,6 @@ module RokuBuilder
       raise ArgumentError, "Missing Config" unless File.exist?(config_file)
     end
 
-    def validate_config
-      validator = ConfigValidator.new(config: @config)
-      validator.print_errors
-      raise InvalidConfig if validator.is_fatal?
-    end
 
     def load_config
       @config = {parent_config: @options[:config]}
@@ -50,6 +69,7 @@ module RokuBuilder
         depth += 1
         raise InvalidConfig, "Parent Configs Too Deep." if depth > 10
       end
+      fix_config_symbol_values
     end
 
     def get_parent_config
@@ -68,6 +88,8 @@ module RokuBuilder
     def expand_parent_file_path
       if @config[:child_config]
         @config[:parent_config] = File.expand_path(@config[:parent_config], File.dirname(@config[:child_config]))
+      else
+        @config[:parent_config] = File.expand_path(@config[:parent_config])
       end
     end
 
@@ -94,26 +116,18 @@ module RokuBuilder
     def build_inhearited_project_configs
       @config[:projects].each_pair do |key,value|
         next if is_skippable_project_key? key
-        if value[:parent] and config[:projects][value[:parent].to_sym]
-          new_value = config[:projects][value[:parent].to_sym]
+        while value[:parent] and @config[:projects][value[:parent].to_sym]
+          new_value = @config[:projects][value[:parent].to_sym]
+          value.delete(:parent)
           new_value = new_value.deep_merge value
-          config[:projects][key] = new_value
+          @config[:projects][key] = new_value
+          value = new_value
         end
       end
     end
 
     def is_skippable_project_key?(key)
       [:project_dir, :default].include?(key)
-    end
-
-
-    def edit_config
-      apply_options(state: state)
-      config_string = JSON.pretty_generate(config_object)
-      file = File.open(config, "w")
-      file.write(config_string)
-      file.close
-      return true
     end
 
     def build_edit_state
@@ -136,47 +150,53 @@ module RokuBuilder
     end
     def get_stage_key(project:)
       stage = @options[:stage].to_sym if @options[:stage]
-      stage ||= @config_object[:projects][project][:stages].keys[0].to_sym
+      stage ||= @config[:projects][project][:stages].keys[0].to_sym
       stage
     end
 
     # Apply the changes in the options string to the config object
-    # @param config_object [Hash] The config loaded from file
-    # @param options [String] The string of options passed in by the user
-    # @param state [Hash] The state of the config the user is editing
-    def self.apply_options(state:)
+    def apply_options
+      state = build_edit_state
       changes = Util.options_parse(options: @options[:edit_params])
       changes.each {|key,value|
         if [:ip, :user, :password].include?(key)
-          @config_object[:devices][state[:device]][key] = value
+          @config[:devices][state[:device]][key] = value
         elsif [:directory, :app_name].include?(key) #:folders, :files
-          @config_object[:projects][state[:project]][key] = value
+          @config[:projects][state[:project]][key] = value
         elsif [:branch].include?(key)
-          @config_object[:projects][state[:project]][:stages][state[:stage]][key] = value
+          @config[:projects][state[:project]][:stages][state[:stage]][key] = value
         end
       }
     end
-    private_class_method :apply_options
 
-    # Update the intermeidate configs
-    # @param configs [Hash] Intermeidate configs hash
-    # @param options [Hash] Options hash
-    # @return [Hash] New intermeidate configs hash
-    def self.update_configs(configs:, options:)
-      if options[:build_version]
-        configs[:package_config][:app_name_version] = "#{configs[:project_config][:app_name]} - #{configs[:stage]} - #{options[:build_version]}" if configs[:package_config]
-        unless configs[:out][:file]
-          configs[:out][:file] = "#{configs[:project_config][:app_name]}_#{configs[:stage]}_#{options[:build_version]}"
-        end
-        pathname = File.join(configs[:out][:folder], configs[:out][:file])
-        configs[:package_config][:out_file] = pathname if configs[:package_config]
-        configs[:build_config][:out_file]   = pathname if configs[:build_config]
-        if configs[:sideload_config] and options[:out]
-          configs[:sideload_config][:out_file]   = pathname
-        end
-        configs[:inspect_config][:pkg] = configs[:package_config][:out_file] if configs[:inspect_config] and configs[:package_config]
+    def update_package_config
+      if @parsed[:package_config]
+        @parsed[:package_config][:app_name_version] = "#{@parsed[:project_config][:app_name]} - #{@parsed[:stage]} - #{@options[:build_version]}"
+        @parsed[:package_config][:out_file] = out_file_path
       end
-      return configs
+    end
+
+    def update_build_config
+      @parsed[:build_config][:out_file] = out_file_path if @parsed[:build_config]
+    end
+
+    def update_sideload_config
+      if @parsed[:sideload_config] and @options[:out]
+        @parsed[:sideload_config][:out_file] = out_file_path
+      end
+    end
+
+    def update_inspect_config
+      if @parsed[:inspect_config] and @parsed[:package_config]
+        @parsed[:inspect_config][:pkg] = @parsed[:package_config][:out_file]
+      end
+    end
+
+    def out_file_path
+      unless @parsed[:out][:file]
+        @parsed[:out][:file] = "#{@parsed[:project_config][:app_name]}_#{@parsed[:stage]}_#{@options[:build_version]}"
+      end
+      File.join(@parsed[:out][:folder], @parsed[:out][:file])
     end
   end
 end

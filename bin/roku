@@ -195,7 +195,7 @@ end
 
 begin
   parser.parse!
-  RokuBuilder::Controller.run(options: options, logger: logger)
+  RokuBuilder::Controller.run(options: options)
 rescue OptionParser::ParseError => e
   logger.fatal e.message
 end

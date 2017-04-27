@@ -5,11 +5,11 @@ module RokuBuilder
   # Change stage of roku application
   class Stager
 
-    def initialize(key: nil, method:, root_dir: nil, logger:)
+    def initialize(key: nil, method:, root_dir: nil)
       @method = method
       @key = key
       @root_dir = root_dir
-      @logger = logger
+      @logger = Logger.instance
       @stage_success = true
       @stash_key = "roku-builder-temp-stash"
     end

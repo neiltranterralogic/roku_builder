@@ -15,6 +15,16 @@ module RokuBuilder
       @@instance
     end
 
+    def self.set_debug
+      instance.level = ::Logger::DEBUG
+    end
+    def self.set_info
+      instance.level = ::Logger::INFO
+    end
+    def self.set_warn
+      instance.level = ::Logger::WARN
+    end
+
     def self.set_testing
       @@instance = ::Logger.new("/dev/null")
     end

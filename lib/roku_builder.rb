@@ -25,7 +25,7 @@ require 'readline'
 
 
 require 'roku_builder/util'
-Dir.glob("lib/roku_builder/*").each do |path|
+Dir.glob(File.join(File.dirname(__FILE__), "roku_builder", "*")).each do |path|
   file = "roku_builder/"+File.basename(path, ".rb")
   require file unless file == "roku_builder/util"
 end
