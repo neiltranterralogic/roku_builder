@@ -12,8 +12,7 @@ class InspectorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     path = "/plugin_inspect"
     password = "password"
@@ -96,8 +95,7 @@ class InspectorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     path = "/plugin_inspect"
     password = "password"
@@ -173,8 +171,7 @@ class InspectorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     screencapture_config = {
       out_folder: "out/folder/path",

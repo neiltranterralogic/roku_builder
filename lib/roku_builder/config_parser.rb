@@ -323,6 +323,7 @@ module RokuBuilder
     end
     def setup_test_configs
       @parsed[:test_config] = {sideload_config: @parsed[:sideload_config]}
+      @parsed[:init_params][:tester] = { root_dir: get_root_dir }
     end
     def setup_screencapture_configs
       @parsed[:screencapture_config] = {

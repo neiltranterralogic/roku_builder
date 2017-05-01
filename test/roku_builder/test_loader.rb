@@ -11,12 +11,10 @@ class LoaderTest < Minitest::Test
     navigator = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {root_dir: root_dir}
     }
     loader_config = {
@@ -80,12 +78,10 @@ class LoaderTest < Minitest::Test
     navigator = Minitest::Mock.new
 
     infile = File.join(File.dirname(__FILE__), "test_files", "loader_test", "infile_test.zip")
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: logger,
+      password: "password"
     }
     loader_config = {
       infile: infile
@@ -143,12 +139,10 @@ class LoaderTest < Minitest::Test
     navigator = Minitest::Mock.new
 
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {root_dir: root_dir}
     }
     loader_config = {
@@ -208,12 +202,10 @@ class LoaderTest < Minitest::Test
 
   def test_loader_build_defining_folder_and_files
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {root_dir: root_dir}
     }
     build_config = {
@@ -236,12 +228,10 @@ class LoaderTest < Minitest::Test
   end
   def test_loader_build_all_contents
     root_dir = File.join(File.dirname(__FILE__), "test_files", "loader_test")
-    logger = Logger.new("/dev/null")
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {root_dir: root_dir}
     }
     build_config = {}
@@ -267,7 +257,6 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {root_dir: "/dev/null"}
     }
     payload = {
@@ -310,7 +299,6 @@ class LoaderTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {root_dir: "/dev/null"}
     }
     payload = {

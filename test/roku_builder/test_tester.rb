@@ -1,16 +1,17 @@
 # ********** Copyright Viacom, Inc. Apache 2.0 **********
-
+#TODO
 require_relative "test_helper.rb"
 
 class TesterTest < Minitest::Test
   def test_tester_runtests
     connection = Minitest::Mock.new
     loader = Minitest::Mock.new
+    linker = Minitest::Mock.new
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null")
+      init_params: {root_dir: "root/dir/path"}
     }
     loader_config = {
       root_dir: "root/dir/path",
@@ -21,47 +22,13 @@ class TesterTest < Minitest::Test
     tester = RokuBuilder::Tester.new(**device_config)
 
     loader.expect(:sideload, [RokuBuilder::SUCCESS, ""], [loader_config])
-    connection.expect(:waitfor, nil, [/\*\*\*\*\* ENDING TESTS \*\*\*\*\*/])
+    linker.expect(:launch, nil, [{options: "RunTests:true"}])
+    connection.expect(:waitfor, nil, [/\*+\s*End testing\s*\*+/])
     connection.expect(:puts, nil, ["cont\n"])
 
     RokuBuilder::Loader.stub(:new, loader) do
-      Net::Telnet.stub(:new, connection) do
-        tester.run_tests(sideload_config: loader_config)
-      end
-    end
-
-    connection.verify
-  end
-
-  def test_tester_runtests_and_handle
-    waitfor = Proc.new do |end_reg, &blk|
-      assert_equal(/\*\*\*\*\* ENDING TESTS \*\*\*\*\*/, end_reg)
-      txt = "Fake Text"
-      blk.call(txt) == false
-    end
-    connection = Minitest::Mock.new
-    loader = Minitest::Mock.new
-    device_config = {
-      ip: "111.222.333",
-      user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
-    }
-    loader_config = {
-      root_dir: "root/dir/path",
-      branch: "branch",
-      folders: ["source"],
-      files: ["manifest"]
-    }
-    tester = RokuBuilder::Tester.new(**device_config)
-
-    loader.expect(:sideload, [RokuBuilder::SUCCESS, ""], [loader_config])
-    connection.expect(:waitfor, nil, &waitfor)
-    connection.expect(:puts, nil, ["cont\n"])
-
-    RokuBuilder::Loader.stub(:new, loader) do
-      Net::Telnet.stub(:new, connection) do
-        tester.stub(:handle_text, false) do
+      RokuBuilder::Linker.stub(:new, linker) do
+        Net::Telnet.stub(:new, connection) do
           tester.run_tests(sideload_config: loader_config)
         end
       end
@@ -70,64 +37,93 @@ class TesterTest < Minitest::Test
     connection.verify
   end
 
-  def test_tester_handle_text_no_text
-    logger = Minitest::Mock.new
+  def test_tester_runtests_and_handle
+    waitfor = Proc.new do |end_reg, &blk|
+      assert_equal(/\*+\s*End testing\s*\*+/, end_reg)
+      txt = "Fake Text"
+      blk.call(txt) == false
+    end
+    connection = Minitest::Mock.new
+    loader = Minitest::Mock.new
+    linker = Minitest::Mock.new
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      init_params: {root_dir: "root/dir/path"}
+    }
+    loader_config = {
+      root_dir: "root/dir/path",
+      branch: "branch",
+      folders: ["source"],
+      files: ["manifest"]
+    }
+    tester = RokuBuilder::Tester.new(**device_config)
+
+    loader.expect(:sideload, [RokuBuilder::SUCCESS, ""], [loader_config])
+    linker.expect(:launch, nil, [{options: "RunTests:true"}])
+    connection.expect(:waitfor, nil, &waitfor)
+    connection.expect(:puts, nil, ["cont\n"])
+
+    RokuBuilder::Loader.stub(:new, loader) do
+      Net::Telnet.stub(:new, connection) do
+        RokuBuilder::Linker.stub(:new, linker) do
+          tester.stub(:handle_text, false) do
+            tester.run_tests(sideload_config: loader_config)
+          end
+        end
+      end
+    end
+
+    connection.verify
+  end
+
+  def test_tester_handle_text_no_text
+    device_config = {
+      ip: "111.222.333",
+      user: "user",
+      password: "password",
+      init_params: {root_dir: "root/dir/path"}
     }
     tester = RokuBuilder::Tester.new(**device_config)
 
     text = "this\nis\na\ntest\nparagraph"
+    tester.send(:handle_text, {txt: text})
 
-    assert !tester.send(:handle_text, {txt: text, in_tests: false})
-
-    logger.verify
+    refute tester.instance_variable_get(:@in_tests)
   end
 
   def test_tester_handle_text_all_text
-    logger = Minitest::Mock.new
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      init_params: {root_dir: "root/dir/path"}
     }
     tester = RokuBuilder::Tester.new(**device_config)
+    tester.instance_variable_set(:@in_tests, true)
 
-    text = "this\nis\na\ntest\nparagraph"
+    text = ["this","is","a","test","paragraph"]
 
-    logger.expect(:unknown, nil, ["this"])
-    logger.expect(:unknown, nil, ["is"])
-    logger.expect(:unknown, nil, ["a"])
-    logger.expect(:unknown, nil, ["test"])
-    logger.expect(:unknown, nil, ["paragraph"])
-
-    assert tester.send(:handle_text, {txt: text, in_tests: true})
-
-    logger.verify
+    tester.send(:handle_text, {txt: text.join("\n")})
+    assert_equal text, tester.instance_variable_get(:@logs)
+    assert tester.instance_variable_get(:@in_tests)
   end
 
   def test_tester_handle_text_partial_text
-    logger = Minitest::Mock.new
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger
+      init_params: {root_dir: "root/dir/path"}
     }
     tester = RokuBuilder::Tester.new(**device_config)
 
-    text = "this\n***** STARTING TESTS *****\nis\na\ntest\n***** ENDING TESTS *****\nparagraph"
+    text = ["this","*Start testing*","is","a","test","*End testing*","paragraph"]
+    verify_text = ["***************","***************","*Start testing*","is","a","test","*End testing*","*************","*************"]
 
-    logger.expect(:unknown, nil, ["is"])
-    logger.expect(:unknown, nil, ["a"])
-    logger.expect(:unknown, nil, ["test"])
-
-    assert !tester.send(:handle_text, {txt: text, in_tests: false})
-
-    logger.verify
+    tester.send(:handle_text, {txt: text.join("\n")})
+    refute tester.instance_variable_get(:@in_tests)
+    assert_equal verify_text, tester.instance_variable_get(:@logs)
   end
 end

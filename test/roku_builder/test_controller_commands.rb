@@ -372,18 +372,25 @@ class ControllerCommandsTest < Minitest::Test
   def test_controller_commands_test
     logger = Logger.new("/dev/null")
     tester = Minitest::Mock.new
+    stager = Minitest::Mock.new
 
     options = {test: true, config: "~/.roku_config.json"}
     config = RokuBuilder::Config.new(options: options)
     config.instance_variable_set(:@config, good_config)
     config.parse
     tester.expect(:run_tests, true, [config.parsed[:test_config]])
+    stager.expect(:stage, true)
+    stager.expect(:unstage, true)
     code = nil
-    RokuBuilder::Tester.stub(:new, tester) do
-      code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, logger: logger})
+
+    RokuBuilder::Stager.stub(:new, stager) do
+      RokuBuilder::Tester.stub(:new, tester) do
+        code = RokuBuilder::Controller.send(:execute_commands, {options: options, config: config, logger: logger})
+      end
     end
     assert_equal RokuBuilder::SUCCESS, code
     tester.verify
+    stager.verify
   end
   def test_controller_commands_screencapture
     logger = Logger.new("/dev/null")

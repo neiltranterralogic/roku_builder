@@ -8,8 +8,7 @@ class MonitorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
 
@@ -37,8 +36,7 @@ class MonitorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
     monitor.instance_variable_set(:@show_prompt, true)
@@ -71,8 +69,7 @@ class MonitorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
     monitor.instance_variable_set(:@show_prompt, true)
@@ -113,8 +110,7 @@ class MonitorTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     monitor = RokuBuilder::Monitor.new(**device_config)
     monitor.instance_variable_set(:@show_prompt, true)

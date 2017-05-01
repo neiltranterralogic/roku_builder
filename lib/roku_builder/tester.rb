@@ -8,9 +8,16 @@ module RokuBuilder
   class Tester < Util
 
     # Initialize starting and ending regular expressions
-    def init()
-      @end_reg = /\*\*\*\*\* ENDING TESTS \*\*\*\*\*/
-      @start_reg = /\*\*\*\*\* STARTING TESTS \*\*\*\*\*/
+    def init(root_dir:)
+      @root_dir = root_dir
+      @end_reg = /\*+\s*End testing\s*\*+/
+      @start_reg = /\*+\s*Start testing\s*\*+/
+      @test_logger = ::Logger.new(STDOUT)
+      @test_logger.formatter = proc {|_severity, _datetime, _progname, msg|
+        "%s\n\r" % [msg]
+      }
+      @in_tests = false
+      @logs = []
     end
 
     # Run tests and report results
@@ -21,15 +28,21 @@ module RokuBuilder
         'Port' => 8085
       }
 
+      @device_config[:init_params] = {
+        root_dir: @root_dir
+      }
       loader = Loader.new(**@device_config)
       connection = Net::Telnet.new(telnet_config)
       code, _build_version = loader.sideload(**sideload_config)
-
       if code == SUCCESS
-        in_tests = false
+        @device_config[:init_params] = nil
+        linker = Linker.new(**@device_config)
+        linker.launch(options: "RunTests:true")
+
         connection.waitfor(@end_reg) do |txt|
-          in_tests = handle_text(txt: txt, in_tests: in_tests)
+          handle_text(txt: txt)
         end
+        print_logs
         connection.puts("cont\n")
       end
     end
@@ -40,13 +53,46 @@ module RokuBuilder
     # @param txt [String] current text from telnet
     # @param in_tests [Boolean] currently parsing test text
     # @return [Boolean] currently parsing test text
-    def handle_text(txt:, in_tests:)
+    def handle_text(txt:)
+      check_for_used_connection(txt: txt)
       txt.split("\n").each do |line|
-        in_tests = false if line =~ @end_reg
-        @logger.unknown line if in_tests
-        in_tests = true if line =~ @start_reg
+        check_for_end(line: line)
+        @logs.push line if @in_tests
+        check_for_start(line: line)
       end
-      in_tests
+    end
+
+    def check_for_used_connection(txt:)
+      if txt =~ /connection already in use/
+        raise IOError, "Telnet Connection Already in Use"
+      end
+    end
+
+    def check_for_end(line:)
+      if line =~ @end_reg
+        @in_tests = false
+        breakline = line.gsub(/./, '*')
+        @logs.push line
+        @logs.push breakline
+        @logs.push breakline
+      end
+    end
+
+    def check_for_start(line:)
+      if line =~ @start_reg
+        @logs = []
+        @in_tests = true
+        breakline = line.gsub(/./, '*')
+        @logs.push breakline
+        @logs.push breakline
+        @logs.push line
+      end
+    end
+
+    def print_logs
+      @logs.each do |log|
+        @test_logger.unknown log
+      end
     end
   end
 end

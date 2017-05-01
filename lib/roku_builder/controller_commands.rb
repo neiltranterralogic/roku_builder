@@ -22,7 +22,6 @@ module RokuBuilder
         genkey: { klass: Keyer, method: :genkey, config_key: :genkey },
         screens: { klass: Navigator, method: :screens },
         text: { klass: Navigator, method: :type, config_key: :text_config },
-        test: { klass: Tester, method: :run_tests, config_key: :test_config },
         screencapture: { klass: Inspector, method: :screencapture, config_key: :screencapture_config,
           failure: FAILED_SCREENCAPTURE },
         applist: {klass: Linker, method: :list},
@@ -91,6 +90,22 @@ module RokuBuilder
       end
       stager.unstage
       logger.info "App Packaged; staged using #{stager.method}"
+      SUCCESS
+    end
+    # Run Sideload
+    # @param options [Hash] user options
+    # @param config [Config] parsed config
+    # @param logger [Logger] system logger
+    # @return [Integer] Success or Failure Code
+    def self.test(options:, config:, logger:)
+      device_config = config.parsed[:device_config].dup
+      device_config[:init_params] = config.parsed[:init_params][:tester]
+      stager = Stager.new(**config.parsed[:stage_config])
+      if stager.stage
+        tester = Tester.new(**device_config)
+        tester.run_tests(**config.parsed[:test_config])
+      end
+      stager.unstage
       SUCCESS
     end
 

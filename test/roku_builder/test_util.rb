@@ -7,8 +7,7 @@ class UtilTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     test = TestClass.new(**device_config)
     assert test.inited

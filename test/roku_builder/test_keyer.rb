@@ -11,8 +11,7 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     path = "/plugin_package"
     body = "v class=\"roku-font-5\"><label>Your Dev ID: &nbsp;</label> dev_id<hr></div>"
@@ -44,8 +43,7 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     path = "/plugin_package"
     body = "<p> Your Dev ID: <font face=\"Courier\">dev_id</font> </p>"
@@ -78,8 +76,7 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     path = "/plugin_inspect"
     password = "password"
@@ -140,8 +137,7 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     keyer = RokuBuilder::Keyer.new(**device_config)
     Net::Telnet.stub(:new, connection) do
@@ -159,8 +155,7 @@ class KeyerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
 
     keyer = RokuBuilder::Keyer.new(**device_config)

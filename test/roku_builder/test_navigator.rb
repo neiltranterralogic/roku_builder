@@ -43,7 +43,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
     if success
@@ -88,9 +87,9 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {mappings: {}}
     }
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
     navigator = RokuBuilder::Navigator.new(**device_config)
 
     logger.expect(:info, nil, ["Home x 5, Fwd x 3, Rev x 2,"])
@@ -103,22 +102,20 @@ class NavigatorTest < Minitest::Test
     end
 
     logger.verify
+    RokuBuilder::Logger.set_testing
   end
 
   def test_navigator_screen_fail
-    logger = Minitest::Mock.new
     device_config = {
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {mappings: {}}
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
 
     assert !navigator.screen(type: :bad)
 
-    logger.verify
   end
 
   def test_navigator_screens
@@ -127,9 +124,9 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: logger,
       init_params: {mappings: {}}
     }
+    RokuBuilder::Logger.class_variable_set(:@@instance, logger)
     navigator = RokuBuilder::Navigator.new(**device_config)
 
     navigator.instance_variable_get("@screens").each_key do |key|
@@ -139,6 +136,7 @@ class NavigatorTest < Minitest::Test
     navigator.screens
 
     logger.verify
+    RokuBuilder::Logger.set_testing
   end
 
   def test_navigator_read_char
@@ -152,7 +150,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
 
@@ -182,7 +179,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
 
@@ -205,7 +201,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
     navigator = RokuBuilder::Navigator.new(**device_config)
@@ -220,7 +215,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
 
@@ -254,7 +248,6 @@ class NavigatorTest < Minitest::Test
       ip: "111.222.333",
       user: "user",
       password: "password",
-      logger: Logger.new("/dev/null"),
       init_params: {mappings: {}}
     }
 

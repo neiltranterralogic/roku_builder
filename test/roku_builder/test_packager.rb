@@ -11,8 +11,7 @@ class PackagerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     payload = {
       mysubmit: "Package",
@@ -65,8 +64,7 @@ class PackagerTest < Minitest::Test
     device_config = {
       ip: "111.222.333",
       user: "user",
-      password: "password",
-      logger: Logger.new("/dev/null")
+      password: "password"
     }
     payload = {
       mysubmit: "Package",
