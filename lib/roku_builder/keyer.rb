@@ -11,7 +11,7 @@ module RokuBuilder
       @logger.info("DevID: "+dev_id)
 
       unless out_file
-        out_file = File.join("/tmp", "key_"+dev_id+".pkg")
+        out_file = File.join(Dir.tmpdir, "key_"+dev_id+".pkg")
       end
 
       Dir.mktmpdir { |dir|

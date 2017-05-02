@@ -117,7 +117,7 @@ module RokuBuilder
 
     def set_default_outfile
       unless @parsed[:out][:folder]
-        @parsed[:out][:folder] = "/tmp"
+        @parsed[:out][:folder] = Dir.tmpdir
       end
     end
 

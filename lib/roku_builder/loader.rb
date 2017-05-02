@@ -62,7 +62,7 @@ module RokuBuilder
       content[:folders] ||= Dir.entries(@root_dir).select {|entry| File.directory? File.join(@root_dir, entry) and !(entry =='.' || entry == '..') }
       content[:files] ||= Dir.entries(@root_dir).select {|entry| File.file? File.join(@root_dir, entry)}
       content[:excludes] ||= []
-      out_file = "/tmp/#{build_version}" unless out_file
+      out_file = "#{Dir.tmpdir}/#{build_version}" unless out_file
       out_file = out_file+".zip" unless out_file.end_with?(".zip")
       File.delete(out_file) if File.exist?(out_file)
       io = Zip::File.open(out_file, Zip::File::CREATE)

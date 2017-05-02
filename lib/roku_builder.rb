@@ -10,6 +10,7 @@ require "net/ping"
 require "net/telnet"
 require "fileutils"
 require "tempfile"
+require "tmpdir"
 require "zip"
 require "git"
 #config_manager
