@@ -26,7 +26,7 @@ module RokuBuilder
     end
 
     def self.set_testing
-      @@instance = ::Logger.new("/dev/null")
+      @@instance = ::Logger.new(File::NULL)
     end
   end
 end

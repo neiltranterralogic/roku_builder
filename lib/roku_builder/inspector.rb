@@ -54,7 +54,7 @@ module RokuBuilder
       payload =  {
         mysubmit: "Screenshot",
         passwd: @dev_password,
-        archive: Faraday::UploadIO.new("/dev/null", 'application/octet-stream')
+        archive: Faraday::UploadIO.new(File::NULL, 'application/octet-stream')
       }
       response = conn.post path, payload
 

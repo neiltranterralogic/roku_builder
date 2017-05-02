@@ -154,7 +154,6 @@ module RokuBuilder
             host = value[:ip]
             if ping.ping? host, 1, 0.2, 1
               config.parsed[:device_config] = value
-              config.parsed[:device_config][:logger] = logger
               return CHANGED_DEVICE
             end
           end
