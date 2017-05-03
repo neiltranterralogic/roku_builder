@@ -129,7 +129,7 @@ parser = OptionParser.new do |opts|
     options[:set_stage] = true
   end
 
-  opts.on("-M", "--manifest-update", "Update the manifest file while packaging") do
+  opts.on("-M", "--manifest-update", "Update the manifest file while building or packaging") do
     options[:update_manifest] = true
   end
 
