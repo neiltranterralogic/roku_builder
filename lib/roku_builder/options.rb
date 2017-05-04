@@ -2,7 +2,7 @@
 
 module RokuBuilder
   class Options < Hash
-    def initialize(options: options)
+    def initialize(options:)
       merge!(options)
       @logger = Logger.instance
       validate

@@ -59,7 +59,7 @@ module RokuBuilder
         "exit", "gc", "help", "last", "list", "next", "print", "p", "?", "step",
         "s", "t", "over", "out", "up", "u", "var", "q"
       ].sort
-      commands.collect { |i| i += ' '  } if libedit
+      commands.collect { |i| i + ' '  } if libedit
 
       comp = proc { |s| commands.grep( /^#{Regexp.escape(s)}/  )  }
 

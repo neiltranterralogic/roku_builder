@@ -12,18 +12,15 @@ module RokuBuilder
 
       initialize_logger(options: options)
 
-      # Configure Gem
-      configure_code = configure(options: options, logger: Logger.instance)
-      ErrorHandler.handle_configure_codes(configure_code: configure_code, logger: Logger.instance)
-
       # Load Config
       config = Config.new(options: options)
+      config.configure
       config.load
       config.validate
       config.parse
 
       # Check devices
-      device_code = check_devices(options: options, config: config, logger: Logger.instance)
+      device_code = check_devices(options: options, config: config)
       ErrorHandler.handle_device_codes(device_code: device_code, logger: Logger.instance)
 
       # Run Commands
@@ -45,12 +42,11 @@ module RokuBuilder
     # @param options [Hash] The options hash
     # @return [Integer] Return code for options handeling
     # @param logger [Logger] system logger
-    def self.execute_commands(options:, config:, logger:)
+    def self.execute_commands(options:, config:)
       command = options.command
       if ControllerCommands.simple_commands.keys.include?(command)
         params = ControllerCommands.simple_commands[command]
         params[:config] = config
-        params[:logger] = logger
         ControllerCommands.simple_command(**params)
       else
         params = ControllerCommands.method(command.to_s).parameters.collect{|a|a[1]}
@@ -61,8 +57,6 @@ module RokuBuilder
             args[:options] = options
           when :config
             args[:config] = config
-          when :logger
-            args[:logger] = logger
           end
         end
         ControllerCommands.send(command, args)
@@ -73,7 +67,7 @@ module RokuBuilder
     # Ensure that the selected device is accessable
     # @param options [Hash] The options hash
     # @param logger [Logger] system logger
-    def self.check_devices(options:, config:, logger:)
+    def self.check_devices(options:, config:)
       if options.device_command?
         ping = Net::Ping::External.new
         host = config.parsed[:device_config][:ip]

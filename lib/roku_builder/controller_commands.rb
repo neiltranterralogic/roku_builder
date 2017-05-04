@@ -29,18 +29,16 @@ module RokuBuilder
       }
     end
     # Validate Config
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.validate(logger:)
-      logger.info "Config validated"
+    def self.validate()
+      Logger.instance.info "Config validated"
       SUCCESS
     end
     # Run Sideload
     # @param options [Hash] user options
     # @param config [Config] parsed config
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.sideload(options:, config:, logger:)
+    def self.sideload(options:, config:)
       device_config = config.parsed[:device_config].dup
       device_config[:init_params] = config.parsed[:init_params][:loader]
       stager = Stager.new(**config.parsed[:stage_config])
@@ -54,23 +52,22 @@ module RokuBuilder
       end
       stager.unstage
       if success == SUCCESS
-        logger.info "App Sideloaded; staged using #{stager.method}"
+        Logger.instance.info "App Sideloaded; staged using #{stager.method}"
       end
       success
     end
     # Run Package
     # @param options [Hash] user options
     # @param config [Conifg] config object
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.package(options:, config:, logger:)
+    def self.package(options:, config:)
       loader_config = config.parsed[:device_config].dup
       loader_config[:init_params] = config.parsed[:init_params][:loader]
       keyer = Keyer.new(**config.parsed[:device_config])
       stager = Stager.new(**config.parsed[:stage_config])
       loader = Loader.new(**loader_config)
       packager = Packager.new(**config.parsed[:device_config])
-      logger.warn "Packaging working directory" if options[:working]
+      Logger.instance.warn "Packaging working directory" if options[:working]
       if stager.stage
         # Sideload #
         code, build_version = loader.sideload(**config.parsed[:sideload_config])
@@ -81,7 +78,7 @@ module RokuBuilder
         options[:build_version] = build_version
         config.update
         success = packager.package(**config.parsed[:package_config])
-        logger.info "Signing Successful: #{config.parsed[:package_config][:out_file]}" if success
+        Logger.instance.info "Signing Successful: #{config.parsed[:package_config][:out_file]}" if success
         return FAILED_SIGNING unless success
         # Inspect #
         if options[:inspect]
@@ -89,15 +86,14 @@ module RokuBuilder
         end
       end
       stager.unstage
-      logger.info "App Packaged; staged using #{stager.method}"
+      Logger.instance.info "App Packaged; staged using #{stager.method}"
       SUCCESS
     end
     # Run Sideload
     # @param options [Hash] user options
     # @param config [Config] parsed config
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.test(options:, config:, logger:)
+    def self.test(options:, config:)
       device_config = config.parsed[:device_config].dup
       device_config[:init_params] = config.parsed[:init_params][:tester]
       stager = Stager.new(**config.parsed[:stage_config])
@@ -128,9 +124,8 @@ module RokuBuilder
     # Run Build
     # @param options [Hash] user options
     # @param config [Config] config object
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.build(options:, config:, logger:)
+    def self.build(options:, config:)
       ### Build ###
       loader_config = config.parsed[:device_config].dup
       loader_config[:init_params] = config.parsed[:init_params][:loader]
@@ -141,23 +136,22 @@ module RokuBuilder
         options[:build_version] = build_version
         config.update
         outfile = loader.build(**config.parsed[:build_config])
-        logger.info "Build: #{outfile}"
+        Logger.instance.info "Build: #{outfile}"
       end
       stager.unstage
-      logger.info "App build; staged using #{stager.method}"
+      Logger.instance.info "App build; staged using #{stager.method}"
       SUCCESS
     end
     # Run update
     # @param config [Config] config object
-    # @param logger [Logger] system logger
     # @return [Integer] Success or Failure Code
-    def self.update(config:, logger:)
+    def self.update(config:)
       ### Update ###
       stager = Stager.new(**config.parsed[:stage_config])
       if stager.stage
         old_version = ManifestManager.build_version(**config.parsed[:manifest_config])
         new_version = ManifestManager.update_build(**config.parsed[:manifest_config])
-        logger.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
+        Logger.instance.info "Update build version from:\n#{old_version}\nto:\n#{new_version}"
       end
       stager.unstage
       SUCCESS
@@ -166,15 +160,14 @@ module RokuBuilder
     # Run Deeplink
     # @param options [Hash] user options
     # @param config [Config] config object
-    # @param logger [Logger] system logger
-    def self.deeplink(options:, config:, logger:)
+    def self.deeplink(options:, config:)
       if options.has_source?
-        sideload(options: options, config: config, logger:logger)
+        sideload(options: options, config: config)
       end
 
       linker = Linker.new(config.parsed[:device_config])
       if linker.launch(config.parsed[:deeplink_config])
-        logger.info "Deeplinked into app"
+        Logger.instance.info "Deeplinked into app"
         return SUCCESS
       else
         return FAILED_DEEPLINKING
@@ -210,9 +203,8 @@ module RokuBuilder
     # @param config_key [Symbol] config to send from configs if not nil
     # @param config [Configs] config object
     # @param failure [Integer] failure code to return on failure if not nil
-    # @param logger [Logger] system logger
     # @return [Integer] Success of failure code
-    def self.simple_command(klass:, method:, config_key: nil, config:, failure: nil, logger:)
+    def self.simple_command(klass:, method:, config_key: nil, config:, failure: nil)
       klass_config = config.parsed[:device_config].dup
       key = klass.to_s.split("::")[-1].underscore.to_sym
       if config.parsed[:init_params][key]
@@ -225,7 +217,7 @@ module RokuBuilder
         success = instance.send(method)
       end
       return failure unless failure.nil? or success
-      logger.debug "#{klass} call #{method} successfully"
+      Logger.instance.debug "#{klass} call #{method} successfully"
       SUCCESS
     end
   end

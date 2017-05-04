@@ -147,22 +147,18 @@ module RokuBuilder
 
     def build_edit_state
       {
-        project: get_project_key,
-        device: get_device_key,
-        stage: get_stage_key(project: get_project_key)
+        project: get_key_for(:project),
+        device: get_key_for(:device),
+        stage: get_stage_key(project: get_key_for(:project))
       }
     end
 
-    def get_project_key
-      project = @options[:project].to_sym if @options[:project]
-      project ||= @config[:projects][:default]
+    def get_key_for(type)
+      project = @options[type].to_sym if @options[type]
+      project ||= @config[(type.to_s+"s").to_sym][:default]
       project
     end
-    def get_device_key
-      device = @options[:device].to_sym if @options[:device]
-      device ||= @config[:devices][:default]
-      device
-    end
+
     def get_stage_key(project:)
       stage = @options[:stage].to_sym if @options[:stage]
       stage ||= @config[:projects][project][:stages].keys[0].to_sym

@@ -83,9 +83,9 @@ module RokuBuilder
 
     def get_repo_path(project_config:)
       if @config[:projects][:project_dir]
-        repo_path = Pathname.new(File.join(@config[:projects][:project_dir], project_config[:directory])).realdirpath
+        Pathname.new(File.join(@config[:projects][:project_dir], project_config[:directory])).realdirpath
       else
-        repo_path = Pathname.new(project_config[:directory]).realdirpath
+        Pathname.new(project_config[:directory]).realdirpath
       end
     end
 
