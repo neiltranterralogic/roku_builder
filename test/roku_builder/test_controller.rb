@@ -4,7 +4,6 @@ require_relative "test_helper.rb"
 
 class ControllerTest < Minitest::Test
   def test_controller_check_devices
-    logger = Logger.new("/dev/null")
     ping = Minitest::Mock.new
     options = RokuBuilder::Options.new(options: {sideload: true, device_given: false, working: true})
     raw = {
@@ -23,28 +22,28 @@ class ControllerTest < Minitest::Test
     Net::Ping::External.stub(:new, ping) do
 
       ping.expect(:ping?, true, [parsed[:device_config][:ip], 1, 0.2, 1])
-      code, ret = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, logger: logger})
+      code, ret = RokuBuilder::Controller.send(:check_devices, {options: options, config: config})
       assert_equal RokuBuilder::GOOD_DEVICE, code
 
       ping.expect(:ping?, false, [parsed[:device_config][:ip], 1, 0.2, 1])
       ping.expect(:ping?, false, [raw[:devices][:a][:ip], 1, 0.2, 1])
       ping.expect(:ping?, false, [raw[:devices][:b][:ip], 1, 0.2, 1])
-      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, logger: logger})
+      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config})
       assert_equal RokuBuilder::NO_DEVICES, code
 
       ping.expect(:ping?, false, [parsed[:device_config][:ip], 1, 0.2, 1])
       ping.expect(:ping?, true, [raw[:devices][:a][:ip], 1, 0.2, 1])
-      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, logger: logger})
+      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config})
       assert_equal RokuBuilder::CHANGED_DEVICE, code
       assert_equal raw[:devices][:a][:ip], config.parsed[:device_config][:ip]
 
       options[:device_given] = true
       ping.expect(:ping?, false, [parsed[:device_config][:ip], 1, 0.2, 1])
-      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, logger: logger})
+      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config})
       assert_equal RokuBuilder::BAD_DEVICE, code
 
       options = RokuBuilder::Options.new(options: {build: true, device_given: false, working: true})
-      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config, logger: logger})
+      code = RokuBuilder::Controller.send(:check_devices, {options: options, config: config})
       assert_equal RokuBuilder::GOOD_DEVICE, code
     end
   end
