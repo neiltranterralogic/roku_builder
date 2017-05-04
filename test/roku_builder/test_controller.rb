@@ -3,46 +3,6 @@
 require_relative "test_helper.rb"
 
 class ControllerTest < Minitest::Test
-  def test_controller_configure
-    logger = Logger.new("/dev/null")
-    target_config = File.join(File.dirname(__FILE__), "test_files", "controller_test", "configure_test.json")
-    File.delete(target_config) if File.exist?(target_config)
-    assert !File.exist?(target_config)
-
-    options = {
-      configure: true,
-      config: target_config,
-    }
-
-    code = RokuBuilder::Controller.send(:configure, {options: options, logger: logger})
-
-    assert File.exist?(target_config)
-
-    options = {
-      configure: true,
-      config: target_config,
-      edit_params: "ip:111.222.333.444"
-    }
-
-    code = RokuBuilder::Controller.send(:configure, {options: options, logger: logger})
-
-    assert File.exist?(target_config)
-    config = RokuBuilder::Config.new(options: options)
-    config.load
-    assert_equal "111.222.333.444", config.raw[:devices][config.raw[:devices][:default]][:ip]
-
-    options = {
-      configure: true,
-      config: target_config
-    }
-
-    code = RokuBuilder::Controller.send(:configure, {options: options, logger: logger})
-
-    assert_equal RokuBuilder::CONFIG_OVERWRITE, code
-
-    File.delete(target_config) if File.exist?(target_config)
-  end
-
   def test_controller_check_devices
     logger = Logger.new("/dev/null")
     ping = Minitest::Mock.new
@@ -89,7 +49,7 @@ class ControllerTest < Minitest::Test
     end
   end
 
-  def bad_test_controller_run_debug
+  def test_controller_run_debug
     tests = [
       {options: {debug: true}, method: :set_debug},
       {options: {verbose: true}, method: :set_info},

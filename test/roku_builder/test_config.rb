@@ -119,4 +119,48 @@ class ConfigTest < Minitest::Test
     config.update
     assert_equal "/tmp2/app_production_BUILDVERSION", config.parsed[:sideload_config][:out_file]
   end
+
+  def test_config_configure_creation
+    target_config = File.join(test_files_path(ConfigTest), "configure_test.json")
+    options = RokuBuilder::Options.new(options: {config: target_config, configure: true})
+    File.delete(target_config) if File.exist?(target_config)
+    refute File.exist?(target_config)
+    config = RokuBuilder::Config.new(options: options)
+    config.configure
+    assert File.exist?(target_config)
+    File.delete(target_config) if File.exist?(target_config)
+  end
+
+  def test_config_configure_edit_params
+    target_config = File.join(test_files_path(ConfigTest), "configure_test.json")
+    options = RokuBuilder::Options.new(options: {
+      config: target_config,
+      configure: true,
+      edit_params: "ip:111.222.333.444"
+    })
+    File.delete(target_config) if File.exist?(target_config)
+    refute File.exist?(target_config)
+    config = RokuBuilder::Config.new(options: options)
+    config.configure
+    assert File.exist?(target_config)
+    assert_equal "111.222.333.444", config.raw[:devices][config.raw[:devices][:default]][:ip]
+    File.delete(target_config) if File.exist?(target_config)
+  end
+
+  def test_config_configure_edit_params
+    target_config = File.join(test_files_path(ConfigTest), "configure_test.json")
+    options = RokuBuilder::Options.new(options: {
+      config: target_config,
+      configure: true
+    })
+    File.delete(target_config) if File.exist?(target_config)
+    refute File.exist?(target_config)
+    config = RokuBuilder::Config.new(options: options)
+    config.configure
+    assert File.exist?(target_config)
+    assert_raises RokuBuilder::InvalidOptions do
+      config.configure
+    end
+    File.delete(target_config) if File.exist?(target_config)
+  end
 end

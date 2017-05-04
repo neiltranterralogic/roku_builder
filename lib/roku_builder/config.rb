@@ -34,6 +34,7 @@ module RokuBuilder
     end
 
     def edit
+      load
       apply_options
       config_string = JSON.pretty_generate(@config)
       file = File.open(@options[:config], "w")
@@ -47,6 +48,20 @@ module RokuBuilder
         update_build_config
         update_sideload_config
         update_inspect_config
+      end
+    end
+
+    def configure
+      if @options[:configure]
+        source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
+        target_config = File.expand_path(@options[:config])
+        if File.exist?(target_config)
+          unless @options[:edit_params]
+            raise InvalidOptions, "Not overwriting config. Add --edit options to do so."
+          end
+        end
+        FileUtils.copy(source_config, target_config)
+        edit if @options[:edit_params]
       end
     end
 

@@ -94,33 +94,6 @@ module RokuBuilder
     end
     private_class_method :check_devices
 
-    # Configure the gem
-    # @param options [Hash] The options hash
-    # @return [Integer] Success or failure code
-    # @param logger [Logger] system logger
-    def self.configure(options:, logger:)
-      if options[:configure]
-        source_config = File.expand_path(File.join(File.dirname(__FILE__), "..", '..', 'config.json.example'))
-        target_config = File.expand_path(options[:config])
-        if File.exist?(target_config)
-          unless options[:edit_params]
-            return CONFIG_OVERWRITE
-          end
-        else
-          ### Copy Config File ###
-          FileUtils.copy(source_config, target_config)
-        end
-        if options[:edit_params]
-          config = Config.new(options: options)
-          config.load
-          config.edit
-        end
-        return SUCCESS
-      end
-      nil
-    end
-    private_class_method :configure
-
     # Run a system command
     # @param command [String] The command to be run
     # @return [String] The output of the command
