@@ -16,60 +16,64 @@ require "minitest/autorun"
 RokuBuilder::Logger.set_testing
 
 def test_files_path(klass)
-  File.join(File.dirname(__FILE__), "test_files", klass.to_s.underscore)
+  klass = klass.to_s.split("::")[1].underscore
+  File.join(File.dirname(__FILE__), "test_files", klass)
 end
 
+def build_options(options)
+  RokuBuilder::Options.new(options: options)
+end
 
 def good_config
   {
     devices: {
-      default: :roku,
-      roku: {
-        ip: "192.168.0.100",
-        user: "user",
-        password: "password"
-      }
-    },
+    default: :roku,
+    roku: {
+    ip: "192.168.0.100",
+    user: "user",
+    password: "password"
+  }
+  },
     projects: {
-      default: :project1,
-      project1: {
-        directory: "/tmp",
-        folders: ["resources","source"],
-        files: ["manifest"],
-        app_name: "<app name>",
-        stage_method: :git,
-        stages:{
-          production: {
-            branch: "production",
-            key: {
-              keyed_pkg: "/tmp",
-              password: "<password for pkg>"
-            }
-          }
-        }
-      },
-      project2: {
-        directory: "/tmp",
-        folders: ["resources","source"],
-        files: ["manifest"],
-        app_name: "<app name>",
-        stage_method: :git,
-        stages:{
-          production: {
-            branch: "production",
-            key: "a"
-          }
-        }
-      }
-    },
+    default: :project1,
+    project1: {
+    directory: "/tmp",
+    folders: ["resources","source"],
+    files: ["manifest"],
+    app_name: "<app name>",
+    stage_method: :git,
+    stages:{
+    production: {
+    branch: "production",
+    key: {
+    keyed_pkg: "/tmp",
+    password: "<password for pkg>"
+  }
+  }
+  }
+  },
+    project2: {
+    directory: "/tmp",
+    folders: ["resources","source"],
+    files: ["manifest"],
+    app_name: "<app name>",
+    stage_method: :git,
+    stages:{
+    production: {
+    branch: "production",
+    key: "a"
+  }
+  }
+  }
+  },
     keys: {
-      a: {
-        keyed_pkg: "/tmp",
-        password: "password"
-      }
-    },
+    a: {
+    keyed_pkg: "/tmp",
+    password: "password"
+  }
+  },
     input_mapping: {
-      "a": ["home", "Home"]
-    }
+    "a": ["home", "Home"]
+  }
   }
 end

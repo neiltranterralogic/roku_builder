@@ -1,87 +1,88 @@
 # ********** Copyright Viacom, Inc. Apache 2.0 **********
 
 require_relative "test_helper.rb"
-
-class RokuBuilder::ErrorHandler
-  class << self
-    def abort
-      #do nothing
+module RokuBuilder
+  class ErrorHandler
+    class << self
+      def abort
+        #do nothing
+      end
     end
   end
-end
 
-class ErrorHandlerTest < Minitest::Test
-  def test_handle_error_codes
-    error_groups = {
-      fatal: {
+  class ErrorHandlerTest < Minitest::Test
+    def test_handle_error_codes
+      error_groups = {
+        fatal: {
         options_code: [
-          RokuBuilder::EXTRA_COMMANDS,
-          RokuBuilder::NO_COMMANDS,
-          RokuBuilder::EXTRA_SOURCES,
-          RokuBuilder::NO_SOURCE,
-          RokuBuilder::BAD_CURRENT,
-          RokuBuilder::BAD_IN_FILE
-        ],
+          EXTRA_COMMANDS,
+          NO_COMMANDS,
+          EXTRA_SOURCES,
+          NO_SOURCE,
+          BAD_CURRENT,
+          BAD_IN_FILE
+      ],
         configure_code:[
-          RokuBuilder::CONFIG_OVERWRITE,
-        ],
-        device_code: [
-          RokuBuilder::BAD_DEVICE,
-          RokuBuilder::NO_DEVICES,
-        ],
-        load_code: [
-          RokuBuilder::MISSING_CONFIG,
-          RokuBuilder::INVALID_CONFIG,
-          RokuBuilder::MISSING_MANIFEST,
-          RokuBuilder::UNKNOWN_DEVICE,
-          RokuBuilder::UNKNOWN_PROJECT,
-          RokuBuilder::UNKNOWN_STAGE,
-          RokuBuilder::BAD_PROJECT_DIR,
-          RokuBuilder::BAD_KEY_FILE
-        ],
+          CONFIG_OVERWRITE,
+      ],
+      device_code: [
+        BAD_DEVICE,
+        NO_DEVICES,
+      ],
+      load_code: [
+        MISSING_CONFIG,
+        INVALID_CONFIG,
+        MISSING_MANIFEST,
+        UNKNOWN_DEVICE,
+        UNKNOWN_PROJECT,
+        UNKNOWN_STAGE,
+        BAD_PROJECT_DIR,
+        BAD_KEY_FILE
+      ],
         command_code: [
-          RokuBuilder::FAILED_SIDELOAD,
-          RokuBuilder::FAILED_SIGNING,
-          RokuBuilder::FAILED_DEEPLINKING,
-          RokuBuilder::FAILED_NAVIGATING,
-          RokuBuilder::FAILED_SCREENCAPTURE,
-          RokuBuilder::MISSING_MANIFEST,
-          RokuBuilder::BAD_PRINT_ATTRIBUTE
-        ],
+          FAILED_SIDELOAD,
+          FAILED_SIGNING,
+          FAILED_DEEPLINKING,
+          FAILED_NAVIGATING,
+          FAILED_SCREENCAPTURE,
+          MISSING_MANIFEST,
+          BAD_PRINT_ATTRIBUTE
+      ],
         configs_code: [
-          RokuBuilder::MISSING_OUT_FOLDER
-        ]
+          MISSING_OUT_FOLDER
+      ]
       },
-      info: {
+        info: {
         device_code: [
-          RokuBuilder::CHANGED_DEVICE
-        ],
+          CHANGED_DEVICE
+      ],
         configure_code:[
-          RokuBuilder::SUCCESS
-        ]
+          SUCCESS
+      ]
       },
-      warn: {
+        warn: {
         load_code: [
-          RokuBuilder::DEPRICATED_CONFIG
-        ]
+          DEPRICATED_CONFIG
+      ]
       },
-      debug: {
+        debug: {
         configs_code: [
-          RokuBuilder::VALID
-        ]
+          VALID
+      ]
       }
-    }
-    error_groups.each_pair do |type,errors|
-      errors.each_pair do |key,value|
-        value.each do |code|
-          logger = Minitest::Mock.new
-          options = {logger: logger}
-          options[:options] = {deeplink_depricated: true} if key == :load_code or key == :options_code
-          options[key] = code
-          logger.expect(type, nil)  {|string| string.class == String}
-          method = "handle_#{key}s"
-          RokuBuilder::ErrorHandler.send(method.to_sym, **options)
-          logger.verify
+      }
+      error_groups.each_pair do |type,errors|
+        errors.each_pair do |key,value|
+          value.each do |code|
+            logger = Minitest::Mock.new
+            options = {logger: logger}
+            options[:options] = {deeplink_depricated: true} if key == :load_code or key == :options_code
+            options[key] = code
+            logger.expect(type, nil)  {|string| string.class == String}
+            method = "handle_#{key}s"
+            ErrorHandler.send(method.to_sym, **options)
+            logger.verify
+          end
         end
       end
     end
