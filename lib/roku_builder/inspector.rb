@@ -62,9 +62,10 @@ module RokuBuilder
       return false unless path
       path = path[1]
       unless out_file
-        out_file = /time=([^"]*)">/.match(response.body)
+        out_time = /time=([^"]*)">/.match(response.body)
         out_ext = /dev.([^"]*)\?/.match(response.body)
-        out_file = "dev_#{out_file[1]}.#{out_ext[1]}" if out_file
+        out_file = "dev_#{out_time[1]}.#{out_ext[1]}" if out_time and out_ext
+        out_file = "dev.jpg" unless out_file
       end
 
       conn = simple_connection
